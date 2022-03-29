@@ -1,3 +1,3 @@
 from .base import Game
-from .color import Color
+from .color import *
 from .utils import *
