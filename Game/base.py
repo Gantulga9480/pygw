@@ -29,6 +29,7 @@ class Game:
         self.mouse_x = 0
         self.mouse_y = 0
         self.events = []
+        self.keys = []
 
         # Render
         self.sprites: list[pg.Rect] = []
@@ -100,6 +101,7 @@ class Game:
                 break
             else:
                 self.events.append(event)
+        self.keys = pg.key.get_pressed()
         return self.running
 
     def __highLevelRender(self):
