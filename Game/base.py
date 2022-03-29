@@ -20,7 +20,7 @@ class Game:
         self.screen_height: int = height
         self.fps: int = fps
         self.title: str = title
-        self.backgroundColor: pg.Color = Color.WHITE
+        self.backgroundColor: pg.Color = WHITE
         self.running: bool = True
         self.rendering: bool = render
         self.clock = pg.time.Clock()
