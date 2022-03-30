@@ -48,16 +48,16 @@ class Game:
     def mainloop(self):
         self.__highLevelSetup()
         while self.running:
-            self.loop_start()
+            self.USR_loop_start()
             self.__highLevelEventHandler()
             self.__highLevelRender()
-            self.loop_end()
+            self.USR_loop_end()
 
-    def loop_start(self):
+    def USR_loop_start(self):
         """ User should override this method """
         ...
 
-    def loop_end(self):
+    def USR_loop_end(self):
         """ User should override this method """
         ...
 
