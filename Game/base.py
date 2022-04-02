@@ -16,8 +16,8 @@ class Game:
         pg.init()
 
         # Main window
-        self.screen_width: int = width
-        self.screen_height: int = height
+        self.width: int = width
+        self.height: int = height
         self.fps: int = fps
         self.title: str = title
         self.backgroundColor: pg.Color = WHITE
@@ -75,8 +75,8 @@ class Game:
         raise NotImplementedError
 
     def __lowLevelSetup(self):
-        self.game_window = self.get_window(self.screen_width,
-                                           self.screen_height)
+        self.window = self.get_window(self.width,
+                                      self.height)
         self.set_title(self.title)
 
     def __highLevelEventHandler(self):
@@ -120,7 +120,7 @@ class Game:
         raise NotImplementedError
 
     def renderBackground(self):
-        self.game_window.fill(self.backgroundColor)
+        self.window.fill(self.backgroundColor)
 
     def __lowLevelRender(self):
         """ TODO flip() or update() """
