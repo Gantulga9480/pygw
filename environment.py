@@ -51,13 +51,14 @@ class agent:
         self.position = parent.vector(x, y)
         self.plane = AgentPlane((WIDTH, HEIGHT), WIDTH//(MAX_SPEED//1.4142*2))
         self.plane.XY = self.position.XY
-        self.head = self.plane.vector(1, 0)
+        self.head = self.plane.vector(0, 0)
 
     def move(self, positions):
         _rect = self.rect
         is_collide = _rect.collidelistall(positions)
+        # print(is_collide)
         if is_collide:
-            self.head.rotate(math.pi)
+            self.head
         is_hit = self.plane.move(self.head, self.position)
         if is_hit:
             self.head.rotate(math.pi)
@@ -70,7 +71,7 @@ class agent:
 
 class environment:
 
-    def __init__(self, num_agents=1) -> None:
+    def __init__(self) -> None:
         self.plane = MainPlane((WIDTH, HEIGHT))
         self.agents: list[agent] = []
         self.speeds = [1/1.3, 1/1.25, 1/1.2, 1/1.15, 1/1.1, 1,
@@ -79,9 +80,9 @@ class environment:
                           math.pi/64, math.pi/32, math.pi/16, math.pi/8]
         # for _ in range(num_agents):
         self.agents.append(agent(0, 0, self.plane))
-        self.agents.append(agent(100, 0, self.plane))
-        self.agents.append(agent(100, 100, self.plane))
-        self.agents.append(agent(100, 200, self.plane))
+        # self.agents.append(agent(100, 0, self.plane))
+        # self.agents.append(agent(100, 100, self.plane))
+        # self.agents.append(agent(100, 200, self.plane))
 
     def step(self):
         for i, agent in enumerate(self.agents):

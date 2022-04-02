@@ -4,40 +4,53 @@ import math
 class scalar:
 
     def __init__(self, value=0, limits=None) -> None:
-        self.value = value
         self.limits = limits
-        self.overflow = False
+        if value < self.limits[0]:
+            self.value = self.limits[0]
+        elif value > self.limits[1]:
+            self.value = self.limits[1]
+        else:
+            self.value = value
 
     def __add__(self, o: object):
-        if self.limits and self.value + o <= self.limits[1]:
-            self.value += o
-            self.overflow = False
+        if self.limits:
+            if self.value + o <= self.limits[1]:
+                self.value += o
+            else:
+                self.value = self.limits[1]
         else:
-            self.overflow = True
+            self.value += o
         return self
 
     def __sub__(self, o: object):
-        if self.limits and self.value - o >= self.limits[0]:
-            self.value -= o
-            self.overflow = False
+        print(self.value, o)
+        if self.limits:
+            if self.value - o >= self.limits[0]:
+                self.value -= o
+            else:
+                self.value = 0
         else:
-            self.overflow = True
+            self.value -= o
         return self
 
     def __mul__(self, o: object):
-        if self.limits and self.limits[0] <= self.value * o <= self.limits[1]:
-            self.value *= o
-            self.overflow = False
+        if self.limits:
+            if self.value * o <= self.limits[1]:
+                self.value *= o
+            else:
+                self.value = self.limits[1]
         else:
-            self.overflow = True
+            self.value *= o
         return self
 
     def __truediv__(self, o: object):
-        if self.limits and self.limits[0] <= self.value / o <= self.limits[1]:
-            self.value /= o
-            self.overflow = False
+        if self.limits:
+            if self.value / o <= self.limits[1]:
+                self.value /= o
+            else:
+                self.value = self.limits[0]
         else:
-            self.overflow = True
+            self.value /= o
         return self
 
     def __repr__(self) -> str:
@@ -63,8 +76,9 @@ class plane:
         self.set_limit()
 
     def __add__(self, o):
-        self._x_dif += o
-        self._y_dif += o
+        if self.unit_length + o <= self._size[0] or \
+                self.unit_length + o <= self._size[1]:
+            self.unit_length += o
         return self
 
     def __sub__(self, o):
@@ -73,7 +87,8 @@ class plane:
         return self
 
     def __mul__(self, o):
-        if self.unit_length * o <= self._size[1]:
+        if self.unit_length * o <= self._size[0] or \
+                self.unit_length * o <= self._size[1]:
             self.unit_length *= o
         return self
 
@@ -158,34 +173,45 @@ class vector:
 
     def __init__(self, x, y, space: plane) -> None:
         self.space = space
-        self._x = scalar(x, self.space.x_lim)
-        self._y = scalar(y, self.space.y_lim)
-        self.length_limit = [0, math.sqrt(self.space.x_lim[1]**2 +
-                                          self.space.y_lim[1]**2)]
+        self.length_limit = [-math.sqrt(self.space.x_lim[1]**2 +
+                                        self.space.y_lim[1]**2),
+                             math.sqrt(self.space.x_lim[1]**2 +
+                                       self.space.y_lim[1]**2)]
+        self._x = scalar(x, self.length_limit)
+        self._y = scalar(y, self.length_limit)
 
     def __add__(self, num):
-        self._x += num
-        if not self._x.overflow:
-            self._y += num
+        if self.length < self.length_limit[1]:
+            self._x += num * math.cos(self.direction)
+            self._y += num * math.sin(self.direction)
         return self
 
     def __sub__(self, num):
-        self._x -= num
-        if not self._x.overflow:
-            self._y -= num
+        # if num > 0 and self.length > self.length_limit[0]:
+        if self.length > self.length_limit[0]:
+            self._x -= num * math.cos(self.direction)
+            self._y -= num * math.sin(self.direction)
+        # elif num < 0 and self.length < self.length_limit[1]:
+        #     self._x -= num
+        #     self._y -= num
         return self
 
     def __mul__(self, factor):
-        self._x *= factor
-        if not self._x.overflow:
+        """
+        Since multiplying by 1 has no effect, ommited factor of 1,
+        Ommited negative values. For rotating use rotate method.
+        """
+        if factor > 1 and self.length < self.length_limit[1]:
+            self._x *= factor
+            self._y *= factor
+        elif 0 <= factor < 1 and self.length > self.length_limit[0]:
+            self._x *= factor
             self._y *= factor
         return self
 
-    def __truediv__(self, factor):
-        self._x /= factor
-        if not self._x.overflow:
-            self._y /= factor
-        return self
+    def __truediv__(self, _):
+        """Use multiplication instead"""
+        raise Exception("Use multiplication instead :)")
 
     @property
     def x(self):

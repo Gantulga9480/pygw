@@ -13,15 +13,16 @@ class test(Game):
                  fps: int = FPS,
                  render: bool = True) -> None:
         super().__init__(title, width, height, fps, render)
-        self.env = environment(10)
+        self.env = environment()
 
     def USR_eventHandler(self):
+        # print(self.env.agents[0].head.length)
         for event in self.events:
             if event.type == pg.KEYUP:
                 if event.key == pg.K_w:
-                    self.env.agents[0].head *= 1.2
+                    self.env.agents[0].head += 1
                 elif event.key == pg.K_s:
-                    self.env.agents[0].head *= 1/1.2
+                    self.env.agents[0].head -= 1
         if self.keys[pg.K_UP]:
             self.env.step()
         if self.keys[pg.K_LEFT]:
