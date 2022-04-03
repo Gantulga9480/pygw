@@ -1,74 +1,71 @@
 import math
+import random
+from Game.utils import *
 
 
 class scalar:
 
-    def __init__(self, value=0, limits=None) -> None:
-        self.limits = limits
-        if value < self.limits[0]:
-            self.value = self.limits[0]
-        elif value > self.limits[1]:
-            self.value = self.limits[1]
+    def __init__(self, value=0, limits: tuple = None) -> None:
+        if limits:
+            self.has_limit = True
+            self.min = limits[0]
+            self.max = limits[1]
+            if value < self.min:
+                self.__num = self.min
+            elif value > self.max:
+                self.__num = self.max
+            else:
+                self.__num = value
         else:
-            self.value = value
+            self.has_limit = False
+            self.__num = value
+
+    @property
+    def value(self):
+        return self.__num
+
+    @value.setter
+    def value(self, o):
+        if self.has_limit:
+            if self.min <= o <= self.max:
+                self.__num = o
+            else:
+                self.__num = self.min if o < self.min else self.max
+        else:
+            self.__num = o
 
     def __add__(self, o: object):
-        if self.limits:
-            if self.value + o <= self.limits[1]:
-                self.value += o
-            else:
-                self.value = self.limits[1]
-        else:
-            self.value += o
+        self.value += o
         return self
 
     def __sub__(self, o: object):
-        print(self.value, o)
-        if self.limits:
-            if self.value - o >= self.limits[0]:
-                self.value -= o
-            else:
-                self.value = 0
-        else:
-            self.value -= o
+        self.value -= o
         return self
 
     def __mul__(self, o: object):
-        if self.limits:
-            if self.value * o <= self.limits[1]:
-                self.value *= o
-            else:
-                self.value = self.limits[1]
-        else:
-            self.value *= o
+        self.value *= o
         return self
 
     def __truediv__(self, o: object):
-        if self.limits:
-            if self.value / o <= self.limits[1]:
-                self.value /= o
-            else:
-                self.value = self.limits[0]
-        else:
-            self.value /= o
+        self.value /= o
         return self
 
     def __repr__(self) -> str:
-        return str(self.value)
+        return str(self.__num)
 
 
 class plane:
 
     def __init__(self,
                  size,
-                 unit_length) -> None:
+                 unit_length,
+                 parent=None) -> None:
         """
         params:
         size - (x ,y)
-        mode - ('centered', 'x_plus', 'x_negative', 'y_plus', 'y_negative'
-                'I', 'II', 'III', 'IV') cartesian quadrants
         unit_length - pixel count for 1 unit length in cartesian system
         """
+        self.parent = parent
         self._size = size
         self.unit_length = unit_length
         self._x_dif = self._size[0] // 2
@@ -142,7 +139,8 @@ class plane:
                       (self._size[1] - self._y_dif) // self.unit_length]
 
     def getXY(self, xy):
-        ...
+        """Retrun cartesian (x, y) in pygame coordinate system"""
+        return (self.getX(xy[0]), self.getX(xy[1]))
 
     def getX(self, x):
         """Retrun cartesian x in pygame coordinate system"""
@@ -165,35 +163,45 @@ class plane:
         return (self._y_dif - y) / self.unit_length
 
     def vector(self, x, y):
-        """Return vector object parented by current plane object"""
-        return vector(x, y, self)
+        """Return a vector object parented by current plane instance"""
+        return vector(self, x, y)
+
+    def rand_vector(self):
+        """Return a random vector object parented by current plane instance"""
+        return vector(self).random()
 
 
 class vector:
 
-    def __init__(self, x, y, space: plane) -> None:
-        self.space = space
-        self.length_limit = [-math.sqrt(self.space.x_lim[1]**2 +
-                                        self.space.y_lim[1]**2),
-                             math.sqrt(self.space.x_lim[1]**2 +
-                                       self.space.y_lim[1]**2)]
-        self._x = scalar(x, self.length_limit)
-        self._y = scalar(y, self.length_limit)
+    """
+    Arithmetic operations with vector are limited by (length_min, length_max).
+    Directly setting vector position using individual properties (x, y),
+    (X, Y) or (xy, XY) has a limit of parent plane size max(x_lim, y_lim) in
+    both axis, including negative sides.
+    """
 
-    def __add__(self, num):
-        if self.length < self.length_limit[1]:
-            self._x += num * math.cos(self.direction)
-            self._y += num * math.sin(self.direction)
+    def __init__(self, space: plane, x=0, y=0) -> None:
+        if x == y == 0:
+            LOG('Created NULL vector!', WARNING, log=True)
+        self.space = space
+        self.length_max = max(self.space.x_lim[1], self.space.y_lim[1])
+        self.length_min = 0
+        self.__x = scalar(x, (-self.length_max, self.length_max))
+        self.__y = scalar(y, (-self.length_max, self.length_max))
+        self.__last_dir = 0
+
+    def __add__(self, o):
+        self.x += o * math.cos(self.direction)
+        self.y += o * math.sin(self.direction)
         return self
 
     def __sub__(self, num):
-        # if num > 0 and self.length > self.length_limit[0]:
-        if self.length > self.length_limit[0]:
-            self._x -= num * math.cos(self.direction)
-            self._y -= num * math.sin(self.direction)
-        # elif num < 0 and self.length < self.length_limit[1]:
-        #     self._x -= num
-        #     self._y -= num
+        if abs(num) < self.length:
+            self.x -= num * math.cos(self.direction)
+            self.y -= num * math.sin(self.direction)
+        else:
+            self.x = 0
+            self.y = 0
         return self
 
     def __mul__(self, factor):
@@ -201,42 +209,51 @@ class vector:
         Since multiplying by 1 has no effect, ommited factor of 1,
         Ommited negative values. For rotating use rotate method.
         """
-        if factor > 1 and self.length < self.length_limit[1]:
-            self._x *= factor
-            self._y *= factor
-        elif 0 <= factor < 1 and self.length > self.length_limit[0]:
-            self._x *= factor
-            self._y *= factor
+        if factor > 1 and self.length < self.length_max:
+            if self.length == 0:
+                self.x = 1 * math.cos(self.__last_dir)
+                self.y = 1 * math.sin(self.__last_dir)
+            else:
+                self.x *= factor
+                self.y *= factor
+        elif 0 <= factor < 1 and self.length > self.length_min:
+            self.x *= factor
+            self.y *= factor
         return self
 
     def __truediv__(self, _):
-        """Use multiplication instead"""
         raise Exception("Use multiplication instead :)")
 
     @property
     def x(self):
         """x coordinate in cartesian system"""
-        return self._x.value
+        return self.__x.value
 
     @x.setter
     def x(self, value):
-        """set x in cartesian coordinate system"""
-        self._x.value = value
+        """Set x in cartesian coordinate system"""
+        self.__x.value = value
 
     @property
     def y(self):
         """y coordinate in cartesian system"""
-        return self._y.value
+        return self.__y.value
 
     @y.setter
     def y(self, value):
-        """set y coordinate in cartesian system"""
-        self._y.value = value
+        """Set y coordinate in cartesian system"""
+        self.__y.value = value
 
     @property
     def xy(self):
         """(x, y) values in cartesian coordinate system"""
         return (self.x, self.y)
+
+    @xy.setter
+    def xy(self, xy: tuple):
+        """Set (x, y) for cartesian system using cartesian (x, y)"""
+        self.x = xy[0]
+        self.y = xy[1]
 
     @property
     def X(self):
@@ -253,6 +270,12 @@ class vector:
         """(x, y) values in pygame coordinate system"""
         return (self.X, self.Y)
 
+    @XY.setter
+    def XY(self, xy: tuple):
+        """Set (x, y) for cartesian system using pygame (x, y)"""
+        self.x = self.space.toX(xy[0])
+        self.y = self.space.toY(xy[1])
+
     @property
     def length(self):
         """Return length in cartesian coordinate system"""
@@ -261,7 +284,10 @@ class vector:
     @property
     def direction(self):
         """Return angle from OX in radians"""
-        return math.atan2(self.y, self.x)
+        d = math.atan2(self.y, self.x)
+        if d != 0:
+            self.__last_dir = d
+        return d
 
     def rotate(self, rad):
         """
@@ -273,5 +299,8 @@ class vector:
         self.x = _x * math.cos(rad) - _y * math.sin(rad)
         self.y = _x * math.sin(rad) + _y * math.cos(rad)
 
-    def set_limit(self, max, min):
-        self.length_limit = [min, max]
+    def random(self):
+        """Set vector at random location"""
+        self.x = (random.random() * 2 - 1) * self.length_max
+        self.y = (random.random() * 2 - 1) * self.length_max
+        return self

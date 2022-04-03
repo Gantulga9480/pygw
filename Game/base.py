@@ -67,7 +67,8 @@ class Game:
                 self.USR_setup()
             except NotImplementedError:
                 self.__is_setup = False
-                self.LOG(level=WARNING, msg='Game setup not implemented!')
+                LOG(level=WARNING, msg='Game setup not implemented!',
+                    log=self.log)
         self.__lowLevelSetup()
 
     def USR_setup(self):
@@ -85,8 +86,8 @@ class Game:
                 self.USR_eventHandler()
             except NotImplementedError:
                 self.__is_eventHandler = False
-                self.LOG(level=WARNING,
-                         msg='Game event handler not implemented!')
+                LOG(level=WARNING, msg='Game event handler not implemented!',
+                    log=self.log)
 
     def USR_eventHandler(self):
         """ User should override this method """
@@ -112,7 +113,8 @@ class Game:
                     self.USR_render()
                 except NotImplementedError:
                     self.__is_render = False
-                    self.LOG(level=WARNING, msg='Game rendering nothing!')
+                    LOG(level=WARNING, msg='Game rendering nothing!',
+                        log=self.log)
             self.__lowLevelRender()
 
     def USR_render(self):
@@ -129,10 +131,6 @@ class Game:
         else:
             pg.display.update()
         self.clock.tick(self.fps)
-
-    def LOG(self, msg, level: str = DEBUG):
-        if self.log:
-            print(f'[{level}]: {msg}')
 
     @staticmethod
     def set_title(title: str):

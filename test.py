@@ -16,22 +16,21 @@ class test(Game):
         self.env = environment()
 
     def USR_eventHandler(self):
-        # print(self.env.agents[0].head.length)
         for event in self.events:
             if event.type == pg.KEYUP:
                 if event.key == pg.K_w:
-                    self.env.agents[0].head += 1
+                    self.env.agents[0].head *= 1.2
                 elif event.key == pg.K_s:
-                    self.env.agents[0].head -= 1
+                    self.env.agents[0].head *= 1/1.2
         if self.keys[pg.K_UP]:
             self.env.step()
         if self.keys[pg.K_LEFT]:
-            self.env.agents[0].head.rotate(0.1)
+            self.env.agents[0].head.rotate(0.1*60/FPS)
         if self.keys[pg.K_RIGHT]:
-            self.env.agents[0].head.rotate(-0.1)
+            self.env.agents[0].head.rotate(-0.1*60/FPS)
 
     def USR_loop_start(self):
-        # self.env.step()
+        self.env.step()
         ...
 
     def USR_render(self):
