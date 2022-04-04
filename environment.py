@@ -24,10 +24,10 @@ class AgentPlane(plane):
                  size: tuple,
                  unit_length=1,
                  parent: plane = None,
-                 parent_vector: vector = None) -> None:
+                 position_vector: vector = None) -> None:
         super().__init__(size, unit_length, parent)
         self.unit_length = self.parent.unit_length
-        self.position_vector = parent_vector
+        self.position_vector = position_vector
         self.XY = self.position_vector.XY
 
     def move(self, head_vec: vector):
@@ -54,6 +54,7 @@ class AgentPlane(plane):
                 else:
                     self.re_posotion(y=HEIGHT-AGENT_SIZE)
                 head_vec.rotate(-head_vec.direction*2)
+            head_vec *= 0.5
 
     def set_limit(self):
         self.x_lim = [(self._x_dif - self._size[0]) // self.unit_length,
@@ -82,22 +83,19 @@ class AgentPlane(plane):
 
 class agent:
 
-    def __init__(self, parent: plane, x=None, y=None) -> None:
+    def __init__(self, parent: plane, id, x=None, y=None) -> None:
         self.parent = parent
+        self.id = id
         self.position = \
             self.parent.vector(x, y) if x and y else self.parent.rand_vector()
         self.plane = AgentPlane(size=(WIDTH, HEIGHT),
                                 unit_length=WIDTH//(MAX_SPEED//1.4142*2),
                                 parent=self.parent,
-                                parent_vector=self.position)
-        self.head = self.plane.vector(10, 0)
+                                position_vector=self.position)
+        self.head = self.plane.vector(0, 0)
 
-    def move(self, objects):
+    def move(self, agents):
         self.plane.move(self.head)
-        _rect = self.rect
-        is_collide = _rect.collidelist(objects)
-        if is_collide != -1:
-            self.plane.XY = self.parent.getXY(self.position.random().xy)
 
     @property
     def rect(self):
@@ -110,20 +108,20 @@ class environment:
     def __init__(self) -> None:
         self.plane = MainPlane((WIDTH, HEIGHT))
         self.agents: list[agent] = []
-        self.speeds = [1/1, 1/1, 1/1.2, 1/1.15, 1/1.1, 1,
+        self.speeds = [1/1.3, 1/1.25, 1/1.2, 1/1.15, 1/1.1, 1,
                        1.1, 1.15, 1.2, 1.25, 1.3]
         self.ro_speeds = [-math.pi/8, -math.pi/16, -math.pi/32, -math.pi/64, 0,
                           math.pi/64, math.pi/32, math.pi/16, math.pi/8]
-        for _ in range(100):
-            self.agents.append(agent(self.plane))
+        for i in range(1):
+            self.agents.append(agent(self.plane, i))
 
     def step(self):
-        for i, agent in enumerate(self.agents):
-            pos = self.__get_agents_pos()
-            agent.head *= random.choice(self.speeds)
-            agent.head.rotate(random.choice(self.ro_speeds)*60/FPS)
-            pos.pop(i)
-            agent.move(pos)
+        for agent in self.agents:
+            if agent.id != 0:
+                agent.head *= random.choice(self.speeds)
+                agent.head.rotate(random.choice(self.ro_speeds)*60/FPS)
+            agent.move(self.agents)
+            self.collision(agent)
 
     def _step(self):
         ...
@@ -132,11 +130,21 @@ class environment:
         for agent in self.agents:
             # pg.draw.line(parent, BLACK, self.plane.XY, agent.plane.XY)
             pg.draw.circle(parent, BLUE, agent.rect.center, AGENT_SIZE)
-            pg.draw.circle(parent, BLACK, agent.rect.center, VISION, 1)
+            # pg.draw.circle(parent, BLACK, agent.rect.center, VISION, 1)
             pg.draw.line(parent, RED, agent.rect.center, agent.head.XY, 2)
 
-    def __get_agents_pos(self):
-        _rects = []
+    def collision(self, current: agent):
         for agent in self.agents:
-            _rects.append(agent.rect)
-        return _rects
+            if agent.id != current.id:
+                v = vector(self.plane,
+                           agent.position.x - current.position.x,
+                           agent.position.y - current.position.y)
+                if v.length <= AGENT_SIZE*2:
+                    d = (AGENT_SIZE*2 - v.length) * 0.5
+                    w = v.direction
+                    if current.head.length >= agent.head.length:
+                        agent.position.x += d * math.cos(w)
+                        agent.position.y += d * math.sin(w)
+                    elif current.head.length < agent.head.length:
+                        current.position.x -= d * math.cos(w)
+                        current.position.y -= d * math.sin(w)

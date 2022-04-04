@@ -252,8 +252,12 @@ class vector:
     @xy.setter
     def xy(self, xy: tuple):
         """Set (x, y) for cartesian system using cartesian (x, y)"""
-        self.x = xy[0]
-        self.y = xy[1]
+        if isinstance(xy, tuple):
+            self.x = xy[0]
+            self.y = xy[1]
+        elif isinstance(xy, (float, int)):
+            self.x = math.cos(self.direction) * xy
+            self.y = math.sin(self.direction) * xy
 
     @property
     def X(self):
@@ -308,3 +312,19 @@ class vector:
     def distance(self, xy: tuple) -> float:
         """Return distance of given vector from current vector"""
         return math.sqrt((self.x - xy[0])**2 + (self.y - xy[1])**2)
+
+    def angle(self, xy, degree=False):
+        if isinstance(xy, tuple):
+            d = math.atan2(xy[1], xy[0])
+            if degree:
+                return (d - self.direction) / math.pi * 180.0
+            return d - self.direction
+        d = math.atan2(xy.y, xy.x)
+        if degree:
+            return (d - self.direction) / math.pi * 180.0
+        return d - self.direction
+
+    def dot(self, vec):
+        if isinstance(vec, tuple):
+            return self.x * vec[0] + self.y * vec[1]
+        return self.x * vec.x + self.y * vec.y
