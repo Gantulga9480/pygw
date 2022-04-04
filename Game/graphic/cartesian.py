@@ -309,20 +309,16 @@ class vector:
         self.y = (random.random() * 2 - 1) * self.length_max
         return self
 
-    def distance(self, xy: tuple) -> float:
+    def distance(self, xy) -> float:
         """Return distance of given vector from current vector"""
-        return math.sqrt((self.x - xy[0])**2 + (self.y - xy[1])**2)
-
-    def angle(self, xy, degree=False):
         if isinstance(xy, tuple):
-            d = math.atan2(xy[1], xy[0])
-            if degree:
-                return (d - self.direction) / math.pi * 180.0
-            return d - self.direction
-        d = math.atan2(xy.y, xy.x)
-        if degree:
-            return (d - self.direction) / math.pi * 180.0
-        return d - self.direction
+            return math.sqrt((self.x - xy[0])**2 + (self.y - xy[1])**2)
+        return math.sqrt((self.x - xy.x)**2 + (self.y - xy.y)**2)
+
+    def angle(self, xy):
+        if isinstance(xy, tuple):
+            return math.atan2(xy[1], xy[0]) - self.direction
+        return math.atan2(xy.y, xy.x) - self.direction
 
     def dot(self, vec):
         if isinstance(vec, tuple):
