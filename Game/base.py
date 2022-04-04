@@ -16,8 +16,8 @@ class Game:
         pg.init()
 
         # Main window
-        self.screen_width: int = width
-        self.screen_height: int = height
+        self.width: int = width
+        self.height: int = height
         self.fps: int = fps
         self.title: str = title
         self.backgroundColor: pg.Color = WHITE
@@ -48,16 +48,16 @@ class Game:
     def mainloop(self):
         self.__highLevelSetup()
         while self.running:
-            self.loop_start()
+            self.USR_loop_start()
             self.__highLevelEventHandler()
             self.__highLevelRender()
-            self.loop_end()
+            self.USR_loop_end()
 
-    def loop_start(self):
+    def USR_loop_start(self):
         """ User should override this method """
         ...
 
-    def loop_end(self):
+    def USR_loop_end(self):
         """ User should override this method """
         ...
 
@@ -67,7 +67,8 @@ class Game:
                 self.USR_setup()
             except NotImplementedError:
                 self.__is_setup = False
-                self.LOG(level=WARNING, msg='Game setup not implemented!')
+                LOG(level=WARNING, msg='Game setup not implemented!',
+                    log=self.log)
         self.__lowLevelSetup()
 
     def USR_setup(self):
@@ -75,8 +76,8 @@ class Game:
         raise NotImplementedError
 
     def __lowLevelSetup(self):
-        self.game_window = self.get_window(self.screen_width,
-                                           self.screen_height)
+        self.window = self.get_window(self.width,
+                                      self.height)
         self.set_title(self.title)
 
     def __highLevelEventHandler(self):
@@ -85,8 +86,8 @@ class Game:
                 self.USR_eventHandler()
             except NotImplementedError:
                 self.__is_eventHandler = False
-                self.LOG(level=WARNING,
-                         msg='Game event handler not implemented!')
+                LOG(level=WARNING, msg='Game event handler not implemented!',
+                    log=self.log)
 
     def USR_eventHandler(self):
         """ User should override this method """
@@ -112,7 +113,8 @@ class Game:
                     self.USR_render()
                 except NotImplementedError:
                     self.__is_render = False
-                    self.LOG(level=WARNING, msg='Game rendering nothing!')
+                    LOG(level=WARNING, msg='Game rendering nothing!',
+                        log=self.log)
             self.__lowLevelRender()
 
     def USR_render(self):
@@ -120,7 +122,7 @@ class Game:
         raise NotImplementedError
 
     def renderBackground(self):
-        self.game_window.fill(self.backgroundColor)
+        self.window.fill(self.backgroundColor)
 
     def __lowLevelRender(self):
         """ TODO flip() or update() """
@@ -129,10 +131,6 @@ class Game:
         else:
             pg.display.update()
         self.clock.tick(self.fps)
-
-    def LOG(self, msg, level: str = DEBUG):
-        if self.log:
-            print(f'[{level}]: {msg}')
 
     @staticmethod
     def set_title(title: str):
