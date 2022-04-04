@@ -304,3 +304,7 @@ class vector:
         self.x = (random.random() * 2 - 1) * self.length_max
         self.y = (random.random() * 2 - 1) * self.length_max
         return self
+
+    def distance(self, xy: tuple) -> float:
+        """Return distance of given vector from current vector"""
+        return math.sqrt((self.x - xy[0])**2 + (self.y - xy[1])**2)
