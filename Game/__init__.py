@@ -1,3 +1,4 @@
-from .base import Game
-from .color import *
-from .utils import *
+import base
+import color
+import utils
+import graphic
