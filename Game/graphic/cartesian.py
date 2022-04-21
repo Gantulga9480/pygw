@@ -1,6 +1,7 @@
 import math
 import random
 from Game.utils import *
+import pygame as pg
 
 
 class scalar:
@@ -69,7 +70,7 @@ class plane:
     """
 
     def __init__(self,
-                 screen_size: tuple(int, int),
+                 screen_size: tuple,
                  unit_length,
                  parent=None) -> None:
         self._size = screen_size
@@ -389,3 +390,10 @@ class vector:
         """Return unit length vector scaled by 'scale' in cartesian"""
         a = self.direction
         return (math.cos(a)*scale, math.sin(a)*scale)
+
+    def render(self, window, color=(0, 0, 0), linewidth=1, aa=False):
+        if aa:
+            pg.draw.aaline(window, color, self.space.center,
+                           self.XY, linewidth)
+        else:
+            pg.draw.line(window, color, self.space.center, self.XY, linewidth)
