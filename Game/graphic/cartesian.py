@@ -79,6 +79,8 @@ class plane:
         self._x_center = self._size[0] // 2
         self._y_center = self._size[1] // 2
         self.set_limit()
+        if self.parent:
+            self._size = self.parent._size
 
     def __add__(self, o):
         self.x_max += o
