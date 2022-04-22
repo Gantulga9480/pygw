@@ -72,15 +72,22 @@ class plane:
     def __init__(self,
                  screen_size: tuple,
                  unit_length,
-                 parent=None) -> None:
-        self._size = screen_size
+                 parent=None,
+                 set_limit=True) -> None:
+        self.window_size = screen_size
         self.unit_length = unit_length
         self.parent = parent
-        self._x_center = self._size[0] // 2
-        self._y_center = self._size[1] // 2
+        if set_limit:
+            self.__center_X = scalar(self.window_size[0] // 2,
+                                     (0, self.window_size[0]))
+            self.__center_Y = scalar(self.window_size[1] // 2,
+                                     (0, self.window_size[1]))
+        else:
+            self.__center_X = scalar(self.window_size[0] // 2)
+            self.__center_Y = scalar(self.window_size[1] // 2)
         self.set_limit()
         if self.parent:
-            self._size = self.parent._size
+            self.window_size = self.parent.window_size
 
     def __add__(self, o):
         self.x_max += o
@@ -113,37 +120,25 @@ class plane:
     @property
     def centerX(self):
         """center X value in pixel"""
-        return self._x_center
+        return self.__center_X.value
 
     @centerX.setter
     def centerX(self, o):
-        if 0 <= o <= self._size[0]:
-            self._x_center = o
-        else:
-            if o > 0:
-                self._x_center = self._size[0]
-            else:
-                self._x_center = 0
+        self.__center_X.value = o
 
     @property
     def centerY(self):
         """center Y value in pixel"""
-        return self._y_center
+        return self.__center_Y.value
 
     @centerY.setter
     def centerY(self, o):
-        if 0 <= o <= self._size[1]:
-            self._y_center = o
-        else:
-            if o > 0:
-                self._y_center = self._size[1]
-            else:
-                self._y_center = 0
+        self.__center_Y.value = o
 
     @property
     def center(self):
         """center (X, Y) value in pixel"""
-        return (self.centerX, self.centerY)
+        return (self.__center_X.value, self.__center_Y.value)
 
     @center.setter
     def center(self, pos):
@@ -154,11 +149,19 @@ class plane:
             self.centerX = pos.X
             self.centerY = pos.Y
 
+    @property
+    def shape(self):
+        return (self.x_min, self.x_max, self.y_min, self.y_max)
+
     def set_limit(self):
-        self.x_min = (self._x_center - self._size[0]) // self.unit_length
-        self.x_max = (self._size[0] - self._x_center) // self.unit_length
-        self.y_min = (self._y_center - self._size[1]) // self.unit_length
-        self.y_max = (self._size[1] - self._y_center) // self.unit_length
+        self.x_min = (self.__center_X.value - self.window_size[0]) \
+            // self.unit_length
+        self.x_max = (self.window_size[0] - self.__center_X.value) \
+            // self.unit_length
+        self.y_min = (self.__center_Y.value - self.window_size[1]) \
+            // self.unit_length
+        self.y_max = (self.window_size[1] - self.__center_Y.value) \
+            // self.unit_length
 
     def getXY(self, xy):
         """cartesian (x, y) to pygame (x, y)"""
@@ -166,11 +169,11 @@ class plane:
 
     def getX(self, x):
         """cartesian x to pygame x"""
-        return self._x_center + x * self.unit_length
+        return self.__center_X.value + x * self.unit_length
 
     def getY(self, y):
         """cartesian y to pygame y"""
-        return self._y_center - y * self.unit_length
+        return self.__center_Y.value - y * self.unit_length
 
     def toXY(self, center: tuple):
         """pygame (x, y) to cartesian (x, y)"""
@@ -178,15 +181,15 @@ class plane:
 
     def toX(self, x):
         """pygame x to cartesian x"""
-        return (x - self._x_center) / self.unit_length
+        return (x - self.__center_X.value) / self.unit_length
 
     def toY(self, y):
         """pygame y to cartesian y"""
-        return (self._y_center - y) / self.unit_length
+        return (self.__center_Y.value - y) / self.unit_length
 
-    def createVector(self, x, y, limit_axes=False):
+    def createVector(self, x, y, set_limit=False):
         """Return a vector object parented by current plane instance"""
-        return vector(self, x, y, limit_axes=limit_axes)
+        return vector(self, x, y, set_limit=set_limit)
 
     def createRandomVector(self):
         """Return a random vector object parented by current plane instance"""
@@ -200,16 +203,16 @@ class vector:
     """
 
     def __init__(self, space: plane, x=1, y=0,
-                 limit_axes: bool = False) -> None:
+                 set_limit: bool = False) -> None:
         if x == y == 0:
             LOG('Created NULL vector!', WARNING, log=True)
         self.space = space
-        self.length_max = max(self.space.x_max, self.space.y_max)
+        self.length_max = min(self.space.x_max, self.space.y_max)
         self.length_min = 1
-        self.__limit = limit_axes
+        self.__limit = set_limit
         if self.__limit:
-            self.__x = scalar(x, (-self.length_max, self.length_max))
-            self.__y = scalar(y, (-self.length_max, self.length_max))
+            self.__x = scalar(x, (self.space.x_min, self.space.x_max))
+            self.__y = scalar(y, (self.space.y_min, self.space.y_max))
         else:
             self.__x = scalar(x)
             self.__y = scalar(y)
