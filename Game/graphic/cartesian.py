@@ -6,7 +6,7 @@ import pygame as pg
 
 class scalar:
 
-    RESOLUTION = 4
+    RESOLUTION = 8
 
     """
     #TODO
@@ -182,9 +182,9 @@ class plane:
         """pygame y to cartesian y"""
         return (self._y_center - y) / self.unit_length
 
-    def createVector(self, x, y):
+    def createVector(self, x, y, limit_axes=False):
         """Return a vector object parented by current plane instance"""
-        return vector(self, x, y)
+        return vector(self, x, y, limit_axes=limit_axes)
 
     def createRandomVector(self):
         """Return a random vector object parented by current plane instance"""
@@ -198,7 +198,7 @@ class vector:
     """
 
     def __init__(self, space: plane, x=1, y=0,
-                 limit_axes: bool = True) -> None:
+                 limit_axes: bool = False) -> None:
         if x == y == 0:
             LOG('Created NULL vector!', WARNING, log=True)
         self.space = space
@@ -391,7 +391,7 @@ class vector:
         a = self.direction
         return (math.cos(a)*scale, math.sin(a)*scale)
 
-    def render(self, window, color=(0, 0, 0), linewidth=1, aa=False):
+    def show(self, window, color=(0, 0, 0), linewidth=1, aa=False):
         if aa:
             pg.draw.aaline(window, color, self.space.center,
                            self.XY, linewidth)
