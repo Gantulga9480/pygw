@@ -70,11 +70,11 @@ class plane:
     """
 
     def __init__(self,
-                 screen_size: tuple,
+                 window_size: tuple,
                  unit_length,
                  parent=None,
                  set_limit=True) -> None:
-        self.window_size = screen_size
+        self.window_size = window_size
         self.unit_length = unit_length
         self.parent = parent
         if set_limit:
@@ -207,12 +207,12 @@ class vector:
         if x == y == 0:
             LOG('Created NULL vector!', WARNING, log=True)
         self.space = space
-        self.length_max = min(self.space.x_max, self.space.y_max)
+        self.length_max = max(self.space.x_max, self.space.y_max)
         self.length_min = 1
         self.__limit = set_limit
         if self.__limit:
-            self.__x = scalar(x, (self.space.x_min, self.space.x_max))
-            self.__y = scalar(y, (self.space.y_min, self.space.y_max))
+            self.__x = scalar(x, (-self.length_max, self.length_max))
+            self.__y = scalar(y, (-self.length_max, self.length_max))
         else:
             self.__x = scalar(x)
             self.__y = scalar(y)
