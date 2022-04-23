@@ -3,6 +3,9 @@
 ### Requirements
     pip install pygame
 
+# Install
+    pip install git+https://github.com/Gantulga9480/Game.git#egg=Game
+
 # CHANGE LOG
 ## 1.0.0:
 - Project published.
