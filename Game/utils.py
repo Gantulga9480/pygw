@@ -4,6 +4,6 @@ INFO: str = 'INFO'
 DEBUG: str = 'DEBUG'
 
 
-def LOG(msg, level: str = DEBUG, log=False):
-    if log:
+def LOG(msg, level: str = DEBUG, logging=False):
+    if logging:
         print(f'[{level}]: {msg}')

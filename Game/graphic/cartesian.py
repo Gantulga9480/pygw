@@ -1,7 +1,8 @@
-import math
+from math import cos, sin, atan2, dist
 import random
-from Game.utils import *
 import pygame as pg
+from Game.utils import *
+from Game.color import BLACK
 
 
 class scalar:
@@ -111,11 +112,7 @@ class plane:
         return self
 
     def __truediv__(self, o):
-        if self.unit_length / o >= 1:
-            self.unit_length /= o
-        elif o > 1:
-            self.unit_length = 1
-        return self
+        return self.__mul__(1/o)
 
     @property
     def centerX(self):
@@ -187,13 +184,19 @@ class plane:
         """pygame y to cartesian y"""
         return (self.__center_Y.value - y) / self.unit_length
 
-    def createVector(self, x, y, set_limit=False):
+    def createVector(self, x=1, y=0, set_limit=False):
         """Return a vector object parented by current plane instance"""
         return vector(self, x, y, set_limit=set_limit)
 
     def createRandomVector(self):
         """Return a random vector object parented by current plane instance"""
         return vector(self).random()
+
+    def show(self, window, color=BLACK, width=1):
+        pg.draw.line(window, color, self.center,
+                     (self.centerX, self.centerY-20), width)
+        pg.draw.line(window, color, self.center,
+                     (self.centerX+20, self.centerY), width)
 
 
 class vector:
@@ -202,10 +205,10 @@ class vector:
     #TODO
     """
 
-    def __init__(self, space: plane, x=1, y=0,
+    def __init__(self, space: plane, x=0, y=0,
                  set_limit: bool = False) -> None:
         if x == y == 0:
-            LOG('Created NULL vector!', WARNING, log=True)
+            LOG('Created NULL vector!', WARNING, logging=True)
         self.space = space
         self.length_max = max(self.space.x_max, self.space.y_max)
         self.length_min = 1
@@ -220,11 +223,11 @@ class vector:
     def __add__(self, o):
         if o > 0:
             if self.__limit and self.length + o <= self.length_max:
-                self.x += o * math.cos(self.direction)
-                self.y += o * math.sin(self.direction)
+                self.x += o * cos(self.direction)
+                self.y += o * sin(self.direction)
             elif not self.__limit:
-                self.x += o * math.cos(self.direction)
-                self.y += o * math.sin(self.direction)
+                self.x += o * cos(self.direction)
+                self.y += o * sin(self.direction)
         elif o < 0:
             self.__sub__(abs(o))
         return self
@@ -232,8 +235,8 @@ class vector:
     def __sub__(self, o):
         if o > 0:
             if o < self.length - 1:
-                self.x -= o * math.cos(self.direction)
-                self.y -= o * math.sin(self.direction)
+                self.x -= o * cos(self.direction)
+                self.y -= o * sin(self.direction)
             else:
                 self.x, self.y = self.unit()
         elif o < 0:
@@ -255,8 +258,8 @@ class vector:
             self.x, self.y = self.unit()
         return self
 
-    def __truediv__(self, _):
-        raise Exception("Use multiplication instead :)")
+    def __truediv__(self, factor):
+        return self.__mul__(1/factor)
 
     @property
     def x(self):
@@ -290,8 +293,8 @@ class vector:
             self.x = xy[0]
             self.y = xy[1]
         elif isinstance(xy, (float, int)):
-            self.x = math.cos(self.direction) * xy
-            self.y = math.sin(self.direction) * xy
+            self.x = cos(self.direction) * xy
+            self.y = sin(self.direction) * xy
 
     @property
     def X(self):
@@ -317,7 +320,7 @@ class vector:
     @property
     def length(self):
         """Return length in cartesian coordinate system"""
-        return math.sqrt(self.x**2 + self.y**2)
+        return dist((0, 0), (self.x, self.y))
 
     @length.setter
     def length(self, o):
@@ -325,30 +328,30 @@ class vector:
             a = self.direction
             if self.__limit:
                 if self.length_min <= o <= self.length_max:
-                    self.x = math.cos(a) * o
-                    self.y = math.sin(a) * o
+                    self.x = cos(a) * o
+                    self.y = sin(a) * o
             else:
                 if self.length_min <= o:
-                    self.x = math.cos(a) * o
-                    self.y = math.sin(a) * o
+                    self.x = cos(a) * o
+                    self.y = sin(a) * o
         raise TypeError(f"int, float required. Got {type(o)}")
 
     @property
     def LENGTH(self):
         """Return length in pygame coordinate system"""
-        return math.sqrt(self.X**2 + self.Y**2)
+        return dist([0, 0], [self.X, self.Y])
 
     @property
     def direction(self):
         """Return angle from X axis in radians"""
-        return math.atan2(self.y, self.x)
+        return atan2(self.y, self.x)
 
     @direction.setter
     def dircetion(self, o):
         if isinstance(o, (float, int)):
             lng = self.length
-            self.x = math.cos(o) * lng
-            self.y = math.sin(o) * lng
+            self.x = cos(o) * lng
+            self.y = sin(o) * lng
         raise TypeError(f"int, float required. Got {type(o)}")
 
     def rotate(self, rad):
@@ -358,8 +361,8 @@ class vector:
         """
         _x = self.x
         _y = self.y
-        self.x = _x * math.cos(rad) - _y * math.sin(rad)
-        self.y = _x * math.sin(rad) + _y * math.cos(rad)
+        self.x = _x * cos(rad) - _y * sin(rad)
+        self.y = _x * sin(rad) + _y * cos(rad)
 
     def random(self):
         """Set vector head at random location"""
@@ -370,8 +373,8 @@ class vector:
     def distance(self, xy) -> float:
         """Return distance of given vector from current vector"""
         if isinstance(xy, tuple):
-            return math.sqrt((self.x - xy[0])**2 + (self.y - xy[1])**2)
-        return math.sqrt((self.x - xy.x)**2 + (self.y - xy.y)**2)
+            return dist((0, 0), ((self.x - xy[0]), (self.y - xy[1])))
+        return dist((0, 0), ((self.x - xy.x), (self.y - xy.y)))
 
     def angle(self, xy):
         """
@@ -379,8 +382,8 @@ class vector:
         and current vector
         """
         if isinstance(xy, tuple):
-            return math.atan2(xy[1], xy[0]) - self.direction
-        return math.atan2(xy.y, xy.x) - self.direction
+            return atan2(xy[1], xy[0]) - self.direction
+        return atan2(xy.y, xy.x) - self.direction
 
     def dot(self, vec):
         """
@@ -394,9 +397,9 @@ class vector:
     def unit(self, scale=1) -> tuple:
         """Return unit length vector scaled by 'scale' in cartesian"""
         a = self.direction
-        return (math.cos(a)*scale, math.sin(a)*scale)
+        return (cos(a)*scale, sin(a)*scale)
 
-    def show(self, window, color=(0, 0, 0), linewidth=1, aa=False):
+    def show(self, window, color=BLACK, linewidth=1, aa=False):
         if aa:
             pg.draw.aaline(window, color, self.space.center,
                            self.XY, linewidth)

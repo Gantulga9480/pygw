@@ -38,7 +38,7 @@ class Game:
         self.__is_render = True
 
         # Utils
-        self.log = True
+        self.logging = True
 
     def __del__(self):
         pg.quit()
@@ -46,16 +46,21 @@ class Game:
     def mainloop(self):
         self.__highLevelSetup()
         while self.running:
-            self.USR_loop_start()
+            self.USR_loopStart()
             self.__highLevelEventHandler()
+            self.USR_loop()
             self.__highLevelRender()
-            self.USR_loop_end()
+            self.USR_loopEnd()
 
-    def USR_loop_start(self):
+    def USR_loopStart(self):
         """ User should override this method """
         ...
 
-    def USR_loop_end(self):
+    def USR_loop(self):
+        """ User should override this method """
+        ...
+
+    def USR_loopEnd(self):
         """ User should override this method """
         ...
 
@@ -66,7 +71,7 @@ class Game:
             except NotImplementedError:
                 self.__is_setup = False
                 LOG(level=WARNING, msg='Game setup not implemented!',
-                    log=self.log)
+                    logging=self.logging)
         self.__lowLevelSetup()
 
     def USR_setup(self):
@@ -85,7 +90,7 @@ class Game:
             except NotImplementedError:
                 self.__is_eventHandler = False
                 LOG(level=WARNING, msg='Game event handler not implemented!',
-                    log=self.log)
+                    logging=self.logging)
 
     def USR_eventHandler(self):
         """ User should override this method """
@@ -112,7 +117,7 @@ class Game:
                 except NotImplementedError:
                     self.__is_render = False
                     LOG(level=WARNING, msg='Game rendering nothing!',
-                        log=self.log)
+                        logging=self.logging)
             self.__lowLevelRender()
 
     def USR_render(self):
