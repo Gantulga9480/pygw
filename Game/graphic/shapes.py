@@ -6,10 +6,10 @@ from math import pi, atan2, sqrt
 
 class shape:
 
-    def __init__(self, positon: vector, limit_vertex: bool = True) -> None:
-        self.position_vec = positon
-        self.plane = plane(self.position_vec.space.window_size,
-                           1, self.position_vec.space, False)
+    def __init__(self, space: plane, position: tuple,
+                 limit_vertex: bool = True) -> None:
+        self.plane = plane(space.window_size, space.unit_length, space, False)
+        self.position_vec = self.plane.createVector(*position, True)
         self.update()
 
         self.vertices: list[vector] = []
@@ -86,3 +86,18 @@ class circle(shape):
             self.vertices[0].show(window)
         pg.draw.circle(window, color, self.plane.center,
                        self.vertices[0].length, width)
+
+
+class nVertex(shape):
+
+    def __init__(self,
+                 vertex_n: int,
+                 radius,
+                 positon: vector,
+                 limit_vertex: bool = True) -> None:
+        super().__init__(positon, limit_vertex)
+
+        for i in range(vertex_n):
+            self.vertices.append(
+                vector(self.plane, radius, 0, limit_vertex))
+            self.vertices[-1].rotate(2 * pi / vertex_n * i)

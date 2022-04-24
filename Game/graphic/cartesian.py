@@ -62,6 +62,13 @@ class scalar:
         return str(self.__num)
 
 
+class point2d:
+
+    def __init__(self, x, y, x_lim: tuple, y_lim: tuple) -> None:
+        self.__x = scalar(x, x_lim)
+        self.__y = scalar(y, y_lim)
+
+
 class plane:
 
     """
@@ -394,14 +401,18 @@ class vector:
             return self.x * vec[0] + self.y * vec[1]
         return self.x * vec.x + self.y * vec.y
 
-    def unit(self, scale=1) -> tuple:
+    def unit(self, scale=1):
         """Return unit length vector scaled by 'scale' in cartesian"""
         a = self.direction
-        return (cos(a)*scale, sin(a)*scale)
+        return vector(self.space, cos(a)*scale, sin(a)*scale, self.__limit)
 
-    def show(self, window, color=BLACK, linewidth=1, aa=False):
+    def normal(self):
+        """TODO"""
+        return vector(self.space, -self.y, self.x, self.__limit)
+
+    def show(self, window, color=BLACK, width=1, aa=False):
         if aa:
             pg.draw.aaline(window, color, self.space.center,
-                           self.XY, linewidth)
+                           self.XY, width)
         else:
-            pg.draw.line(window, color, self.space.center, self.XY, linewidth)
+            pg.draw.line(window, color, self.space.center, self.XY, width)
