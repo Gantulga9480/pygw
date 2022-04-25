@@ -34,7 +34,7 @@ class shape:
 
     def show(self, window, color=BLACK, width=1, show_vertex=False):
         if show_vertex:
-            self.position_vec.show(window)
+            # self.position_vec.show(window)
             for vertex in self.vertices:
                 vertex.show(window)
         pg.draw.lines(window, color, True,
@@ -90,13 +90,20 @@ class circle(shape):
                        self.vertices[0].length, width)
 
 
-class nVertex(shape):
+class polygon(shape):
 
-    def __init__(self, parent_space: plane, positon: tuple,
-                 vertex_n, size, limit_vertex=True) -> None:
+    def __init__(self,
+                 parent_space: plane,
+                 positon: tuple,
+                 vertex_count: int = 2,
+                 size: float = 1.0,
+                 limit_vertex: bool = True) -> None:
         super().__init__(parent_space, positon, limit_vertex)
 
-        for i in range(vertex_n):
+        if vertex_count < 2:
+            raise ValueError("Wrong vertex_count, minimum is 2")
+
+        for i in range(vertex_count):
             self.vertices.append(
                 vector(self.plane, size, 0, limit_vertex))
-            self.vertices[-1].rotate(2 * pi / vertex_n * i)
+            self.vertices[-1].rotate(2 * pi / vertex_count * i)

@@ -205,7 +205,7 @@ class plane:
 
     def getXY(self, xy):
         """cartesian (x, y) to pygame (X, Y)"""
-        return (self.getX(xy[0]), self.getX(xy[1]))
+        return (self.getX(xy[0]), self.getY(xy[1]))
 
     def getX(self, x):
         """cartesian x to pygame X"""
@@ -254,7 +254,7 @@ class vector:
         self.space = space
         self.length_max = max(self.space.x_max, self.space.y_max)
         self.length_min = 1
-        if space.logging and x == y == 0:
+        if space.logging and (x == y == 0):
             LOG('Created NULL vector!', WARNING, logging=True)
         if set_limit:
             self.head = point2d(x, y,
