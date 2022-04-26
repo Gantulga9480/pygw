@@ -205,7 +205,11 @@ class plane:
 
     def getXY(self, xy):
         """cartesian (x, y) to pygame (X, Y)"""
-        return (self.getX(xy[0]), self.getY(xy[1]))
+        if isinstance(xy, (tuple, list)):
+            return (self.getX(xy[0]), self.getY(xy[1]))
+        if isinstance(xy, vector):
+            return (self.getX(xy.x), self.getY(xy.x))
+        raise TypeError(f"Type  {type(xy)} not supported")
 
     def getX(self, x):
         """cartesian x to pygame X"""
@@ -215,9 +219,13 @@ class plane:
         """cartesian y to pygame Y"""
         return self.__center.y.value - y * self.unit_length
 
-    def toXY(self, center: tuple):
+    def toXY(self, XY):
         """pygame (X, Y) to cartesian (x, y)"""
-        return (self.toX(center[0]), self.toY(center[1]))
+        if isinstance(XY, (tuple, list)):
+            return (self.toX(XY[0]), self.toY(XY[1]))
+        if isinstance(XY, vector):
+            return (self.toX(XY.X), self.toY(XY.X))
+        raise TypeError(f"Type  {type(XY)} not supported")
 
     def toX(self, X):
         """pygame X to cartesian x"""
@@ -422,7 +430,7 @@ class vector:
         return atan2(self.head.y.value, self.head.x.value)
 
     @direction.setter
-    def dircetion(self, o):
+    def direction(self, o):
         if isinstance(o, (float, int)):
             lng = self.length
             self.head.x.value = cos(o) * lng
