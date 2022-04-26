@@ -143,5 +143,5 @@ class LineIntersectCollision(collision):
         if t1 >= 0.0 and t1 < 1.0 and t2 >= 0.0 and t2 < 1.0:
             # TODO FIX intersection point
             return ([l1s[0] + (t1 * l1_x), l1s[1] + (t1 * (l1e[1] - l1s[1]))],
-                    t1)
+                    (1 - t1))
         return False
