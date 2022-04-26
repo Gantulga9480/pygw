@@ -1,4 +1,4 @@
-from Game.graphic.cartesian import vector, plane
+from Game.graphic.cartesian import vector2d, plane
 from Game.graphic.shapes import shape
 
 
@@ -27,51 +27,51 @@ class SeparatingAxisTheorem(collision):
         ver2 = body2.vertices
         for i in range(ver1.__len__()):
             tail = ver1[i-1]
-            v = vector(self.space,
-                       (self.space.toX(ver1[i].X) - self.space.toX(tail.X)),
-                       (self.space.toY(ver1[i].Y) - self.space.toY(tail.Y)))
+            v = vector2d(self.space,
+                         (self.space.toX(ver1[i].X) - self.space.toX(tail.X)),
+                         (self.space.toY(ver1[i].Y) - self.space.toY(tail.Y)))
             normal = v.normal().unit()
             b1_cast = []
             b2_cast = []
             for ii in range(ver1.__len__()):
                 if ver1[ii] is not tail:
-                    ray = vector(self.space,
-                                 (self.space.toX(ver1[ii].X) -
-                                  self.space.toX(tail.X)),
-                                 (self.space.toY(ver1[ii].Y) -
-                                  self.space.toY(tail.Y)))
+                    ray = vector2d(self.space,
+                                   (self.space.toX(ver1[ii].X) -
+                                    self.space.toX(tail.X)),
+                                   (self.space.toY(ver1[ii].Y) -
+                                    self.space.toY(tail.Y)))
                     b1_cast.append(normal.dot(ray.xy))
             for ii in range(ver2.__len__()):
-                ray = vector(self.space,
-                             (self.space.toX(ver2[ii].X) -
-                              self.space.toX(tail.X)),
-                             (self.space.toY(ver2[ii].Y) -
-                              self.space.toY(tail.Y)))
+                ray = vector2d(self.space,
+                               (self.space.toX(ver2[ii].X) -
+                                self.space.toX(tail.X)),
+                               (self.space.toY(ver2[ii].Y) -
+                                self.space.toY(tail.Y)))
                 b2_cast.append(normal.dot(ray.xy))
             if not self.point_intersect(b1_cast, b2_cast):
                 return False
         for i in range(ver2.__len__()):
             tail = ver2[i-1]
-            v = vector(self.space,
-                       (self.space.toX(ver2[i].X) - self.space.toX(tail.X)),
-                       (self.space.toY(ver2[i].Y) - self.space.toY(tail.Y)))
+            v = vector2d(self.space,
+                         (self.space.toX(ver2[i].X) - self.space.toX(tail.X)),
+                         (self.space.toY(ver2[i].Y) - self.space.toY(tail.Y)))
             normal = v.normal().unit()
             b1_cast = []
             b2_cast = []
             for ii in range(ver1.__len__()):
-                ray = vector(self.space,
-                             (self.space.toX(ver1[ii].X) -
-                              self.space.toX(tail.X)),
-                             (self.space.toY(ver1[ii].Y) -
-                              self.space.toY(tail.Y)))
+                ray = vector2d(self.space,
+                               (self.space.toX(ver1[ii].X) -
+                                self.space.toX(tail.X)),
+                               (self.space.toY(ver1[ii].Y) -
+                                self.space.toY(tail.Y)))
                 b1_cast.append(normal.dot(ray.xy))
             for ii in range(ver2.__len__()):
                 if ver2[ii] is not tail:
-                    ray = vector(self.space,
-                                 (self.space.toX(ver2[ii].X) -
-                                  self.space.toX(tail.X)),
-                                 (self.space.toY(ver2[ii].Y) -
-                                  self.space.toY(tail.Y)))
+                    ray = vector2d(self.space,
+                                   (self.space.toX(ver2[ii].X) -
+                                    self.space.toX(tail.X)),
+                                   (self.space.toY(ver2[ii].Y) -
+                                    self.space.toY(tail.Y)))
                     b2_cast.append(normal.dot(ray.xy))
             if not self.point_intersect(b1_cast, b2_cast):
                 return False
@@ -104,12 +104,12 @@ class LineIntersectCollision(collision):
         points1 = []
         for i in range(body1.vertices.__len__()):
             # check for every vertex of first shape against ...
-            l1s = self.space.toXY(body1.position_vec.XY)
-            l1e = self.space.toXY(body1.vertices[i].XY)
+            l1s = self.space.toXY(body1.position_vec.HEAD)
+            l1e = self.space.toXY(body1.vertices[i].HEAD)
             for j in range(body2.vertices.__len__()):
                 # ... every edge of second shape
-                l2s = self.space.toXY(body2.vertices[j-1].XY)
-                l2e = self.space.toXY(body2.vertices[j].XY)
+                l2s = self.space.toXY(body2.vertices[j-1].HEAD)
+                l2e = self.space.toXY(body2.vertices[j].HEAD)
                 # check wheter these two line segments are intersecting or not
                 val = self.line_segment_intersect(l1s, l1e, l2s, l2e)
                 if val:
@@ -119,11 +119,11 @@ class LineIntersectCollision(collision):
     def __side_intersect(self, body1: shape, body2: shape):
         points = []
         for i in range(body1.vertices.__len__()):
-            l1s = self.space.toXY(body1.vertices[i-1].XY)
-            l1e = self.space.toXY(body1.vertices[i].XY)
+            l1s = self.space.toXY(body1.vertices[i-1].HEAD)
+            l1e = self.space.toXY(body1.vertices[i].HEAD)
             for j in range(body2.vertices.__len__()):
-                l2s = self.space.toXY(body2.vertices[j-1].XY)
-                l2e = self.space.toXY(body2.vertices[j].XY)
+                l2s = self.space.toXY(body2.vertices[j-1].HEAD)
+                l2e = self.space.toXY(body2.vertices[j].HEAD)
                 val = self.line_segment_intersect(l1s, l1e, l2s, l2e)
                 if val:
                     points.append(val)

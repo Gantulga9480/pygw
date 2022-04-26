@@ -1,4 +1,4 @@
-from Game.graphic.cartesian import plane, vector, scalar
+from Game.graphic.cartesian import plane, vector2d, scalar
 from Game.color import BLACK
 import pygame as pg
 from math import pi, atan2, sqrt
@@ -8,12 +8,12 @@ class shape:
 
     def __init__(self, parent_space: plane, position: tuple,
                  limit_vertex: bool = True) -> None:
-        self.position_vec = vector(parent_space, *position, True)
+        self.position_vec = vector2d(parent_space, *position, True)
         self.plane = plane(parent_space.window_size,
                            parent_space.unit_length,
                            self.position_vec, False)
 
-        self.vertices: list[vector] = []
+        self.vertices: list[vector2d] = []
         self.limit_vertex = limit_vertex
 
     def rotate(self, angle):
@@ -38,7 +38,7 @@ class shape:
             for vertex in self.vertices:
                 vertex.show(window)
         pg.draw.lines(window, color, True,
-                      [vertex.XY for vertex in self.vertices], width)
+                      [vertex.HEAD for vertex in self.vertices], width)
 
 
 class rectangle(shape):
@@ -105,11 +105,11 @@ class polygon(shape):
 
         step = 2 * pi / vertex_count
         if vertex_count % 2:
-            start_angle = pi/2 - step
+            self.start_angle = pi/2 - step
         else:
-            start_angle = pi / vertex_count
+            self.start_angle = pi / vertex_count
 
         for i in range(vertex_count):
             self.vertices.append(
-                vector(self.plane, size, 0, limit_vertex))
-            self.vertices[-1].rotate(start_angle + step * i)
+                vector2d(self.plane, size, 0, limit_vertex))
+            self.vertices[-1].rotate(self.start_angle + step * i)
