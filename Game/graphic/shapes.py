@@ -101,9 +101,15 @@ class polygon(shape):
         super().__init__(parent_space, positon, limit_vertex)
 
         if vertex_count < 2:
-            raise ValueError("Wrong vertex_count, minimum is 2")
+            raise ValueError("Wrong vertex_count, The minimum is 2")
+
+        step = 2 * pi / vertex_count
+        if vertex_count % 2:
+            start_angle = pi/2 - step
+        else:
+            start_angle = pi / vertex_count
 
         for i in range(vertex_count):
             self.vertices.append(
                 vector(self.plane, size, 0, limit_vertex))
-            self.vertices[-1].rotate(2 * pi / vertex_count * i)
+            self.vertices[-1].rotate(start_angle + step * i)
