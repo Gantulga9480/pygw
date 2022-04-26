@@ -10,6 +10,12 @@ class collision:
     def collide(self, body1: shape, body2: shape):
         raise NotImplementedError
 
+    def line_segment_intersect(self, line_s, line_e, line2_s, line2_e):
+        raise NotImplementedError
+
+    def point_set_intersect(self, points1, points2):
+        raise NotImplementedError
+
 
 class SeparatingAxisTheorem(collision):
 
@@ -42,7 +48,7 @@ class SeparatingAxisTheorem(collision):
                              (self.space.toY(ver2[ii].Y) -
                               self.space.toY(tail.Y)))
                 b2_cast.append(normal.dot(ray.xy))
-            if not self.intersect(b1_cast, b2_cast):
+            if not self.point_intersect(b1_cast, b2_cast):
                 return False
         for i in range(ver2.__len__()):
             tail = ver2[i-1]
@@ -67,11 +73,11 @@ class SeparatingAxisTheorem(collision):
                                  (self.space.toY(ver2[ii].Y) -
                                   self.space.toY(tail.Y)))
                     b2_cast.append(normal.dot(ray.xy))
-            if not self.intersect(b1_cast, b2_cast):
+            if not self.point_intersect(b1_cast, b2_cast):
                 return False
         return True
 
-    def intersect(self, set1, set2):
+    def point_set_intersect(self, set1, set2):
         min1 = min(set1)
         min2 = min(set2)
         if min1 <= min2 <= max(set1):
@@ -89,88 +95,53 @@ class LineIntersectCollision(collision):
 
     def collide(self, body1: shape, body2: shape):
         if not self.side:
+            # check collision using vertex diagonals
             return self.__diagonal_intersect(body1, body2)
+        # check collision using side edges
         return self.__side_intersect(body1, body2)
 
     def __diagonal_intersect(self, body1: shape, body2: shape):
-        ver1 = body1.vertices
-        ver2 = body2.vertices
-
-        points = []
-        for i in range(ver1.__len__()):
-            tail1 = body1.position_vec.xy
-            head1 = self.space.toXY(ver1[i].XY)
-            for j in range(ver2.__len__()):
-                tail2 = self.space.toXY(ver2[j-1].XY)
-                head2 = self.space.toXY(ver2[j].XY)
-                val = self.intersect(tail1, head1, tail2, head2)
+        points1 = []
+        for i in range(body1.vertices.__len__()):
+            # check for every vertex of first shape against ...
+            l1s = self.space.toXY(body1.position_vec.XY)
+            l1e = self.space.toXY(body1.vertices[i].XY)
+            for j in range(body2.vertices.__len__()):
+                # ... every edge of second shape
+                l2s = self.space.toXY(body2.vertices[j-1].XY)
+                l2e = self.space.toXY(body2.vertices[j].XY)
+                # check wheter these two line segments are intersecting or not
+                val = self.line_segment_intersect(l1s, l1e, l2s, l2e)
                 if val:
-                    points.append(val)
-        if points:
-            return points
-        for i in range(ver2.__len__()):
-            tail1 = body2.position_vec.xy
-            head1 = self.space.toXY(ver2[i].XY)
-            for j in range(ver1.__len__()):
-                tail2 = self.space.toXY(ver1[j-1].XY)
-                head2 = self.space.toXY(ver1[j].XY)
-                val = self.intersect(tail1, head1, tail2, head2)
-                if val:
-                    points.append(val)
-        if points:
-            return points
-        return False
+                    points1.append([i, val])
+        return points1
 
     def __side_intersect(self, body1: shape, body2: shape):
-        ver1 = body1.vertices
-        ver2 = body2.vertices
-
         points = []
-        for i in range(ver1.__len__()):
-            tail1 = self.space.toXY(ver1[i-1].XY)
-            head1 = self.space.toXY(ver1[i].XY)
-            for j in range(ver2.__len__()):
-                tail2 = self.space.toXY(ver2[j-1].XY)
-                head2 = self.space.toXY(ver2[j].XY)
-                val = self.intersect(tail1, head1, tail2, head2)
+        for i in range(body1.vertices.__len__()):
+            l1s = self.space.toXY(body1.vertices[i-1].XY)
+            l1e = self.space.toXY(body1.vertices[i].XY)
+            for j in range(body2.vertices.__len__()):
+                l2s = self.space.toXY(body2.vertices[j-1].XY)
+                l2e = self.space.toXY(body2.vertices[j].XY)
+                val = self.line_segment_intersect(l1s, l1e, l2s, l2e)
                 if val:
                     points.append(val)
-        if points:
-            return points
-        for i in range(ver2.__len__()):
-            tail1 = self.space.toXY(ver2[i-1].XY)
-            head1 = self.space.toXY(ver2[i].XY)
-            for j in range(ver1.__len__()):
-                tail2 = self.space.toXY(ver1[j-1].XY)
-                head2 = self.space.toXY(ver1[j].XY)
-                val = self.intersect(tail1, head1, tail2, head2)
-                if val:
-                    points.append(val)
-        if points:
-            return points
-        return False
+        return points
 
-    def intersect(self, p0, p1, p2, p3):
-        s10_x = p1[0] - p0[0]
-        s10_y = p1[1] - p0[1]
-        s32_x = p3[0] - p2[0]
-        s32_y = p3[1] - p2[1]
-        denom = s10_x * s32_y - s32_x * s10_y
-        if denom == 0.0:
-            return None  # collinear
-        denom_is_positive = denom > 0
-        s02_x = p0[0] - p2[0]
-        s02_y = p0[1] - p2[1]
-        s_numer = s10_x * s02_y - s10_y * s02_x
-        if (s_numer < 0) == denom_is_positive:
-            return None  # no collision
-        t_numer = s32_x * s02_y - s32_y * s02_x
-        if (t_numer < 0) == denom_is_positive:
-            return None  # no collision
-        if (s_numer > denom) == denom_is_positive or \
-                (t_numer > denom) == denom_is_positive:
-            return None  # no collision
-        # collision detected
-        t = t_numer / denom
-        intersection_point = [p0[0] + (t * s10_x), p0[1] + (t * s10_y)]
-        return intersection_point
+    def line_segment_intersect(self, l1s, l1e, l2s, l2e):
+        l1_x = l2e[0] - l2s[0]
+        l1_y = (l1s[1] - l1e[1])
+        h = l1_x * l1_y - (l1s[0] - l1e[0]) * (l2e[1] - l2s[1])
+        if h == 0.0:
+            return False
+        t1 = ((l2s[1] - l2e[1]) * (l1s[0] - l2s[0]) +
+              (l1_x) * (l1s[1] - l2s[1])) / h
+        t2 = (l1_y * (l1s[0] - l2s[0]) +
+              (l1e[0] - l1s[0]) * (l1s[1] - l2s[1])) / h
+
+        if t1 >= 0.0 and t1 < 1.0 and t2 >= 0.0 and t2 < 1.0:
+            # TODO FIX intersection point
+            return ([l1s[0] + (t1 * l1_x), l1s[1] + (t1 * (l1e[1] - l1s[1]))],
+                    t1)
+        return False
