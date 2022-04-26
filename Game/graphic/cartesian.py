@@ -102,7 +102,7 @@ class plane:
                  logging=True) -> None:
         self.window_size = window_size
         self.unit_length = unit_length
-        self.parent_vector: vector = parent_vector
+        self.parent_vector: vector2d = parent_vector
         self.logging = logging
         if self.parent_vector:
             self.__center = self.parent_vector.headXY
@@ -172,18 +172,18 @@ class plane:
             raise TypeError(f"Type  {type(o)} not supported")
 
     @property
-    def XY(self):
+    def CENTER(self):
         """center (X, Y) value in pixel"""
         return (self.__center.x.value, self.__center.y.value)
 
-    @XY.setter
-    def XY(self, XY):
+    @CENTER.setter
+    def CENTER(self, XY):
         if isinstance(XY, tuple):
             self.__center.x.value = XY[0]
             self.__center.y.value = XY[1]
         elif isinstance(XY, point2d):
             self.__center = XY
-        elif isinstance(XY, vector):
+        elif isinstance(XY, vector2d):
             self.__center.x.value = XY.X
             self.__center.y.value = XY.Y
         else:
@@ -207,7 +207,7 @@ class plane:
         """cartesian (x, y) to pygame (X, Y)"""
         if isinstance(xy, (tuple, list)):
             return (self.getX(xy[0]), self.getY(xy[1]))
-        if isinstance(xy, vector):
+        if isinstance(xy, vector2d):
             return (self.getX(xy.x), self.getY(xy.x))
         raise TypeError(f"Type  {type(xy)} not supported")
 
@@ -223,7 +223,7 @@ class plane:
         """pygame (X, Y) to cartesian (x, y)"""
         if isinstance(XY, (tuple, list)):
             return (self.toX(XY[0]), self.toY(XY[1]))
-        if isinstance(XY, vector):
+        if isinstance(XY, vector2d):
             return (self.toX(XY.X), self.toY(XY.X))
         raise TypeError(f"Type  {type(XY)} not supported")
 
@@ -237,11 +237,11 @@ class plane:
 
     def createVector(self, x=1, y=0, set_limit=False):
         """Return a vector object parented by current plane instance"""
-        return vector(self, x, y, set_limit=set_limit)
+        return vector2d(self, x, y, set_limit=set_limit)
 
     def createRandomVector(self):
         """Return a random vector object parented by current plane instance"""
-        return vector(self).random()
+        return vector2d(self).random()
 
     def show(self, window, color=BLACK, width=1):
         pg.draw.lines(window, color, False,
@@ -251,7 +251,7 @@ class plane:
                       width)
 
 
-class vector:
+class vector2d:
 
     """
     #TODO
@@ -265,22 +265,22 @@ class vector:
         if space.logging and (x == y == 0):
             LOG('Created NULL vector!', WARNING, logging=True)
         if set_limit:
-            self.head = point2d(x, y,
-                                (-self.length_max, self.length_max),
-                                (-self.length_max, self.length_max))
+            self.head_ = point2d(x, y,
+                                 (-self.length_max, self.length_max),
+                                 (-self.length_max, self.length_max))
         else:
-            self.head = point2d(x, y)
+            self.head_ = point2d(x, y)
         self.headXY = point2d(self.X, self.Y)
         self.__limit = set_limit
 
     def __add__(self, o):
         if o > 0:
             if self.__limit and self.length + o <= self.length_max:
-                self.head.x.value += o * cos(self.direction)
-                self.head.y.value += o * sin(self.direction)
+                self.head_.x.value += o * cos(self.direction)
+                self.head_.y.value += o * sin(self.direction)
             elif not self.__limit:
-                self.head.x.value += o * cos(self.direction)
-                self.head.y.value += o * sin(self.direction)
+                self.head_.x.value += o * cos(self.direction)
+                self.head_.y.value += o * sin(self.direction)
         elif o < 0:
             self.__sub__(abs(o))
         self.__update()
@@ -289,10 +289,10 @@ class vector:
     def __sub__(self, o):
         if o > 0:
             if o < self.length - 1:
-                self.head.x.value -= o * cos(self.direction)
-                self.head.y.value -= o * sin(self.direction)
+                self.head_.x.value -= o * cos(self.direction)
+                self.head_.y.value -= o * sin(self.direction)
             else:
-                self.head.x.value, self.head.y.value = self.unit()
+                self.head_.x.value, self.head_.y.value = self.unit().head
         elif o < 0:
             self.__add__(abs(o))
         self.__update()
@@ -302,16 +302,16 @@ class vector:
         if self.length * factor > self.length_min:
             if self.__limit:
                 if self.length * factor < self.length_max:
-                    self.head.x.value *= factor
-                    self.head.y.value *= factor
+                    self.head_.x.value *= factor
+                    self.head_.y.value *= factor
                 else:
-                    self.head.x.value, self.head.y.value = \
+                    self.head_.x.value, self.head_.y.value = \
                         self.unit(self.length_max)
             else:
-                self.head.x.value *= factor
-                self.head.y.value *= factor
+                self.head_.x.value *= factor
+                self.head_.y.value *= factor
         else:
-            self.head.x.value, self.head.y.value = self.unit()
+            self.head_.x.value, self.head_.y.value = self.unit().head
         self.__update()
         return self
 
@@ -321,15 +321,15 @@ class vector:
     @property
     def x(self):
         """x coordinate in cartesian system"""
-        return self.head.x.value
+        return self.head_.x.value
 
     @x.setter
     def x(self, x):
         """Set x in cartesian coordinate system"""
         if isinstance(x, (int, float)):
-            self.head.x.value = x
+            self.head_.x.value = x
         elif isinstance(x, scalar):
-            self.head.x = x
+            self.head_.x = x
         else:
             raise TypeError(f"Type  {type(x)} not supported")
         self.__update()
@@ -337,71 +337,79 @@ class vector:
     @property
     def y(self):
         """y coordinate in cartesian system"""
-        return self.head.y.value
+        return self.head_.y.value
 
     @y.setter
     def y(self, y):
         """Set y coordinate in cartesian system"""
         if isinstance(y, (int, float)):
-            self.head.y.value = y
+            self.head_.y.value = y
         elif isinstance(y, scalar):
-            self.head.y = y
+            self.head_.y = y
         else:
             raise TypeError(f"Type  {type(y)} not supported")
         self.__update()
 
     @property
-    def xy(self):
+    def head(self):
         """(x, y) values in cartesian coordinate system"""
-        return (self.head.x.value, self.head.y.value)
+        return (self.head_.x.value, self.head_.y.value)
 
-    @xy.setter
-    def xy(self, xy: tuple):
+    @head.setter
+    def head(self, xy: tuple):
         """Set (x, y) for cartesian system using cartesian (x, y)"""
         if isinstance(xy, tuple):
-            self.head.x.value = xy[0]
-            self.head.y.value = xy[1]
+            self.head_.x.value = xy[0]
+            self.head_.y.value = xy[1]
         elif isinstance(xy, point2d):
-            self.head = xy
+            self.head_ = xy
         else:
             raise TypeError(f"Type  {type(xy)} not supported")
         self.__update()
 
     @property
+    def tail(self):
+        return (0, 0)
+
+    @property
     def X(self):
         """X coordinate in pygame system"""
-        return self.space.getX(self.head.x.value)
+        return self.space.getX(self.head_.x.value)
 
     @property
     def Y(self):
         """Y coordinate in pygame system"""
-        return self.space.getY(self.head.y.value)
+        return self.space.getY(self.head_.y.value)
 
     @property
-    def XY(self):
+    def HEAD(self):
         """(x, y) values in pygame coordinate system"""
         return (self.X, self.Y)
 
-    @XY.setter
-    def XY(self, XY):
+    @HEAD.setter
+    def HEAD(self, XY):
         """Set (x, y) for cartesian system using pygame (X, Y)"""
         if isinstance(XY, tuple):
-            self.head.x.value = self.space.toX(XY[0])
-            self.head.y.value = self.space.toY(XY[1])
+            self.head_.x.value = self.space.toX(XY[0])
+            self.head_.y.value = self.space.toY(XY[1])
         elif isinstance(XY, point2d):
-            self.head.x.value = self.space.toX(XY.x.value)
-            self.head.y.value = self.space.toY(XY.y.value)
-        elif isinstance(XY, vector):
-            self.head.x.value = self.space.toX(XY.X)
-            self.head.y.value = self.space.toY(XY.Y)
+            self.head_.x.value = self.space.toX(XY.x.value)
+            self.head_.y.value = self.space.toY(XY.y.value)
+        elif isinstance(XY, vector2d):
+            self.head_.x.value = self.space.toX(XY.X)
+            self.head_.y.value = self.space.toY(XY.Y)
         else:
             raise TypeError(f"Type  {type(XY)} not supported")
         self.__update()
 
     @property
+    def TAIL(self):
+        return self.space.CENTER
+
+    @property
     def length(self):
         """Return length in cartesian coordinate system"""
-        return dist((0, 0), (self.head.x.value, self.head.y.value))
+        return dist((0, 0), (self.head_.x.value, self.head_.y.value))
 
     @length.setter
     def length(self, o):
@@ -409,12 +417,12 @@ class vector:
             a = self.direction
             if self.__limit:
                 if self.length_min <= o <= self.length_max:
-                    self.head.x.value = cos(a) * o
-                    self.head.y.value = sin(a) * o
+                    self.head_.x.value = cos(a) * o
+                    self.head_.y.value = sin(a) * o
             else:
                 if self.length_min <= o:
-                    self.head.x.value = cos(a) * o
-                    self.head.y.value = sin(a) * o
+                    self.head_.x.value = cos(a) * o
+                    self.head_.y.value = sin(a) * o
         else:
             raise TypeError(f"Type  {type(o)} not supported")
         self.__update()
@@ -427,14 +435,14 @@ class vector:
     @property
     def direction(self):
         """Return angle from X axis in radians"""
-        return atan2(self.head.y.value, self.head.x.value)
+        return atan2(self.head_.y.value, self.head_.x.value)
 
     @direction.setter
     def direction(self, o):
         if isinstance(o, (float, int)):
             lng = self.length
-            self.head.x.value = cos(o) * lng
-            self.head.y.value = sin(o) * lng
+            self.head_.x.value = cos(o) * lng
+            self.head_.y.value = sin(o) * lng
         else:
             raise TypeError(f"Type  {type(o)} not supported")
         self.__update()
@@ -444,16 +452,16 @@ class vector:
         Possitive values for counter-clock-wise,
         Negative values for clock-wise rotation
         """
-        _x = self.head.x.value
-        _y = self.head.y.value
-        self.head.x.value = _x * cos(rad) - _y * sin(rad)
-        self.head.y.value = _x * sin(rad) + _y * cos(rad)
+        _x = self.head_.x.value
+        _y = self.head_.y.value
+        self.head_.x.value = _x * cos(rad) - _y * sin(rad)
+        self.head_.y.value = _x * sin(rad) + _y * cos(rad)
         self.__update()
 
     def random(self):
-        """Set vector head at random location"""
-        self.head.x.value = (random.random() * 2 - 1) * self.space.x_max
-        self.head.y.value = (random.random() * 2 - 1) * self.space.y_max
+        """Set vector head_ at random location"""
+        self.head_.x.value = (random.random() * 2 - 1) * self.space.x_max
+        self.head_.y.value = (random.random() * 2 - 1) * self.space.y_max
         self.__update()
         return self
 
@@ -461,16 +469,16 @@ class vector:
         """Return distance of given vector from current vector in cartesian"""
         if isinstance(xy, tuple):
             return dist((0, 0),
-                        ((self.head.x.value - xy[0]),
-                         (self.head.y.value - xy[1])))
-        elif isinstance(xy, vector):
+                        ((self.head_.x.value - xy[0]),
+                         (self.head_.y.value - xy[1])))
+        elif isinstance(xy, vector2d):
             return dist((0, 0),
-                        ((self.head.x.value - xy.head.x.value),
-                         (self.head.y.value - xy.head.y.value)))
+                        ((self.head_.x.value - xy.head_.x.value),
+                         (self.head_.y.value - xy.head_.y.value)))
         elif isinstance(xy, point2d):
             return dist((0, 0),
-                        ((self.head.x.value - xy.x.value),
-                         (self.head.y.value - xy.y.value)))
+                        ((self.head_.x.value - xy.x.value),
+                         (self.head_.y.value - xy.y.value)))
         else:
             raise TypeError(f"Type  {type(xy)} not supported")
 
@@ -481,8 +489,8 @@ class vector:
         """
         if isinstance(xy, tuple):
             return atan2(xy[1], xy[0]) - self.direction
-        elif isinstance(xy, vector):
-            return atan2(xy.head.y.value, xy.head.x.value) - self.direction
+        elif isinstance(xy, vector2d):
+            return atan2(xy.head_.y.value, xy.head_.x.value) - self.direction
         elif isinstance(xy, point2d):
             return atan2(xy.y.value, xy.x.value) - self.direction
         else:
@@ -494,33 +502,37 @@ class vector:
         and currrent vector in cartesian
         """
         if isinstance(xy, tuple):
-            return self.head.x.value * xy[0] + self.head.y.value * xy[1]
-        elif isinstance(xy, vector):
-            return self.head.x.value * xy.head.x.value + \
-                self.head.y.value * xy.head.y.value
+            return self.head_.x.value * xy[0] + self.head_.y.value * xy[1]
+        elif isinstance(xy, vector2d):
+            return self.head_.x.value * xy.head_.x.value + \
+                self.head_.y.value * xy.head_.y.value
         elif isinstance(xy, point2d):
-            return self.head.x.value * xy.x.value + \
-                self.head.y.value * xy.y.value
+            return self.head_.x.value * xy.x.value + \
+                self.head_.y.value * xy.y.value
         else:
             raise TypeError(f"Type  {type(xy)} not supported")
 
-    def unit(self, scale=1):
+    def unit(self, scale=1, toVector=True):
         """Return unit length vector scaled by 'scale' in cartesian"""
         a = self.direction
-        return vector(self.space, cos(a)*scale, sin(a)*scale, self.__limit)
+        x = cos(a)*scale
+        y = sin(a)*scale
+        if toVector:
+            return vector2d(self.space, x, y, self.__limit)
+        return (x, y)
 
     def normal(self):
         """TODO"""
-        return vector(self.space, -self.head.y.value,
-                      self.head.x.value, self.__limit)
+        return vector2d(self.space, -self.head_.y.value,
+                        self.head_.x.value, self.__limit)
 
     def show(self, window, color=BLACK, width=1, aa=False):
         if aa:
-            pg.draw.aaline(window, color, self.space.XY,
-                           self.XY, width)
+            pg.draw.aaline(window, color, self.space.CENTER,
+                           self.HEAD, width)
         else:
-            pg.draw.line(window, color, self.space.XY, self.XY, width)
+            pg.draw.line(window, color, self.space.CENTER, self.HEAD, width)
 
     def __update(self):
-        self.headXY.xy = (self.space.getX(self.head.x.value),
-                          self.space.getY(self.head.y.value))
+        self.headXY.xy = (self.space.getX(self.head_.x.value),
+                          self.space.getY(self.head_.y.value))
