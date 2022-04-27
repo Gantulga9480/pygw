@@ -1,5 +1,5 @@
 from Game.graphic.cartesian import vector2d, plane
-from Game.graphic.shapes import shape
+from Game.graphic.shapes import shape, polygon
 
 
 class collision:
@@ -100,21 +100,28 @@ class LineIntersectCollision(collision):
         # check collision using side edges
         return self.__side_intersect(body1, body2)
 
-    def __diagonal_intersect(self, body1: shape, body2: shape):
-        points1 = []
-        for i in range(body1.vertices.__len__()):
-            # check for every vertex of first shape against ...
-            l1s = self.space.toXY(body1.position_vec.HEAD)
-            l1e = self.space.toXY(body1.vertices[i].HEAD)
-            for j in range(body2.vertices.__len__()):
-                # ... every edge of second shape
-                l2s = self.space.toXY(body2.vertices[j-1].HEAD)
-                l2e = self.space.toXY(body2.vertices[j].HEAD)
-                # check wheter these two line segments are intersecting or not
-                val = self.line_segment_intersect(l1s, l1e, l2s, l2e)
-                if val:
-                    points1.append([i, val])
-        return points1
+    def __diagonal_intersect(self, body1: polygon, body2: polygon):
+        displacement = [0, 0]
+        b1 = body1
+        b2 = body2
+        for k in range(2):
+            if k == 1:
+                b1 = body2
+                b2 = body1
+            for i in range(b1.vertices.__len__()):
+                # check for every vertex of first shape against ...
+                l1s = self.space.toXY(b1.position_vec.HEAD)
+                l1e = self.space.toXY(b1.vertices[i].HEAD)
+                for j in range(b2.vertices.__len__()):
+                    # ... every edge of second shape
+                    l2s = self.space.toXY(b2.vertices[j-1].HEAD)
+                    l2e = self.space.toXY(b2.vertices[j].HEAD)
+                    # check these two line segments are intersecting or not
+                    val = self.line_segment_intersect(l1s, l1e, l2s, l2e)
+                    if val:
+                        displacement[0] += val
+                        return (k, i, j, val)
+        return False
 
     def __side_intersect(self, body1: shape, body2: shape):
         points = []
