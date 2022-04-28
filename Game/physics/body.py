@@ -5,7 +5,7 @@ STATIC = 0
 DYNAMIC = 1
 
 
-class rigidbody(polygon):
+class body(polygon):
 
     def __init__(self,
                  parent_space: plane,
@@ -21,7 +21,7 @@ class rigidbody(polygon):
                          limit_vertex)
 
         self.state = state
-        self.radius = size + 5
+        self.radius = size + 1
         self.inertia = vector2d(self.plane, 1, 0, set_limit=True)
         self.inertia.rotate(self.start_angle)
 
