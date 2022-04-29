@@ -1,4 +1,4 @@
-from Game.graphic.cartesian import plane, vector2d, scalar
+from Game.graphic.cartesian import CartesianPlane, Vector2d
 from Game.color import BLACK
 import pygame as pg
 from math import pi, atan2, sqrt
@@ -6,14 +6,14 @@ from math import pi, atan2, sqrt
 
 class shape:
 
-    def __init__(self, parent_space: plane, position: tuple,
+    def __init__(self, parent_space: CartesianPlane, position: tuple,
                  limit_vertex: bool = True) -> None:
-        self.position_vec = vector2d(parent_space, *position, True)
-        self.plane = plane(parent_space.window_size,
-                           parent_space.unit_length,
-                           self.position_vec, False)
+        self.position_vec = Vector2d(parent_space, *position, True)
+        self.plane = CartesianPlane(parent_space.window_size,
+                                    parent_space.unit_length,
+                                    self.position_vec, False)
 
-        self.vertices: list[vector2d] = []
+        self.vertices: list[Vector2d] = []
         self.limit_vertex = limit_vertex
 
     def rotate(self, angle):
@@ -43,7 +43,7 @@ class shape:
 
 class rectangle(shape):
 
-    def __init__(self, parent_space: plane, positon: tuple,
+    def __init__(self, parent_space: CartesianPlane, positon: tuple,
                  size: tuple, limit_vertex=True) -> None:
         super().__init__(parent_space, positon, limit_vertex)
 
@@ -60,7 +60,7 @@ class rectangle(shape):
 
 class triangle(shape):
 
-    def __init__(self, parent_space: plane, positon: tuple,
+    def __init__(self, parent_space: CartesianPlane, positon: tuple,
                  size: tuple, limit_vertex=True) -> None:
         super().__init__(parent_space, positon, limit_vertex)
 
@@ -75,7 +75,7 @@ class triangle(shape):
 
 class circle(shape):
 
-    def __init__(self, parent_space: plane, positon: tuple,
+    def __init__(self, parent_space: CartesianPlane, positon: tuple,
                  radius, limit_vertex=True) -> None:
         super().__init__(parent_space, positon, limit_vertex)
 
@@ -93,7 +93,7 @@ class circle(shape):
 class polygon(shape):
 
     def __init__(self,
-                 parent_space: plane,
+                 parent_space: CartesianPlane,
                  positon: tuple,
                  vertex_count: int = 2,
                  size: float = 1.0,
@@ -111,5 +111,5 @@ class polygon(shape):
 
         for i in range(vertex_count):
             self.vertices.append(
-                vector2d(self.plane, size, 0, limit_vertex))
+                Vector2d(self.plane, size, 0, limit_vertex))
             self.vertices[-1].rotate(self.start_angle + step * i)

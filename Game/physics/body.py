@@ -1,14 +1,20 @@
-from Game.graphic.cartesian import plane, vector2d, scalar
+from Game.graphic.cartesian import CartesianPlane, Vector2d
 from Game.graphic.shapes import shape, polygon, rectangle, triangle
 
 STATIC = 0
 DYNAMIC = 1
 
 
+class body:
+
+    def __init__(self) -> None:
+        self.acceleration = None
+
+
 class body(polygon):
 
     def __init__(self,
-                 parent_space: plane,
+                 parent_space: CartesianPlane,
                  positon: tuple,
                  vertex_count: int = 2,
                  size: float = 1,
@@ -22,7 +28,7 @@ class body(polygon):
 
         self.state = state
         self.radius = size + 1
-        self.inertia = vector2d(self.plane, 1, 0, set_limit=True)
+        self.inertia = Vector2d(self.plane, 1, 0, set_limit=True)
         self.inertia.rotate(self.start_angle)
 
     def step(self, dx=0, dy=0):

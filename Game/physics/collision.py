@@ -1,10 +1,10 @@
-from Game.graphic.cartesian import vector2d, plane
+from Game.graphic.cartesian import CartesianPlane, Vector2d
 from Game.physics.body import body, DYNAMIC, STATIC
 
 
 class collision:
 
-    def __init__(self, space: plane) -> None:
+    def __init__(self, space: CartesianPlane) -> None:
         self.space = space
 
     def collide(self, body1: body, body2: body):
@@ -19,7 +19,7 @@ class collision:
 
 class LineIntersectCollision(collision):
 
-    def __init__(self, space: plane, side=False) -> None:
+    def __init__(self, space: CartesianPlane, side=False) -> None:
         super().__init__(space)
         self.side = side
 
@@ -92,7 +92,7 @@ class LineIntersectCollision(collision):
 
 class SeparatingAxisTheorem(collision):
 
-    def __init__(self, space: plane) -> None:
+    def __init__(self, space: CartesianPlane) -> None:
         super().__init__(space)
 
     def collide(self, body1: body, body2: body):
@@ -100,7 +100,7 @@ class SeparatingAxisTheorem(collision):
         ver2 = body2.vertices
         for i in range(ver1.__len__()):
             tail = ver1[i-1]
-            v = vector2d(self.space,
+            v = Vector2d(self.space,
                          (self.space.toX(ver1[i].X) - self.space.toX(tail.X)),
                          (self.space.toY(ver1[i].Y) - self.space.toY(tail.Y)))
             normal = v.normal().unit()
@@ -108,14 +108,14 @@ class SeparatingAxisTheorem(collision):
             b2_cast = []
             for ii in range(ver1.__len__()):
                 if ver1[ii] is not tail:
-                    ray = vector2d(self.space,
+                    ray = Vector2d(self.space,
                                    (self.space.toX(ver1[ii].X) -
                                     self.space.toX(tail.X)),
                                    (self.space.toY(ver1[ii].Y) -
                                     self.space.toY(tail.Y)))
                     b1_cast.append(normal.dot(ray.xy))
             for ii in range(ver2.__len__()):
-                ray = vector2d(self.space,
+                ray = Vector2d(self.space,
                                (self.space.toX(ver2[ii].X) -
                                 self.space.toX(tail.X)),
                                (self.space.toY(ver2[ii].Y) -
@@ -125,14 +125,14 @@ class SeparatingAxisTheorem(collision):
                 return False
         for i in range(ver2.__len__()):
             tail = ver2[i-1]
-            v = vector2d(self.space,
+            v = Vector2d(self.space,
                          (self.space.toX(ver2[i].X) - self.space.toX(tail.X)),
                          (self.space.toY(ver2[i].Y) - self.space.toY(tail.Y)))
             normal = v.normal().unit()
             b1_cast = []
             b2_cast = []
             for ii in range(ver1.__len__()):
-                ray = vector2d(self.space,
+                ray = Vector2d(self.space,
                                (self.space.toX(ver1[ii].X) -
                                 self.space.toX(tail.X)),
                                (self.space.toY(ver1[ii].Y) -
@@ -140,7 +140,7 @@ class SeparatingAxisTheorem(collision):
                 b1_cast.append(normal.dot(ray.xy))
             for ii in range(ver2.__len__()):
                 if ver2[ii] is not tail:
-                    ray = vector2d(self.space,
+                    ray = Vector2d(self.space,
                                    (self.space.toX(ver2[ii].X) -
                                     self.space.toX(tail.X)),
                                    (self.space.toY(ver2[ii].Y) -

@@ -1,5 +1,5 @@
 from Game.base import Game
-from Game.graphic.cartesian import plane, vector2d, scalar
+from Game.graphic.cartesian import CartesianPlane, Vector2d
 from Game.graphic.shapes import triangle, rectangle, circle, polygon, shape
 from Game.physics.body import *
 from Game.physics.collision import SeparatingAxisTheorem as SAT
@@ -17,7 +17,7 @@ class Test(Game):
                  fps: int = 60, render: bool = True) -> None:
         super().__init__(title, width, height, fps, render)
 
-        self.plane = plane((width, height), 1)
+        self.plane = CartesianPlane((width, height), 1)
         self.collider = LIC(self.plane)
 
         self.bodies: list[body] = []
@@ -60,7 +60,7 @@ class Test(Game):
             for j in self.bodies:
                 if i is not j and (i.state != STATIC or j.state != STATIC):
                     if (i.radius + j.radius) >= \
-                            i.position_vec.distance(j.position_vec):
+                            i.position_vec.distance_to(j.position_vec):
                         self.collider.collide(i, j)
 
             i.show(self.window)
