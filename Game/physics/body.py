@@ -1,47 +1,32 @@
-from Game.graphic.cartesian import CartesianPlane, Vector2d
-from Game.graphic.shapes import shape, polygon, rectangle, triangle
+from Game.graphic.cartesian import CartesianPlane
+from Game.graphic.shapes import polygon, shape
+from Game.physics.core import vector2d
+from math import pi
 
 STATIC = 0
 DYNAMIC = 1
+FREE = 2
 
 
 class body:
 
-    def __init__(self) -> None:
-        self.acceleration = None
-
-
-class body(polygon):
-
-    def __init__(self,
-                 parent_space: CartesianPlane,
-                 positon: tuple,
-                 vertex_count: int = 2,
-                 size: float = 1,
-                 state: int = STATIC,
-                 limit_vertex: bool = True) -> None:
-        super().__init__(parent_space,
-                         positon,
-                         vertex_count,
-                         size,
-                         limit_vertex)
-
+    def __init__(self, state) -> None:
+        super(body, self).__init__()
         self.state = state
-        self.radius = size + 1
-        self.inertia = Vector2d(self.plane, 1, 0, set_limit=True)
-        self.inertia.rotate(self.start_angle)
+        self.radius = 0
 
-    def step(self, dx=0, dy=0):
-        if dx and dy:
-            self.position_vec.x += dx
-            self.position_vec.y += dy
-        else:
-            if round(self.inertia.length, 2) > 1:
-                self.position_vec.x += self.inertia.head_.x.value - 1
-                self.position_vec.y += self.inertia.head_.y.value - 1
-                # self.inertia *= 0.99
 
-    def rotate(self, angle):
-        self.inertia.rotate(angle)
-        for vertex in self.vertices:
-            vertex.rotate(angle)
+class static_body(body):
+
+    def __init__(self) -> None:
+        super(static_body, self).__init__(STATIC)
+
+
+class dynamic_body(body):
+
+    def __init__(self) -> None:
+        super(dynamic_body, self).__init__()
+        self.state = DYNAMIC
+        self.acceleration = vector2d(1, 0, max_length=100)
+        self.inertia = vector2d(1, 0)
+        self.inertia.rotate(pi/2)

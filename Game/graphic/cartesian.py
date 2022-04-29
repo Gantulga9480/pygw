@@ -1,6 +1,7 @@
 from math import cos, sin, atan2, dist
 from Game.physics.core import scalar, point2d, vector2d
 import pygame as pg
+import random
 from Game.utils import *
 from Game.color import *
 
@@ -154,13 +155,16 @@ class CartesianPlane:
         """pygame Y to cartesian y"""
         return (self.__center.y.value - Y) / self.unit_length
 
-    def createVector(self, x=1, y=0, set_limit=False):
+    def createVector(self, x=1, y=0, set_limit=False, max_length=None,
+                     min_length=None):
         """Return a vector object parented by current plane instance"""
-        return Vector2d(self, x, y, set_limit=set_limit)
+        return Vector2d(self, x, y, set_limit, max_length, min_length)
 
     def createRandomVector(self):
         """Return a random vector object parented by current plane instance"""
-        return Vector2d(self).random()
+        vec = Vector2d(self)
+        vec.random()
+        return vec
 
     def show(self, window, color=BLACK, width=1):
         pg.draw.lines(window, color, False,
@@ -178,20 +182,22 @@ class Vector2d(vector2d):
 
     def __init__(self,
                  space: CartesianPlane,
-                 x,
-                 y,
-                 set_limit: bool = False) -> None:
+                 x=1,
+                 y=0,
+                 set_limit: bool = False,
+                 max_length=None,
+                 min_length=None) -> None:
         if space.logging and (x == y == 0):
             LOG('Created NULL vector!', WARNING, logging=True)
         self.space = space
-        max_len = max(self.space.x_max, self.space.y_max)
+        self.headXY = point2d(0, 0)
         if set_limit:
-            super().__init__(x, y, (-max_len, max_len),
-                                   (-max_len, max_len),
-                             max_len)
+            super().__init__(x, y, (-self.space.x_max, self.space.x_max),
+                                   (-self.space.y_max, self.space.y_max),
+                             max_length, min_length)
         else:
-            super().__init__(x, y)
-        self.headXY = point2d(self.X, self.Y)
+            super().__init__(x, y, max_length=max_length,
+                             min_length=min_length)
 
     @property
     def X(self):
@@ -217,13 +223,18 @@ class Vector2d(vector2d):
         """Return length in pygame coordinate system"""
         return dist([0, 0], [self.X, self.Y])
 
+    def random(self):
+        """Set vector head at random location"""
+        self._head.x.value = (random.random() * 2 - 1) * self.space.x_max
+        self._head.y.value = (random.random() * 2 - 1) * self.space.y_max
+        self.update()
+
     def show(self, window, color=BLACK, width=1, aa=False):
         if aa:
-            pg.draw.aaline(window, color, self.space.CENTER,
-                           self.HEAD, width)
+            pg.draw.aaline(window, color, self.TAIL, self.HEAD, width)
         else:
-            pg.draw.line(window, color, self.space.CENTER, self.HEAD, width)
+            pg.draw.line(window, color, self.TAIL, self.HEAD, width)
 
-    def __update(self):
+    def update(self):
         self.headXY.xy = (self.space.getX(self._head.x.value),
                           self.space.getY(self._head.y.value))

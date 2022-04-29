@@ -1,6 +1,5 @@
 from math import cos, sin, dist, atan2
 from Game.utils import *
-import random
 
 
 class scalar:
@@ -86,38 +85,44 @@ class point2d:
 
 class vector2d:
 
-    def __init__(self, x, y, x_lim=None, y_lim=None, max_length=None) -> None:
+    def __init__(self, x, y,
+                 x_lim=None, y_lim=None,
+                 max_length=None, min_length=1) -> None:
         self._head: point2d = point2d(x, y, x_lim, y_lim)
-        self.x_lim = x_lim if x_lim else 100
-        self.y_lim = y_lim if y_lim else 100
+        self.x_lim = x_lim
+        self.y_lim = y_lim
         self.__limted = True if max_length else False
-        self.max_length = max_length if max_length else 100
-        self.min_length = 1
+        self.max_length = max_length
+        self.min_length = min_length
+        self.update()
 
-    def __add__(self, o):
+    def add(self, o):
         if o > 0:
-            if self.__limted and self.length() + o <= self.max_length:
-                self._head.x.value += o * cos(self.direction())
-                self._head.y.value += o * sin(self.direction())
+            if self.__limted and (self.length() + o <= self.max_length):
+                a = self.direction()
+                self._head.x.value += o * cos(a)
+                self._head.y.value += o * sin(a)
             elif not self.__limted:
-                self._head.x.value += o * cos(self.direction())
-                self._head.y.value += o * sin(self.direction())
+                a = self.direction()
+                self._head.x.value += o * cos(a)
+                self._head.y.value += o * sin(a)
+            self.update()
         elif o < 0:
-            self.__sub__(abs(o))
-        return self
+            self.sub(abs(o))
 
-    def __sub__(self, o):
+    def sub(self, o):
         if o > 0:
             if o < self.length() - 1:
-                self._head.x.value -= o * cos(self.direction())
-                self._head.y.value -= o * sin(self.direction())
+                a = self.direction()
+                self._head.x.value -= o * cos(a)
+                self._head.y.value -= o * sin(a)
             else:
                 self._head.x.value, self._head.y.value = self.unit().head
+            self.update()
         elif o < 0:
-            self.__add__(abs(o))
-        return self
+            self.add(abs(o))
 
-    def __mul__(self, factor):
+    def scale(self, factor):
         if self.length() * factor > self.min_length:
             if self.__limted:
                 if self.length() * factor < self.max_length:
@@ -131,10 +136,7 @@ class vector2d:
                 self._head.y.value *= factor
         else:
             self._head.x.value, self._head.y.value = self.unit()._head.xy
-        return self
-
-    def __truediv__(self, factor):
-        return self.__mul__(1/factor)
+        self.update()
 
     @property
     def x(self):
@@ -150,6 +152,7 @@ class vector2d:
             self._head.x = x
         else:
             raise TypeError(f"Type  {type(x)} not supported")
+        self.update()
 
     @property
     def y(self):
@@ -165,6 +168,7 @@ class vector2d:
             self._head.y = y
         else:
             raise TypeError(f"Type  {type(y)} not supported")
+        self.update()
 
     @property
     def head(self):
@@ -181,18 +185,11 @@ class vector2d:
             self._head = xy
         else:
             raise TypeError(f"Type  {type(xy)} not supported")
+        self.update()
 
     @property
     def tail(self):
         return (0, 0)
-
-    def length(self):
-        """Return length in cartesian coordinate system"""
-        return dist((0, 0), (self._head.x.value, self._head.y.value))
-
-    def direction(self):
-        """Return angle from x axis in radians"""
-        return atan2(self._head.y.value, self._head.x.value)
 
     def rotate(self, rad):
         """
@@ -203,6 +200,18 @@ class vector2d:
         _y = self._head.y.value
         self._head.x.value = _x * cos(rad) - _y * sin(rad)
         self._head.y.value = _x * sin(rad) + _y * cos(rad)
+        self.update()
+
+    def update(self):
+        ...
+
+    def length(self):
+        """Return length in cartesian coordinate system"""
+        return dist((0, 0), (self._head.x.value, self._head.y.value))
+
+    def direction(self):
+        """Return angle from x axis in radians"""
+        return atan2(self._head.y.value, self._head.x.value)
 
     def distance_to(self, xy) -> float:
         """Return distance of given vector from current vector in cartesian"""
@@ -263,12 +272,6 @@ class vector2d:
                 self._head.y.value * xy.y.value
         else:
             raise TypeError(f"Type  {type(xy)} not supported")
-
-    def random(self):
-        """Set vector head at random location"""
-        self._head.x.value = (random.random() * 2 - 1) * self.max_length
-        self._head.y.value = (random.random() * 2 - 1) * self.min_length
-        return self
 
 
 class Engine:

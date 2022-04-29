@@ -1,36 +1,38 @@
 from Game.graphic.cartesian import CartesianPlane, Vector2d
 from Game.color import BLACK
 import pygame as pg
-from math import pi, atan2, sqrt
+from math import pi, sqrt
 
 
 class shape:
 
-    def __init__(self, parent_space: CartesianPlane, position: tuple,
+    def __init__(self, plane: CartesianPlane,
                  limit_vertex: bool = True) -> None:
-        self.position_vec = Vector2d(parent_space, *position, True)
-        self.plane = CartesianPlane(parent_space.window_size,
-                                    parent_space.unit_length,
-                                    self.position_vec, False)
+        super(shape, self).__init__()
+        self.plane = plane
 
         self.vertices: list[Vector2d] = []
         self.limit_vertex = limit_vertex
+
+    @property
+    def vec(self):
+        return self.plane.parent_vector
 
     def rotate(self, angle):
         for vertex in self.vertices:
             vertex.rotate(angle)
 
     def scale(self, factor):
-        lengths = [vertex.length for vertex in self.vertices]
+        lengths = [vertex.length() for vertex in self.vertices]
         if factor > 1:
-            if max(lengths) * factor <= self.vertices[0].length_max or \
+            if max(lengths) * factor <= self.vertices[0].max_length or \
                     not self.limit_vertex:
                 for vertex in self.vertices:
-                    vertex *= factor
+                    vertex.scale(factor)
         elif factor < 1:
             if min(lengths) * factor >= 1:
                 for vertex in self.vertices:
-                    vertex *= factor
+                    vertex.scale(factor)
 
     def show(self, window, color=BLACK, width=1, show_vertex=False):
         if show_vertex:
@@ -43,73 +45,47 @@ class shape:
 
 class rectangle(shape):
 
-    def __init__(self, parent_space: CartesianPlane, positon: tuple,
-                 size: tuple, limit_vertex=True) -> None:
-        super().__init__(parent_space, positon, limit_vertex)
+    def __init__(self,
+                 parent_space: CartesianPlane,
+                 size: tuple,
+                 limit_vertex=True) -> None:
+        super().__init__(parent_space, limit_vertex)
 
-        alpha1 = atan2(size[1]//2, size[0]//2)
-        alpha2 = pi - alpha1
-        angles = [alpha1, alpha2, -alpha2, -alpha1]
         length = sqrt((size[0]//2)**2 + (size[1]//2)**2)
 
-        for a in angles:
+        for i in range(4):
             self.vertices.append(
-                self.plane.createVector(x=length, y=0, set_limit=limit_vertex))
-            self.vertices[-1].rotate(a)
+                Vector2d(self.plane, x=length, y=0))
+            self.vertices[-1].rotate(pi/2 + pi/2 * i)
 
 
 class triangle(shape):
 
-    def __init__(self, parent_space: CartesianPlane, positon: tuple,
-                 size: tuple, limit_vertex=True) -> None:
-        super().__init__(parent_space, positon, limit_vertex)
+    def __init__(self,
+                 parent_space: CartesianPlane,
+                 size: tuple,
+                 limit_vertex=True) -> None:
+        super().__init__(parent_space, limit_vertex)
 
-        angles = [pi/2, -pi+pi/6, -pi/6]
-
-        for i, a in enumerate(angles):
+        for i in range(3):
             self.vertices.append(
-                self.plane.createVector(x=size[i], y=0,
-                                        set_limit=limit_vertex))
-            self.vertices[-1].rotate(a)
-
-
-class circle(shape):
-
-    def __init__(self, parent_space: CartesianPlane, positon: tuple,
-                 radius, limit_vertex=True) -> None:
-        super().__init__(parent_space, positon, limit_vertex)
-
-        self.vertices.append(
-            self.plane.createVector(x=radius, y=0, set_limit=limit_vertex))
-
-    def show(self, window, color=BLACK, width=1, show_vertex=False):
-        if show_vertex:
-            # self.position_vec.show(window)
-            self.vertices[0].show(window)
-        pg.draw.circle(window, color, self.plane.XY,
-                       self.vertices[0].length, width)
+                Vector2d(self.plane, x=size[i], y=0))
+            self.vertices[-1].rotate(pi/2 + 2*pi/3 * i)
 
 
 class polygon(shape):
 
     def __init__(self,
                  parent_space: CartesianPlane,
-                 positon: tuple,
                  vertex_count: int = 2,
                  size: float = 1.0,
                  limit_vertex: bool = True) -> None:
-        super().__init__(parent_space, positon, limit_vertex)
+        super(polygon, self).__init__(parent_space, limit_vertex)
 
         if vertex_count < 2:
             raise ValueError("Wrong vertex_count, The minimum is 2")
 
-        step = 2 * pi / vertex_count
-        if vertex_count % 2:
-            self.start_angle = pi/2 - step
-        else:
-            self.start_angle = pi / vertex_count
-
         for i in range(vertex_count):
             self.vertices.append(
-                Vector2d(self.plane, size, 0, limit_vertex))
-            self.vertices[-1].rotate(self.start_angle + step * i)
+                Vector2d(self.plane, size, 0, max_length=self.plane.x_max))
+            self.vertices[-1].rotate(pi/2 + 2*pi/vertex_count * i)
