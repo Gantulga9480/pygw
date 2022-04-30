@@ -9,16 +9,19 @@ import random
 import math
 
 
-class TestBody(polygon, static_body):
+class TestBody(static_body):
 
     def __init__(self,
                  parent_space: CartesianPlane,
                  vertex_count: int = 2,
                  size: float = 1.0,
                  limit_vertex: bool = True) -> None:
-        super().__init__(parent_space, vertex_count, size, limit_vertex)
-        super(static_body, self).__init__(state=STATIC)
+        self.shape = polygon(parent_space, vertex_count, size, limit_vertex)
+        super().__init__()
         self.radius = size + 1
+
+    def collision_resolver(self, body1, body2, displacement):
+        ...
 
 
 class Test(Game):

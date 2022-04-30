@@ -21,6 +21,9 @@ class static_body(body):
     def __init__(self) -> None:
         super(static_body, self).__init__(STATIC)
 
+    def collision_resolver(self):
+        ...
+
 
 class dynamic_body(body):
 
