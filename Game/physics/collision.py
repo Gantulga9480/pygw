@@ -1,6 +1,5 @@
-from Game.graphic.cartesian import CartesianPlane, Vector2d
-from Game.physics.body import DYNAMIC, STATIC
-from Game.graphic.shapes import shape
+from Game.graphic.cartesian import CartesianPlane
+from Game.physics.body import DYNAMIC, STATIC, base_body
 
 
 class collision:
@@ -11,11 +10,24 @@ class collision:
         self.space = space
         self.__resolve = resolver
 
-    def static_collision(self, body1: shape, body2: shape):
+    def static_collision(self, body1: base_body, body2: base_body):
         raise NotImplementedError
 
-    def dynamic_collision(self, body1: shape, body2: shape):
+    def dynamic_collision(self, body1: base_body, body2: base_body):
         raise NotImplementedError
+
+    def static_resolve(self, b1: base_body, b2: base_body, d: tuple):
+        if b1.body.state == DYNAMIC and b2.body.state == STATIC:
+            b1.vec.x -= d[0]
+            b1.vec.y -= d[1]
+        elif b1.body.state == STATIC and b2.body.state == DYNAMIC:
+            b2.vec.x += d[0]
+            b2.vec.y += d[1]
+        elif b1.body.state == DYNAMIC and b2.body.state == DYNAMIC:
+            b1.vec.x -= d[0]/2
+            b1.vec.y -= d[1]/2
+            b2.vec.x += d[0]/2
+            b2.vec.y += d[1]/2
 
     def line_segment_intersect(self, l1s, l1e, l2s, l2e):
         l1_x = l2e[0] - l2s[0]
@@ -53,59 +65,37 @@ class LineIntersectCollision(collision):
         super().__init__(space, resolver)
         self.side = side
 
-    def static_collision(self, body1: shape, body2: shape):
-        self.__resolve = self.static_resolver  # TODO
-        if not self.side:
-            # check collision using vertex diagonals, resolve collision
-            self.__resolve(*self.__diagonal_intersect(body1, body2))
-        else:
-            # check collision using side edges, resolve collision
-            self.__resolve(*self.__side_intersect(body1, body2))
+    def static_collision(self, body1: base_body, body2: base_body):
+        self.__resolve = self.static_resolve
+        # check collision using vertex diagonals, resolve collision
+        self.__diagonal_intersect(body1, body2)
 
-    def dynamic_collision(self, body1: shape, body2: shape):
-        if not self.side:
-            # check collision using vertex diagonals, resolve collision
-            self.__resolve(self.__diagonal_intersect(body1, body2))
-            return
-        # check collision using side edges resolve collision
-        self.__resolve(self.__side_intersect(body1, body2))
-        return
+    def dynamic_collision(self, body1: base_body, body2: base_body):
+        # check collision using vertex diagonals, resolve collision
+        ...
 
-    def static_resolver(self, body: shape, displacement):
-        body.vec.x -= displacement[0]
-        body.vec.y -= displacement[1]
-
-    def __diagonal_intersect(self, body1: shape, body2: shape):
+    def __diagonal_intersect(self, body1: base_body, body2: base_body):
         b1 = body1
         b2 = body2
-        db = [0, 0]
-        for i in range(b1.vertices.__len__()):
-            # check for every vertex of first shape against ...
-            l1s = self.space.toXY(b1.plane.CENTER)
-            l1e = self.space.toXY(b1.vertices[i].HEAD)
-            for j in range(b2.vertices.__len__()):
-                # ... every edge of second shape
-                l2s = self.space.toXY(b2.vertices[j-1].HEAD)
-                l2e = self.space.toXY(b2.vertices[j].HEAD)
-                # check these two line segments are intersecting or not
-                val = self.line_segment_intersect(l1s, l1e, l2s, l2e)
-                if val:
-                    db[0] += b1.vertices[i].x * val[1]
-                    db[1] += b1.vertices[i].y * val[1]
-        return b1, db
-
-    def __side_intersect(self, body1: shape, body2: shape):
-        points = []
-        for i in range(body1.vertices.__len__()):
-            l1s = self.space.toXY(body1.vertices[i-1].HEAD)
-            l1e = self.space.toXY(body1.vertices[i].HEAD)
-            for j in range(body2.vertices.__len__()):
-                l2s = self.space.toXY(body2.vertices[j-1].HEAD)
-                l2e = self.space.toXY(body2.vertices[j].HEAD)
-                val = self.line_segment_intersect(l1s, l1e, l2s, l2e)
-                if val:
-                    points.append(val)
-        return points
+        for i in range(2):
+            if i == 1:
+                b1 = body2
+                b2 = body1
+            for i in range(b1.vertices.__len__()):
+                # check for every vertex of first shape against ...
+                l1s = self.space.toXY(b1.plane.CENTER)
+                l1e = self.space.toXY(b1.vertices[i].HEAD)
+                d = [0, 0]
+                for j in range(b2.vertices.__len__()):
+                    # ... every edge of second shape
+                    l2s = self.space.toXY(b2.vertices[j-1].HEAD)
+                    l2e = self.space.toXY(b2.vertices[j].HEAD)
+                    # check these two line segments are intersecting or not
+                    val = self.line_segment_intersect(l1s, l1e, l2s, l2e)
+                    if val:
+                        d[0] += (l1e[0] - l1s[0]) * val[1]
+                        d[1] += (l1e[1] - l1s[1]) * val[1]
+                self.__resolve(b1, b2, d)
 
 
 class SeparatingAxisTheorem(collision):
@@ -113,6 +103,6 @@ class SeparatingAxisTheorem(collision):
     def __init__(self, space: CartesianPlane) -> None:
         super().__init__(space)
 
-    def collide(self, body1: shape, body2: shape):
+    def collide(self, body1: base_body, body2: base_body):
         # TODO
         ...

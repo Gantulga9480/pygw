@@ -87,22 +87,21 @@ class vector2d:
 
     def __init__(self, x, y,
                  x_lim=None, y_lim=None,
-                 max_length=None, min_length=1) -> None:
+                 max_length=None, min_length=0) -> None:
         self._head: point2d = point2d(x, y, x_lim, y_lim)
         self.x_lim = x_lim
         self.y_lim = y_lim
-        self.__limted = True if max_length else False
         self.max_length = max_length
         self.min_length = min_length
         self.update()
 
     def add(self, o):
         if o > 0:
-            if self.__limted and (self.length() + o <= self.max_length):
+            if self.max_length and (self.length() + o <= self.max_length):
                 a = self.direction()
                 self._head.x.value += o * cos(a)
                 self._head.y.value += o * sin(a)
-            elif not self.__limted:
+            elif not self.max_length:
                 a = self.direction()
                 self._head.x.value += o * cos(a)
                 self._head.y.value += o * sin(a)
@@ -124,7 +123,7 @@ class vector2d:
 
     def scale(self, factor):
         if self.length() * factor > self.min_length:
-            if self.__limted:
+            if self.max_length:
                 if self.length() * factor < self.max_length:
                     self._head.x.value *= factor
                     self._head.y.value *= factor

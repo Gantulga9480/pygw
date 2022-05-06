@@ -55,7 +55,7 @@ class rectangle(shape):
 
         for i in range(4):
             self.vertices.append(
-                Vector2d(self.plane, x=length, y=0))
+                Vector2d(self.plane, length, 0, max_length=self.plane.x_max))
             self.vertices[-1].rotate(pi/2 + pi/2 * i)
 
 
@@ -69,7 +69,7 @@ class triangle(shape):
 
         for i in range(3):
             self.vertices.append(
-                Vector2d(self.plane, x=size[i], y=0))
+                Vector2d(self.plane, size[i], 0, max_length=self.plane.x_max))
             self.vertices[-1].rotate(pi/2 + 2*pi/3 * i)
 
 

@@ -9,19 +9,15 @@ import random
 import math
 
 
-class TestBody(static_body):
+class TestBody(base_body):
 
     def __init__(self,
-                 parent_space: CartesianPlane,
+                 body_type,
+                 pos: Vector2d,
                  vertex_count: int = 2,
-                 size: float = 1.0,
+                 size: float = 1,
                  limit_vertex: bool = True) -> None:
-        self.shape = polygon(parent_space, vertex_count, size, limit_vertex)
-        super().__init__()
-        self.radius = size + 1
-
-    def collision_resolver(self, body1, body2, displacement):
-        ...
+        super().__init__(body_type, pos, vertex_count, size, limit_vertex)
 
 
 class Test(Game):
@@ -39,11 +35,19 @@ class Test(Game):
         self.selected = 0
         self.num_shapes = 10
 
-        for _ in range(self.num_shapes):
-            n = random.randint(3, 6)
-            vec = self.plane.createRandomVector()
-            plane = CartesianPlane((50, 50), 1, vec)
-            self.bodies.append(TestBody(plane, n, 50))
+        self.bodies.append(TestBody(DYNAMIC,
+                                    self.plane.createRandomVector(),
+                                    3, 50))
+
+        self.bodies.append(TestBody(DYNAMIC,
+                                    self.plane.createRandomVector(),
+                                    3, 50))
+
+        # for _ in range(self.num_shapes):
+        #     self.bodies.append(TestBody(body_type=STATIC,
+        #                                 pos=self.plane.createRandomVector(),
+        #                                 vertex_count=4,
+        #                                 size=50))
 
     def USR_eventHandler(self):
         for event in self.events:
@@ -71,8 +75,11 @@ class Test(Game):
         for i in self.bodies:
             for j in self.bodies:
                 if i is not j:
-                    if (i.radius + j.radius) >= i.vec.distance_to(j.vec):
-                        self.collider.static_collision(i, j)
+                    if i.body.state is not STATIC or \
+                            j.body.state is not STATIC:
+                        if (i.body.radius + j.body.radius) >= \
+                                i.vec.distance_to(j.vec):
+                            self.collider.static_collision(i, j)
 
             i.show(self.window)
 

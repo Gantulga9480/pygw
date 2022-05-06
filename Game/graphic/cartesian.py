@@ -1,4 +1,4 @@
-from math import cos, sin, atan2, dist
+from math import dist
 from Game.physics.core import scalar, point2d, vector2d
 import pygame as pg
 import random
@@ -184,9 +184,9 @@ class Vector2d(vector2d):
                  space: CartesianPlane,
                  x=1,
                  y=0,
-                 set_limit: bool = False,
                  max_length=None,
-                 min_length=None) -> None:
+                 min_length=1,
+                 set_limit: bool = False) -> None:
         if space.logging and (x == y == 0):
             LOG('Created NULL vector!', WARNING, logging=True)
         self.space = space
