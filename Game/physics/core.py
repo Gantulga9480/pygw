@@ -87,7 +87,7 @@ class vector2d:
 
     def __init__(self, x, y,
                  x_lim=None, y_lim=None,
-                 max_length=None, min_length=0) -> None:
+                 max_length=None, min_length=None) -> None:
         self._head: point2d = point2d(x, y, x_lim, y_lim)
         self.x_lim = x_lim
         self.y_lim = y_lim
@@ -111,12 +111,9 @@ class vector2d:
 
     def sub(self, o):
         if o > 0:
-            if o < self.length() - 1:
-                a = self.direction()
-                self._head.x.value -= o * cos(a)
-                self._head.y.value -= o * sin(a)
-            else:
-                self._head.x.value, self._head.y.value = self.unit().head
+            a = self.direction()
+            self._head.x.value -= o * cos(a)
+            self._head.y.value -= o * sin(a)
             self.update()
         elif o < 0:
             self.add(abs(o))
@@ -129,7 +126,7 @@ class vector2d:
                     self._head.y.value *= factor
                 else:
                     self._head.x.value, self._head.y.value = \
-                        self.unit(self.max_length)
+                        self.unit(self.max_length).head
             else:
                 self._head.x.value *= factor
                 self._head.y.value *= factor
@@ -271,9 +268,3 @@ class vector2d:
                 self._head.y.value * xy.y.value
         else:
             raise TypeError(f"Type  {type(xy)} not supported")
-
-
-class Engine:
-
-    def __init__(self) -> None:
-        pass

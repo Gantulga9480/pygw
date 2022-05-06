@@ -160,9 +160,15 @@ class CartesianPlane:
         """Return a vector object parented by current plane instance"""
         return Vector2d(self, x, y, set_limit, max_length, min_length)
 
-    def createRandomVector(self):
+    def createRandomVector(self,
+                           max_length=None,
+                           min_length=1,
+                           set_limit=False):
         """Return a random vector object parented by current plane instance"""
-        vec = Vector2d(self)
+        vec = Vector2d(self,
+                       max_length=max_length,
+                       min_length=min_length,
+                       set_limit=set_limit)
         vec.random()
         return vec
 

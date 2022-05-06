@@ -15,6 +15,9 @@ class body:
         self.state = state
         self.radius = radius
 
+    def step(self):
+        ...
+
 
 class static_body(body):
 
@@ -24,10 +27,20 @@ class static_body(body):
 
 class dynamic_body(body):
 
-    def __init__(self, radius) -> None:
+    def __init__(self, space, radius) -> None:
         super(dynamic_body, self).__init__(DYNAMIC, radius)
-        self.acceleration = vector2d(0, 0, max_length=100)
-        self.speed = vector2d(0, 0)
+        self.acceleration = Vector2d(space, 0, 0)
+        self.velocity = Vector2d(space, 0, 0)
+
+    def step(self, pos: Vector2d, factor):
+        if self.acceleration.length() > 1:
+            self.velocity.x += self.acceleration._head.x.value
+            self.velocity.y += self.acceleration._head.y.value
+            self.acceleration.scale(1/1.1)
+        if self.velocity.length() > 0:
+            pos.x += self.velocity._head.x.value / factor
+            pos.y += self.velocity._head.y.value / factor
+            self.velocity.scale(1/1.1)
 
 
 class base_body(polygon):
@@ -38,7 +51,8 @@ class base_body(polygon):
                  vertex_count: int = 2,
                  size: float = 1,
                  limit_vertex: bool = True) -> None:
-        super().__init__(parent_space=CartesianPlane((size, size), 1, pos),
+        parent = CartesianPlane((size, size), 1, pos)
+        super().__init__(parent_space=parent,
                          vertex_count=vertex_count,
                          size=size,
                          limit_vertex=limit_vertex)
@@ -46,4 +60,4 @@ class base_body(polygon):
         if body_type == STATIC:
             self.body = static_body(size)
         elif body_type == DYNAMIC:
-            self.body = dynamic_body(size)
+            self.body = dynamic_body(parent, size)

@@ -19,6 +19,10 @@ class TestBody(base_body):
                  limit_vertex: bool = True) -> None:
         super().__init__(body_type, pos, vertex_count, size, limit_vertex)
 
+    def step(self):
+        if self.body.state == DYNAMIC:
+            self.body.step(self.plane.parent_vector, 60)
+
 
 class Test(Game):
 
@@ -36,7 +40,7 @@ class Test(Game):
         self.num_shapes = 10
 
         self.bodies.append(TestBody(DYNAMIC,
-                                    self.plane.createRandomVector(),
+                                    self.plane.createRandomVector(set_limit=True),
                                     3, 50))
 
         self.bodies.append(TestBody(DYNAMIC,
@@ -59,17 +63,22 @@ class Test(Game):
                     if self.selected < self.num_shapes - 1:
                         self.selected += 1
         if self.keys[pg.K_UP]:
-            self.bodies[self.selected].plane.parent_vector.y += 2
+            self.bodies[self.selected].body.acceleration.add(1)
         elif self.keys[pg.K_DOWN]:
-            self.bodies[self.selected].plane.parent_vector.y -= 2
+            self.bodies[self.selected].body.acceleration.sub(1)
         if self.keys[pg.K_LEFT]:
-            self.bodies[self.selected].plane.parent_vector.x -= 2
-        elif self.keys[pg.K_RIGHT]:
-            self.bodies[self.selected].plane.parent_vector.x += 2
-        if self.keys[pg.K_a]:
+            self.bodies[self.selected].body.acceleration.rotate(0.1)
+            self.bodies[self.selected].body.velocity.rotate(0.1)
             self.bodies[self.selected].rotate(0.1)
-        elif self.keys[pg.K_d]:
+        elif self.keys[pg.K_RIGHT]:
+            self.bodies[self.selected].body.acceleration.rotate(-0.1)
+            self.bodies[self.selected].body.velocity.rotate(-0.1)
             self.bodies[self.selected].rotate(-0.1)
+            # self.bodies[self.selected].rotate(-0.1)
+
+    def USR_loop(self):
+        for b in self.bodies:
+            b.step()
 
     def USR_render(self):
         for i in self.bodies:
@@ -82,6 +91,8 @@ class Test(Game):
                             self.collider.static_collision(i, j)
 
             i.show(self.window)
+            i.body.velocity.show(self.window)
+            i.body.acceleration.show(self.window, width=3)
 
 
 Test().mainloop()
