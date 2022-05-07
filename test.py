@@ -78,6 +78,18 @@ class Test(Game):
 
     def USR_loop(self):
         for b in self.bodies:
+            if random.random() > 0.5:
+                b.body.acceleration.add(1)
+            else:
+                b.body.acceleration.scale(1/1.1)
+            if random.random() > 0.5:
+                b.body.acceleration.rotate(0.1)
+                b.body.velocity.rotate(0.1)
+                b.rotate(0.1)
+            else:
+                b.body.acceleration.rotate(-0.1)
+                b.body.velocity.rotate(-0.1)
+                b.rotate(-0.1)
             b.step()
 
     def USR_render(self):
