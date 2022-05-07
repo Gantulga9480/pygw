@@ -240,12 +240,12 @@ class vector2d:
         else:
             raise TypeError(f"Type  {type(xy)} not supported")
 
-    def unit(self, scale=1, toVector=True):
+    def unit(self, scale=1, vector=True):
         """Return unit length vector scaled by 'scale' in cartesian"""
         a = self.direction()
         x = cos(a)*scale
         y = sin(a)*scale
-        if toVector:
+        if vector:
             return vector2d(x, y)
         return (x, y)
 

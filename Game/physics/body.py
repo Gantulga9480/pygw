@@ -29,18 +29,22 @@ class dynamic_body(body):
 
     def __init__(self, space, radius) -> None:
         super(dynamic_body, self).__init__(DYNAMIC, radius)
-        self.acceleration = Vector2d(space, 0, 0)
-        self.velocity = Vector2d(space, 0, 0)
+        self.acceleration = Vector2d(space, 1, 0, max_length=30)
+        self.velocity = Vector2d(space, 1, 0)
 
     def step(self, pos: Vector2d, factor):
-        if self.acceleration.length() > 1:
+        if round(self.acceleration.length(), 2) > 1:
             self.velocity.x += self.acceleration._head.x.value
             self.velocity.y += self.acceleration._head.y.value
-            self.acceleration.scale(1/1.1)
-        if self.velocity.length() > 0:
+            self.acceleration.scale(1/1.01)
+        else:
+            self.acceleration.head = self.acceleration.unit(vector=False)
+        if round(self.velocity.length(), 2) > 1:
             pos.x += self.velocity._head.x.value / factor
             pos.y += self.velocity._head.y.value / factor
             self.velocity.scale(1/1.1)
+        else:
+            self.velocity.head = self.velocity.unit(vector=False)
 
 
 class base_body(polygon):
@@ -61,3 +65,5 @@ class base_body(polygon):
             self.body = static_body(size)
         elif body_type == DYNAMIC:
             self.body = dynamic_body(parent, size)
+            self.body.acceleration.rotate(pi/2)
+            self.body.velocity.rotate(pi/2)

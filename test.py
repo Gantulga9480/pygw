@@ -27,7 +27,7 @@ class TestBody(base_body):
 class Test(Game):
 
     def __init__(self, title: str = 'PyGameDemo',
-                 width: int = 800, height: int = 800,
+                 width: int = 1600, height: int = 800,
                  fps: int = 60, render: bool = True) -> None:
         super().__init__(title, width, height, fps, render)
 
@@ -39,19 +39,19 @@ class Test(Game):
         self.selected = 0
         self.num_shapes = 10
 
-        self.bodies.append(TestBody(DYNAMIC,
-                                    self.plane.createRandomVector(set_limit=True),
-                                    3, 50))
+        self.bodies.append(
+            TestBody(
+                DYNAMIC, self.plane.createRandomVector(set_limit=True), 3, 30))
 
-        self.bodies.append(TestBody(DYNAMIC,
-                                    self.plane.createRandomVector(),
-                                    3, 50))
+        # self.bodies.append(TestBody(DYNAMIC,
+        #                             self.plane.createRandomVector(),
+        #                             3, 50))
 
-        # for _ in range(self.num_shapes):
-        #     self.bodies.append(TestBody(body_type=STATIC,
-        #                                 pos=self.plane.createRandomVector(),
-        #                                 vertex_count=4,
-        #                                 size=50))
+        for _ in range(self.num_shapes):
+            self.bodies.append(
+                TestBody(
+                    DYNAMIC,
+                    self.plane.createRandomVector(set_limit=True), 3, 50))
 
     def USR_eventHandler(self):
         for event in self.events:
@@ -63,9 +63,9 @@ class Test(Game):
                     if self.selected < self.num_shapes - 1:
                         self.selected += 1
         if self.keys[pg.K_UP]:
-            self.bodies[self.selected].body.acceleration.add(1)
+            self.bodies[self.selected].body.acceleration.add(2)
         elif self.keys[pg.K_DOWN]:
-            self.bodies[self.selected].body.acceleration.sub(1)
+            self.bodies[self.selected].body.acceleration.scale(1/1.1)
         if self.keys[pg.K_LEFT]:
             self.bodies[self.selected].body.acceleration.rotate(0.1)
             self.bodies[self.selected].body.velocity.rotate(0.1)
