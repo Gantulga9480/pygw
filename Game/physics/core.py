@@ -87,7 +87,7 @@ class vector2d:
 
     def __init__(self, x, y,
                  x_lim=None, y_lim=None,
-                 max_length=None, min_length=None) -> None:
+                 max_length=None, min_length=0) -> None:
         self._head: point2d = point2d(x, y, x_lim, y_lim)
         self.x_lim = x_lim
         self.y_lim = y_lim
@@ -111,9 +111,13 @@ class vector2d:
 
     def sub(self, o):
         if o > 0:
-            a = self.direction()
-            self._head.x.value -= o * cos(a)
-            self._head.y.value -= o * sin(a)
+            if o < self.length() - self.min_length:
+                a = self.direction()
+                self._head.x.value -= o * cos(a)
+                self._head.y.value -= o * sin(a)
+            else:
+                self._head.x.value, self._head.y.value = \
+                    self.unit(scale=self.min_length).head
             self.update()
         elif o < 0:
             self.add(abs(o))
@@ -131,7 +135,8 @@ class vector2d:
                 self._head.x.value *= factor
                 self._head.y.value *= factor
         else:
-            self._head.x.value, self._head.y.value = self.unit()._head.xy
+            self._head.x.value, self._head.y.value = \
+                self.unit(scale=self.min_length)._head.xy
         self.update()
 
     @property

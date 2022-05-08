@@ -34,13 +34,17 @@ class shape:
                 for vertex in self.vertices:
                     vertex.scale(factor)
 
-    def show(self, window, color=BLACK, width=1, show_vertex=False):
+    def show(self, window, color=BLACK, width=1, show_vertex=False, aa=False):
         if show_vertex:
             # self.position_vec.show(window)
             for vertex in self.vertices:
-                vertex.show(window)
-        pg.draw.lines(window, color, True,
-                      [vertex.HEAD for vertex in self.vertices], width)
+                vertex.show(window, color=color, width=width, aa=aa)
+        if aa:
+            pg.draw.aalines(window, color, True,
+                            [vertex.HEAD for vertex in self.vertices], width)
+        else:
+            pg.draw.lines(window, color, True,
+                          [vertex.HEAD for vertex in self.vertices], width)
 
 
 class rectangle(shape):

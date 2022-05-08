@@ -8,7 +8,8 @@ class collision:
                  space: CartesianPlane,
                  resolver=None) -> None:
         self.space = space
-        self.__resolve = resolver
+        self._resolve = self.static_resolve
+        self._dynamic_resolver = resolver
 
     def static_collision(self, body1: base_body, body2: base_body):
         raise NotImplementedError
@@ -29,22 +30,30 @@ class collision:
             b2.vec.x += d[0]/2
             b2.vec.y += d[1]/2
 
-    def line_segment_intersect(self, l1s, l1e, l2s, l2e):
-        l1_x = l2e[0] - l2s[0]
-        l1_y = (l1s[1] - l1e[1])
-        h = l1_x * l1_y - (l1s[0] - l1e[0]) * (l2e[1] - l2s[1])
-        if h == 0.0:
-            return False
-        t1 = ((l2s[1] - l2e[1]) * (l1s[0] - l2s[0]) +
-              (l1_x) * (l1s[1] - l2s[1])) / h
-        t2 = (l1_y * (l1s[0] - l2s[0]) +
-              (l1e[0] - l1s[0]) * (l1s[1] - l2s[1])) / h
-
-        if t1 >= 0.0 and t1 < 1.0 and t2 >= 0.0 and t2 < 1.0:
-            # TODO FIX intersection point
-            return ([l1s[0] + (t1 * l1_x), l1s[1] + (t1 * (l1e[1] - l1s[1]))],
-                    (1 - t1))
-        return False
+    def line_segment_intersect(self, p0, p1, p2, p3):
+        s10_x = p1[0] - p0[0]
+        s10_y = p1[1] - p0[1]
+        s32_x = p3[0] - p2[0]
+        s32_y = p3[1] - p2[1]
+        denom = s10_x * s32_y - s32_x * s10_y
+        if denom == 0:
+            return None  # collinear
+        denom_is_positive = denom > 0
+        s02_x = p0[0] - p2[0]
+        s02_y = p0[1] - p2[1]
+        s_numer = s10_x * s02_y - s10_y * s02_x
+        if (s_numer < 0) == denom_is_positive:
+            return None  # no collision
+        t_numer = s32_x * s02_y - s32_y * s02_x
+        if (t_numer < 0) == denom_is_positive:
+            return None  # no collision
+        if (s_numer > denom) == denom_is_positive or \
+                (t_numer > denom) == denom_is_positive:
+            return None  # no collision
+        # collision detected
+        t = t_numer / denom
+        intersection_point = [p0[0] + (t * s10_x), p0[1] + (t * s10_y)]
+        return intersection_point, 1-t
 
     def point_set_intersect(self, set1, set2):
         min1 = min(set1)
@@ -66,17 +75,19 @@ class LineIntersectCollision(collision):
         self.side = side
 
     def static_collision(self, body1: base_body, body2: base_body):
-        self.__resolve = self.static_resolve
+        self._resolve = self.static_resolve
         # check collision using vertex diagonals, resolve collision
-        self.__diagonal_intersect(body1, body2)
+        return self.__diagonal_intersect(body1, body2)
 
     def dynamic_collision(self, body1: base_body, body2: base_body):
+        self._resolve = self._dynamic_resolver
         # check collision using vertex diagonals, resolve collision
-        ...
+        return self.__diagonal_intersect(body1, body2)
 
     def __diagonal_intersect(self, body1: base_body, body2: base_body):
         b1 = body1
         b2 = body2
+        points = []
         for i in range(2):
             if i == 1:
                 b1 = body2
@@ -93,9 +104,12 @@ class LineIntersectCollision(collision):
                     # check these two line segments are intersecting or not
                     val = self.line_segment_intersect(l1s, l1e, l2s, l2e)
                     if val:
+                        points.append(self.space.getXY(val[0]))
                         d[0] += (l1e[0] - l1s[0]) * val[1]
                         d[1] += (l1e[1] - l1s[1]) * val[1]
-                self.__resolve(b1, b2, d)
+                if d[0] != 0 or d[1] != 0:
+                    self._resolve(b1, b2, d)
+        return points
 
 
 class SeparatingAxisTheorem(collision):
