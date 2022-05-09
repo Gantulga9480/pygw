@@ -155,10 +155,13 @@ class CartesianPlane:
         """pygame Y to cartesian y"""
         return (self.__center.y.value - Y) / self.unit_length
 
-    def createVector(self, x=1, y=0, set_limit=False, max_length=None,
-                     min_length=None):
+    def createVector(self,
+                     x=1, y=0,
+                     max_length=None,
+                     min_length=1,
+                     set_limit=False):
         """Return a vector object parented by current plane instance"""
-        return Vector2d(self, x, y, set_limit, max_length, min_length)
+        return Vector2d(self, x, y, max_length, min_length, set_limit)
 
     def createRandomVector(self,
                            max_length=None,
@@ -197,6 +200,7 @@ class Vector2d(vector2d):
             LOG('Created NULL vector!', WARNING, logging=True)
         self.space = space
         self.headXY = point2d(0, 0)
+        self.is_limited = set_limit
         if set_limit:
             super().__init__(x, y, (-self.space.x_max, self.space.x_max),
                                    (-self.space.y_max, self.space.y_max),
@@ -244,3 +248,19 @@ class Vector2d(vector2d):
     def update(self):
         self.headXY.xy = (self.space.getX(self._head.x.value),
                           self.space.getY(self._head.y.value))
+
+    def unit(self, scale=1, vector=True):
+        xy = super().unit(scale, False)
+        if vector:
+            return Vector2d(self.space,
+                            xy[0], xy[1],
+                            self.max_length, self.min_length, self.is_limited)
+        return xy
+
+    def normal(self, scale=1, vector=True):
+        xy = super().normal(scale, False)
+        if vector:
+            return Vector2d(self.space,
+                            xy[0], xy[1],
+                            self.max_length, self.min_length, self.is_limited)
+        return xy

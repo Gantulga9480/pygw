@@ -34,6 +34,23 @@ def my_collision(b1: base_body, b2: base_body, d: tuple):
         b2.vec.y += d[1]/2
 
 
+def my_dynamic(body: dynamic_body, pos: Vector2d, factor):
+    a_len = body.acceleration.length()
+    if round(a_len, 2) > 1:
+        body.velocity.x += body.acceleration._head.x.value
+        body.velocity.y += body.acceleration._head.y.value
+        body.acceleration.scale(1/1.1)
+    else:
+        body.acceleration.head = body.acceleration.unit(vector=False)
+    v_len = body.velocity.length()
+    if round(v_len, 2) > 1:
+        pos.x += body.velocity._head.x.value / factor
+        pos.y += body.velocity._head.y.value / factor
+        body.velocity.sub(v_len * 0.01)
+    else:
+        body.velocity.head = body.velocity.unit(vector=False)
+
+
 class TestBody(base_body):
 
     def __init__(self,
@@ -43,7 +60,12 @@ class TestBody(base_body):
                  vertex_count: int = 2,
                  size: float = 1,
                  limit_vertex: bool = True) -> None:
-        super().__init__(body_type, pos, vertex_count, size, limit_vertex)
+        super().__init__(body_type,
+                         pos,
+                         vertex_count,
+                         size,
+                         limit_vertex,
+                         my_dynamic)
         self.id = body_id
 
     def rotate(self, angle):

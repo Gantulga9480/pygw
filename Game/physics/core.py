@@ -1,4 +1,4 @@
-from math import cos, sin, dist, atan2
+from math import cos, sin, dist, atan2, pi
 from Game.utils import *
 
 
@@ -210,9 +210,11 @@ class vector2d:
         """Return length in cartesian coordinate system"""
         return dist((0, 0), (self._head.x.value, self._head.y.value))
 
-    def direction(self):
+    def direction(self, to_degrees=False):
         """Return angle from x axis in radians"""
-        return atan2(self._head.y.value, self._head.x.value)
+        if not to_degrees:
+            return atan2(self._head.y.value, self._head.x.value)
+        return atan2(self._head.y.value, self._head.x.value) / pi * 180
 
     def distance_to(self, xy) -> float:
         """Return distance of given vector from current vector in cartesian"""
@@ -251,12 +253,20 @@ class vector2d:
         x = cos(a)*scale
         y = sin(a)*scale
         if vector:
-            return vector2d(x, y)
+            return vector2d(x, y,
+                            self.x_lim, self.y_lim,
+                            self.max_length, self.min_length)
         return (x, y)
 
-    def normal(self):
+    def normal(self, scale=1, vector=True):
         """TODO"""
-        return vector2d(-self._head.y.value, self._head.x.value)
+        x = -self._head.y.value * scale
+        y = self._head.x.value * scale
+        if vector:
+            return vector2d(x, y,
+                            self.x_lim, self.y_lim,
+                            self.max_length, self.min_length)
+        return (x, y)
 
     def dot(self, xy):
         """
