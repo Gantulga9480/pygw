@@ -11,7 +11,7 @@ import random
 FPS = 60
 
 
-def my_collision(b1: base_body, b2: base_body, d: tuple):
+def my_collision(b1: base_body, b2: base_body, d: list):
     scale = 0.9
     if b1.body.state == DYNAMIC and b2.body.state == STATIC:
         b1.body.velocity.scale(scale)
@@ -92,7 +92,7 @@ class Test(Game):
         self.bodies: list[TestBody] = []
 
         self.selected = 0
-        self.num_shapes = 30
+        self.num_shapes = 100
 
         self.bodies.append(
             TestBody(
@@ -132,7 +132,7 @@ class Test(Game):
             if b.id == 0:
                 b.step()
                 continue
-            if random.random() > 0.6:
+            if random.random() > 0.5:
                 b.body.acceleration.add(1)
             else:
                 b.body.acceleration.scale(1/1.1)
@@ -156,7 +156,7 @@ class Test(Game):
                                     pg.draw.circle(self.window,
                                                    RED, point, 5)
 
-            i.show(self.window, show_vertex=True, aa=True)
+            i.show(self.window, show_vertex=False, aa=True)
             # i.body.velocity.show(self.window, color=GREEN)
             i.body.acceleration.show(self.window, width=3, color=BLUE)
 
