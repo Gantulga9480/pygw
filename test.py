@@ -37,16 +37,16 @@ def my_collision(b1: base_body, b2: base_body, d: list):
 def my_dynamic(body: dynamic_body, pos: Vector2d, factor):
     a_len = body.acceleration.length()
     if round(a_len, 2) > 1:
-        body.velocity.x += body.acceleration._head.x.value
-        body.velocity.y += body.acceleration._head.y.value
+        body.velocity.x += body.acceleration.x
+        body.velocity.y += body.acceleration.y
         body.acceleration.scale(1/1.1)
     else:
         body.acceleration.head = body.acceleration.unit(vector=False)
     v_len = body.velocity.length()
     if round(v_len, 2) > 1:
-        pos.x += body.velocity._head.x.value / factor
-        pos.y += body.velocity._head.y.value / factor
-        body.velocity.sub(v_len * 0.01)
+        pos.x += body.velocity.x / factor
+        pos.y += body.velocity.y / factor
+        body.velocity.add(v_len * -0.01)
     else:
         body.velocity.head = body.velocity.unit(vector=False)
 

@@ -66,12 +66,12 @@ class CartesianPlane:
     @property
     def X(self):
         """center X value in pixel"""
-        return self.__center.x.value
+        return self.__center.x
 
     @X.setter
     def X(self, o):
         if isinstance(o, (int, float)):
-            self.__center.x.value = o
+            self.__center.x = o
         elif isinstance(o, scalar):
             self.__center.x = o
         else:
@@ -80,32 +80,32 @@ class CartesianPlane:
     @property
     def Y(self):
         """center Y value in pixel"""
-        return self.__center.y.value
+        return self.__center.y
 
     @Y.setter
     def Y(self, o):
         if isinstance(o, (int, float)):
-            self.__center.y.value = o
+            self.__center.y = o
         if isinstance(o, scalar):
-            self.__center.y.value = o.value
+            self.__center.y = o.value
         else:
             raise TypeError(f"Type  {type(o)} not supported")
 
     @property
     def CENTER(self):
         """center (X, Y) value in pixel"""
-        return (self.__center.x.value, self.__center.y.value)
+        return (self.__center.x, self.__center.y)
 
     @CENTER.setter
     def CENTER(self, XY):
         if isinstance(XY, tuple):
-            self.__center.x.value = XY[0]
-            self.__center.y.value = XY[1]
+            self.__center.x = XY[0]
+            self.__center.y = XY[1]
         elif isinstance(XY, point2d):
             self.__center = XY
         elif isinstance(XY, Vector2d):
-            self.__center.x.value = XY.X
-            self.__center.y.value = XY.Y
+            self.__center.x = XY.X
+            self.__center.y = XY.Y
         else:
             raise TypeError(f"Type  {type(XY)} not supported")
 
@@ -114,13 +114,13 @@ class CartesianPlane:
         return (self.x_min, self.x_max, self.y_min, self.y_max)
 
     def set_limit(self):
-        self.x_min = (self.__center.x.value - self.window_size[0]) \
+        self.x_min = (self.__center.x - self.window_size[0]) \
             // self.unit_length
-        self.x_max = (self.window_size[0] - self.__center.x.value) \
+        self.x_max = (self.window_size[0] - self.__center.x) \
             // self.unit_length
-        self.y_min = (self.__center.y.value - self.window_size[1]) \
+        self.y_min = (self.__center.y - self.window_size[1]) \
             // self.unit_length
-        self.y_max = (self.window_size[1] - self.__center.y.value) \
+        self.y_max = (self.window_size[1] - self.__center.y) \
             // self.unit_length
 
     def getXY(self, xy):
@@ -133,11 +133,11 @@ class CartesianPlane:
 
     def getX(self, x):
         """cartesian x to pygame X"""
-        return self.__center.x.value + x * self.unit_length
+        return self.__center.x + x * self.unit_length
 
     def getY(self, y):
         """cartesian y to pygame Y"""
-        return self.__center.y.value - y * self.unit_length
+        return self.__center.y - y * self.unit_length
 
     def toXY(self, XY):
         """pygame (X, Y) to cartesian (x, y)"""
@@ -149,11 +149,11 @@ class CartesianPlane:
 
     def toX(self, X):
         """pygame X to cartesian x"""
-        return (X - self.__center.x.value) / self.unit_length
+        return (X - self.__center.x) / self.unit_length
 
     def toY(self, Y):
         """pygame Y to cartesian y"""
-        return (self.__center.y.value - Y) / self.unit_length
+        return (self.__center.y - Y) / self.unit_length
 
     def createVector(self,
                      x=1, y=0,
@@ -164,7 +164,7 @@ class CartesianPlane:
         return Vector2d(self, x, y, max_length, min_length, set_limit)
 
     def createRandomVector(self,
-                           max_length=None,
+                           max_length=0,
                            min_length=1,
                            set_limit=False):
         """Return a random vector object parented by current plane instance"""
@@ -177,9 +177,9 @@ class CartesianPlane:
 
     def show(self, window, color=BLACK, width=1):
         pg.draw.lines(window, color, False,
-                      [(self.__center.x.value, self.__center.y.value-20),
-                       (self.__center.x.value, self.__center.y.value),
-                       (self.__center.x.value+20, self.__center.y.value)],
+                      [(self.__center.x, self.__center.y-20),
+                       (self.__center.x, self.__center.y),
+                       (self.__center.x+20, self.__center.y)],
                       width)
 
 
@@ -193,7 +193,7 @@ class Vector2d(vector2d):
                  space: CartesianPlane,
                  x=1,
                  y=0,
-                 max_length=None,
+                 max_length=0,
                  min_length=1,
                  set_limit: bool = False) -> None:
         if space.logging and (x == y == 0):
@@ -212,12 +212,12 @@ class Vector2d(vector2d):
     @property
     def X(self):
         """X coordinate in pygame system"""
-        return self.space.getX(self._head.x.value)
+        return self.space.getX(self.x)
 
     @property
     def Y(self):
         """Y coordinate in pygame system"""
-        return self.space.getY(self._head.y.value)
+        return self.space.getY(self.y)
 
     @property
     def HEAD(self):
@@ -235,8 +235,8 @@ class Vector2d(vector2d):
 
     def random(self):
         """Set vector head at random location"""
-        self._head.x.value = (random.random() * 2 - 1) * self.space.x_max
-        self._head.y.value = (random.random() * 2 - 1) * self.space.y_max
+        self.x = (random.random() * 2 - 1) * self.space.x_max
+        self.y = (random.random() * 2 - 1) * self.space.y_max
         self.update()
 
     def show(self, window, color=BLACK, width=1, aa=False):
@@ -246,8 +246,8 @@ class Vector2d(vector2d):
             pg.draw.line(window, color, self.TAIL, self.HEAD, width)
 
     def update(self):
-        self.headXY.xy = (self.space.getX(self._head.x.value),
-                          self.space.getY(self._head.y.value))
+        self.headXY.xy = (self.space.getX(self.x),
+                          self.space.getY(self.y))
 
     def unit(self, scale=1, vector=True):
         xy = super().unit(scale, False)
