@@ -1,5 +1,5 @@
 from math import dist
-from Game.physics.core import scalar, point2d, vector2d
+from Game.math.core import scalar, point2d, vector2d
 import pygame as pg
 import random
 from Game.utils import *
