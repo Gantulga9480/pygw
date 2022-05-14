@@ -1,6 +1,5 @@
 import pygame as pg    # noqa
 from .color import *   # noqa
-from .utils import *   # noqa
 
 
 class Game:
@@ -70,8 +69,6 @@ class Game:
                 self.USR_setup()
             except NotImplementedError:
                 self.__is_setup = False
-                LOG(level=WARNING, msg='Game setup not implemented!',
-                    logging=self.logging)
         self.__lowLevelSetup()
 
     def USR_setup(self):
@@ -89,8 +86,6 @@ class Game:
                 self.USR_eventHandler()
             except NotImplementedError:
                 self.__is_eventHandler = False
-                LOG(level=WARNING, msg='Game event handler not implemented!',
-                    logging=self.logging)
 
     def USR_eventHandler(self):
         """ User should override this method """
@@ -116,8 +111,6 @@ class Game:
                     self.USR_render()
                 except NotImplementedError:
                     self.__is_render = False
-                    LOG(level=WARNING, msg='Game rendering nothing!',
-                        logging=self.logging)
             self.__lowLevelRender()
 
     def USR_render(self):

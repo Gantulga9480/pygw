@@ -2,7 +2,6 @@ from math import dist
 from Game.math.core import scalar, point2d, vector2d
 import pygame as pg
 import random
-from Game.utils import *
 from Game.color import *
 
 
@@ -196,8 +195,6 @@ class Vector2d(vector2d):
                  max_length=0,
                  min_length=1,
                  set_limit: bool = False) -> None:
-        if space.logging and (x == y == 0):
-            LOG('Created NULL vector!', WARNING, logging=True)
         self.space = space
         self.headXY = point2d(0, 0)
         self.is_limited = set_limit
