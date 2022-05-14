@@ -316,5 +316,5 @@ cdef class vector2d:
         cdef double _y = (vector._head._x._num - vector._tail._x._num)
         return x * _x + y * _y
 
-    cpdef void update(self):
+    cdef void update(self):
         ...

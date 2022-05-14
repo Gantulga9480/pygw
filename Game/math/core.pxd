@@ -41,4 +41,4 @@ cdef class vector2d:
     cpdef double distance_to(self, vector2d vector)
     cpdef double angle_between(self, vector2d vector)
     cpdef double dot(self, vector2d vector)
-    cpdef void update(self)
+    cdef void update(self)

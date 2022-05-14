@@ -4,9 +4,21 @@ from Game.math.core cimport point2d, vector2d
 cdef class CartesianPlane:
     cdef (double, double) window_size
     cdef double unit_length
-    cdef public Vector2d parent_vector
-    cdef bint logging
+    cdef Vector2d parent_vector
     cdef point2d _center
+    cdef bint logging
+    cdef double x_min
+    cdef double y_min
+    cdef double x_max
+    cdef double y_max
+
+    cdef void set_limit(self)
+    cpdef double get_X(self, double x)
+    cpdef double get_Y(self, double y)
+    cpdef (double, double) get_XY(self, (double, double) xy)
+    cpdef double to_x(self, double X)
+    cpdef double to_y(self, double Y)
+    cpdef (double, double) to_xy(self, (double, double) XY)
 
 
 cdef class Vector2d(vector2d):
@@ -14,3 +26,5 @@ cdef class Vector2d(vector2d):
     cdef CartesianPlane space
     cdef point2d headXY
     cdef bint is_limited
+
+    cpdef void random(self)
