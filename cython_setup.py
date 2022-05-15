@@ -2,6 +2,7 @@ import os
 from setuptools import find_packages
 from distutils.core import setup
 from Cython.Build import cythonize
+import numpy as np
 
 
 def find_pyx(path='.'):
@@ -14,5 +15,7 @@ def find_pyx(path='.'):
 
 
 setup(ext_modules=cythonize(find_pyx(),
-      language_level=3),
-      packages=find_packages())
+                            language_level=3,
+                            annotate=True),
+      packages=find_packages(),
+      include_dirs=[np.get_include()])

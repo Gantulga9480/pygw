@@ -30,6 +30,7 @@ class Game:
 
         # Render
         self.sprites: list[pg.Rect] = []
+        self.window: pg.Surface = None
 
         # Class method implementation flags
         self.__is_setup = True

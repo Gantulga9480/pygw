@@ -199,6 +199,21 @@ cdef class vector2d:
         self._tail._x.set_value(o[0])
         self._tail._y.set_value(o[1])
 
+    def unit(self, double scale=1, bint vector=True):
+        cdef double a = self.direction()
+        cdef double x = cos(a) * scale
+        cdef double y = sin(a) * scale
+        if vector:
+            return vector2d(x, y, self.x_lim, self.y_lim, self.max_length, self.min_length)
+        return (x, y)
+
+    def normal(self, double scale=1, bint vector=True):
+        cdef double x = -(self._head._y._num - self._tail._y._num) * scale
+        cdef double y = (self._head._x._num - self._tail._x._num) * scale
+        if vector:
+            return vector2d(x, y, self.x_lim, self.y_lim, self.max_length, self.min_length)
+        return (x, y)
+
     cpdef void set_x_ref(self, scalar o):
         self._head._x = o
         self.x_lim = (self._head._x._min, self._head._x._max)
@@ -294,27 +309,44 @@ cdef class vector2d:
     cpdef double angle_between(self, vector2d vector):
         return atan2(vector._head._y._num, vector._head._x._num) - self.direction()
 
-    def unit(self, double scale=1, bint vector=True):
-        cdef double a = self.direction()
-        cdef double x = cos(a) * scale
-        cdef double y = sin(a) * scale
-        if vector:
-            return vector2d(x, y, self.x_lim, self.y_lim, self.max_length, self.min_length)
-        return (x, y)
-
-    def normal(self, double scale=1, bint vector=True):
-        cdef double x = -(self._head._y._num - self._tail._y._num) * scale
-        cdef double y = (self._head._x._num - self._tail._x._num) * scale
-        if vector:
-            return vector2d(x, y, self.x_lim, self.y_lim, self.max_length, self.min_length)
-        return (x, y)
-
     cpdef double dot(self, vector2d vector):
         cdef double x = -(self._head._y._num - self._tail._y._num)
         cdef double y = (self._head._x._num - self._tail._x._num)
         cdef double _x = -(vector._head._y._num - vector._tail._y._num)
         cdef double _y = (vector._head._x._num - vector._tail._x._num)
         return x * _x + y * _y
+
+    cdef void set_x(self, double x):
+        self._head._x.set_value(x)
+        self.update()
+
+    cdef void set_y(self, double y):
+        self._head._y.set_value(y)
+        self.update()
+
+    cdef void set_xy(self, (double, double) xy):
+        self._head._x.set_value(xy[0])
+        self._head._y.set_value(xy[1])
+        self.update()
+
+    cdef (double, double) get_xy(self):
+        return (self._head._x._num, self._head._y._num)
+
+    cdef void add_xy(self, (double, double) xy):
+        self._head._x.add(xy[0])
+        self._head._y.add(xy[1])
+        self.update()
+
+    cdef (double, double) unit_vector(self, double scale):
+        cdef double a = self.direction()
+        cdef double x = cos(a) * scale
+        cdef double y = sin(a) * scale
+        return (x, y)
+
+    cdef (double, double) normal_vector(self, double scale):
+        cdef double x = -(self._head._y._num - self._tail._y._num) * scale
+        cdef double y = (self._head._x._num - self._tail._x._num) * scale
+        return (x, y)
 
     cdef void update(self):
         ...

@@ -1,7 +1,7 @@
-from typing import Any, Union
+from typing import Union
 
 _float_or_int = Union[float, int]
-_Vector2d_or_tuple = Union[vector2d, tuple]
+_vector2d_or_tuple = Union[vector2d, tuple]
 
 
 class scalar:
@@ -14,10 +14,7 @@ class scalar:
 
 
 class point2d:
-    def __init__(self,
-                 x: _float_or_int, y: _float_or_int,
-                 x_lim: tuple = None, y_lim: tuple = None) -> None: ...
-
+    def __init__(self, x: _float_or_int, y: _float_or_int, x_lim: tuple = None, y_lim: tuple = None) -> None: ...
     @property
     def x(self) -> _float_or_int: ...
     @x.setter
@@ -33,11 +30,7 @@ class point2d:
 
 
 class vector2d:
-    def __init__(self,
-                 x: _float_or_int, y: _float_or_int,
-                 x_lim: tuple = None, y_lim: tuple = None,
-                 max_length=0, min_length=0) -> None: ...
-
+    def __init__(self, x: _float_or_int, y: _float_or_int, x_lim: tuple = None, y_lim: tuple = None, max_length=0, min_length=0) -> None: ...
     @property
     def x(self) -> _float_or_int: ...
     @x.setter
@@ -76,9 +69,5 @@ class vector2d:
     def distance_to(self, vector: vector2d) -> float: ...
     def angle_between(self, vector: vector2d) -> float: ...
     def dot(self, vector: vector2d) -> float: ...
-
-    def unit(self,
-             scale: _float_or_int = 1,
-             vector: bool = True) -> _Vector2d_or_tuple: ...
-
+    def unit(self, scale: _float_or_int = 1, vector: bool = True) -> _vector2d_or_tuple: ...
     def update(self) -> None: ...

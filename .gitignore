@@ -2,5 +2,7 @@
 .vscode
 a.py
 *.c
+*.h
 build
 *.html
+__pycache__

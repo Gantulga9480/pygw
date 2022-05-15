@@ -1,5 +1,6 @@
 from Game.graphic.cartesian import CartesianPlane
-from Game.graphic.shapes import polygon, Vector2d
+from Game.graphic.shapes import polygon
+from Game.graphic import Vector2d
 from math import pi
 
 STATIC = 0
