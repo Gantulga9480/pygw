@@ -25,20 +25,11 @@ class Game:
         # Event
         self.mouse_x = 0
         self.mouse_y = 0
-        self.events = []
         self.keys = []
 
         # Render
         self.sprites: list[pg.Rect] = []
         self.window: pg.Surface = None
-
-        # Class method implementation flags
-        self.__is_setup = True
-        self.__is_eventHandler = True
-        self.__is_render = True
-
-        # Utils
-        self.logging = True
 
     def __del__(self):
         pg.quit()
@@ -46,11 +37,9 @@ class Game:
     def mainloop(self):
         self.__highLevelSetup()
         while self.running:
-            self.USR_loopStart()
             self.__highLevelEventHandler()
             self.USR_loop()
             self.__highLevelRender()
-            self.USR_loopEnd()
 
     def USR_loopStart(self):
         """ User should override this method """
@@ -65,69 +54,39 @@ class Game:
         ...
 
     def __highLevelSetup(self):
-        if self.__is_setup:
-            try:
-                self.USR_setup()
-            except NotImplementedError:
-                self.__is_setup = False
-        self.__lowLevelSetup()
-
-    def USR_setup(self):
-        """ User should override this method """
-        raise NotImplementedError
-
-    def __lowLevelSetup(self):
         self.window = self.get_window(self.width,
                                       self.height)
         self.set_title(self.title)
+        self.USR_setup()
+
+    def USR_setup(self):
+        """ User should override this method """
+        ...
 
     def __highLevelEventHandler(self):
-        if self.__lowLevelEventHandler() and self.__is_eventHandler:
-            try:
-                self.USR_eventHandler()
-            except NotImplementedError:
-                self.__is_eventHandler = False
-
-    def USR_eventHandler(self):
-        """ User should override this method """
-        raise NotImplementedError
-
-    def __lowLevelEventHandler(self):
-        self.events = []
         self.mouse_x, self.mouse_y = pg.mouse.get_pos()
+        self.keys = pg.key.get_pressed()
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.running = False
                 break
             else:
-                self.events.append(event)
-        self.keys = pg.key.get_pressed()
-        return self.running
+                self.USR_eventHandler(event)
+
+    def USR_eventHandler(self, event):
+        """ User should override this method """
+        ...
 
     def __highLevelRender(self):
         if self.rendering and self.running:
-            self.renderBackground()
-            if self.__is_render:
-                try:
-                    self.USR_render()
-                except NotImplementedError:
-                    self.__is_render = False
-            self.__lowLevelRender()
+            self.window.fill(self.backgroundColor)
+            self.USR_render()
+            pg.display.flip()
+            self.clock.tick(self.fps)
 
     def USR_render(self):
         """ User should override this method """
-        raise NotImplementedError
-
-    def renderBackground(self):
-        self.window.fill(self.backgroundColor)
-
-    def __lowLevelRender(self):
-        """ TODO flip() or update() """
-        if self.sprites.__len__() > 0:
-            pg.display.update(self.sprites)
-        else:
-            pg.display.update()
-        self.clock.tick(self.fps)
+        ...
 
     @staticmethod
     def set_title(title: str):
@@ -136,4 +95,5 @@ class Game:
     @staticmethod
     def get_window(width: int, height: int):
         """ Avoid calling outside of PyGameBase instance """
-        return pg.display.set_mode((width, height))
+        flags = pg.FULLSCREEN | pg.HWSURFACE
+        return pg.display.set_mode((width, height), flags)

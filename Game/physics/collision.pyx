@@ -75,12 +75,12 @@ cdef class collision_detector:
             if i == 1:
                 b1 = body2
                 b2 = body1
+            dx = 0
+            dy = 0
             for i in range(b1.vertex_count):
                 # check for every vertex of first shape against ...
                 l1s = self.plane.to_xy(b1.plane.get_CENTER())
                 l1e = self.plane.to_xy((<Vector2d>b1.vertices[i]).get_HEAD())
-                dx = 0
-                dy = 0
                 for j in range(b2.vertex_count):
                     # ... every edge of second shape
                     l2s = self.plane.to_xy((<Vector2d>b2.vertices[j]).get_HEAD())
@@ -91,6 +91,6 @@ cdef class collision_detector:
                         # points.append(self.plane.getXY(val[0]))
                         dx += (l1e[0] - l1s[0]) * val
                         dy += (l1e[1] - l1s[1]) * val
-                if dx != 0 or dy != 0:
-                    self.static_resolve(b1, b2, dx, dy)
+            if dx != 0 or dy != 0:
+                self.static_resolve(b1, b2, dx, dy)
         # return points

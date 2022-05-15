@@ -2,8 +2,8 @@ from Game.graphic.cartesian import CartesianPlane, Vector2d
 from Game.graphic.shapes import polygon
 
 
-STATIC = 0
-DYNAMIC = 1
+STATIC: int
+DYNAMIC: int
 
 
 class body:
