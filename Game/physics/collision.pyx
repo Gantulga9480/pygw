@@ -15,22 +15,18 @@ cdef class collision_detector:
         self.diagonal_intersect(b1, b2)
 
     cdef void static_resolve(self, base_body b1, base_body b2, double dx, double dy):
-        cdef double scale = 0.9
-        if b1.type == DYNAMIC and b2.type == STATIC:
-            b1.body.velocity.scale(scale)
-            b1.body.acceleration.scale(scale)
-            b1.plane.parent_vector.add_xy((-dx, -dy))
-        elif b1.type == STATIC and b2.type == DYNAMIC:
-            b2.body.velocity.scale(scale)
-            b2.body.acceleration.scale(scale)
-            b2.plane.parent_vector.add_xy((dx, dy))
-        elif b1.type == DYNAMIC and b2.type == DYNAMIC:
-            b1.body.velocity.scale(scale)
-            b2.body.velocity.scale(scale)
-            b1.body.acceleration.scale(scale)
-            b2.body.acceleration.scale(scale)
+        cdef double factor = 0.9
+        if b1.type == DYNAMIC and b2.type == DYNAMIC:
+            b1.body.velocity.scale(factor)
+            b2.body.velocity.scale(factor)
             b1.plane.parent_vector.add_xy((-dx/2, -dy/2))
             b2.plane.parent_vector.add_xy((dx/2, dy/2))
+        elif b1.type == DYNAMIC and b2.type == STATIC:
+            b1.body.velocity.scale(factor)
+            b1.plane.parent_vector.add_xy((-dx, -dy))
+        elif b1.type == STATIC and b2.type == DYNAMIC:
+            b2.body.velocity.scale(factor)
+            b2.plane.parent_vector.add_xy((dx, dy))
 
     @cython.cdivision(True)
     cdef double line_segment_intersect(self, double p0x, double p0y, double p1x, double p1y, double p2x, double p2y, double p3x, double p3y):

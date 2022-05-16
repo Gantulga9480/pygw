@@ -3,6 +3,7 @@ from Game.graphic.cartesian cimport CartesianPlane, Vector2d
 from Game.graphic.shapes cimport polygon
 from Game.math.core cimport pi
 from pygame.draw import aalines
+from libc.math cimport floor
 
 
 STATIC = 0
@@ -15,6 +16,7 @@ cdef class body_dynamics:
         ...
 
     def __init__(self, CartesianPlane space, int body_type) -> None:
+        self.factor = 60
         if body_type == DYNAMIC:
             self.acceleration = Vector2d(space, 1, 0, 10)
             self.velocity = Vector2d(space, 1, 0, 200)
@@ -23,17 +25,17 @@ cdef class body_dynamics:
             self.velocity = Vector2d(space, 0, 0, 0)
 
     @cython.cdivision(True)
-    cdef void react(self, Vector2d pos, double factor):
-        cdef int a_len = <int>(self.acceleration.length() * 100.0 % 100)
-        if a_len > 0:
+    cdef void react(self, Vector2d pos):
+        cdef double a_len = floor(self.acceleration.length() * 100.0) / 100.0
+        if a_len > 1:
             self.velocity.add_xy(self.acceleration.get_xy())
-            self.acceleration.scale(1/1.1)
+            self.acceleration.scale(0.81)
         else:
             self.acceleration.set_xy(self.acceleration.unit_vector(1))
-        cdef int v_len = <int>(self.velocity.length() * 100 % 100)
-        if v_len > 0:
-            pos.add_xy((self.velocity._head._x._num / factor, self.velocity._head._y._num / factor))
-            self.velocity.add(v_len * -0.01)
+        cdef double v_len = floor(self.velocity.length() * 100.0) / 100.0
+        if v_len > 1:
+            pos.add_xy((self.velocity._head._x._num / self.factor, self.velocity._head._y._num / self.factor))
+            self.velocity.scale(0.99)
         else:
             self.velocity.set_xy(self.velocity.unit_vector(1))
 
@@ -49,20 +51,18 @@ cdef class base_body(polygon):
                  Vector2d pos,
                  int vertex_count=2,
                  double size=1,
-                 bint limit_vertex=1,
-                 int speed_factor=60) -> None:
+                 bint limit_vertex=1) -> None:
         plane = CartesianPlane((size, size), 1, pos)
         super().__init__(plane, vertex_count, size, limit_vertex)
         self.id = body_id
         self.type = body_type
         self.radius = size
-        self.speed_factor = speed_factor
         self.body = body_dynamics(plane, body_type)
         self.body.acceleration.rotate(pi/2)
         self.body.velocity.rotate(pi/2)
 
     cpdef void step(self):
-        self.body.react(self.plane.parent_vector, self.speed_factor)
+        self.body.react(self.plane.parent_vector)
 
     @cython.cdivision(True)
     cpdef void accel(self, double factor):
@@ -70,16 +70,15 @@ cdef class base_body(polygon):
 
     @cython.cdivision(True)
     cpdef void stop(self, double factor):
-        self.body.acceleration.scale(factor)
+        self.body.velocity.scale(1/factor)
 
     @cython.cdivision(True)
     cpdef void rotate(self, double angle):
         cdef int i
-        cdef double a = angle / self.speed_factor
         for i in range(self.vertex_count):
-            (<Vector2d>self.vertices[i]).rotate(a)
-        self.body.acceleration.rotate(a)
-        self.body.velocity.rotate(a)
+            (<Vector2d>self.vertices[i]).rotate(angle)
+        self.body.acceleration.rotate(angle)
+        self.body.velocity.rotate(angle)
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
@@ -88,13 +87,16 @@ cdef class base_body(polygon):
         cdef int i
         cdef list heads = []
             # self.position_vec.show(window)
-        for i in range(self.vertex_count):
-            if show_vertex:
+        if show_vertex:
+            for i in range(self.vertex_count):
                 (<Vector2d>self.vertices[i]).show(window, color, width)
-            heads.append(self.vertices[i].HEAD)
+                heads.append(self.vertices[i].HEAD)
+        else:
+            for i in range(self.vertex_count):
+                heads.append(self.vertices[i].HEAD)
         # if aa:
-        aalines(window, color, True, heads, width)
-        # self.body.velocity.show(window, color, 1)
+        aalines(window, color, True, heads)
+        # self.body.velocity.show(window, (255, 0, 0), 1)
         self.body.acceleration.show(window, (0, 0, 255), 3)
         # else:
         #     pg.draw.lines(window, color, True,

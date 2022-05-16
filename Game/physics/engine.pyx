@@ -3,18 +3,22 @@ from Game.graphic.cartesian cimport CartesianPlane
 from Game.physics.body cimport base_body, DYNAMIC, STATIC
 from Game.physics.collision cimport collision_detector
 import numpy as np
+from pygame.draw import aalines
+from random import random
 
 
 cdef class Engine:
 
     cdef base_body[:] bodies
     cdef CartesianPlane plane
-    cdef collision_detector col
+    cdef collision_detector collider
+    cdef object window
 
-    def __init__(self, CartesianPlane plane, base_body[:] bodies):
-        self.bodies = bodies
+    def __init__(self, window, CartesianPlane plane, base_body[:] bodies):
+        self.window = window
         self.plane = plane
-        self.col = collision_detector(plane)
+        self.bodies = bodies
+        self.collider = collision_detector(plane)
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
@@ -22,11 +26,22 @@ cdef class Engine:
     def step(self):
         cdef int n = self.bodies.shape[0]
         cdef int i, j
+        cdef double r
 
         for i in range(n):
+            r = random()
+            if r > 0.5:
+                (<base_body>self.bodies[i]).accel(0.01)
+            else:
+                (<base_body>self.bodies[i]).stop(1/1.1)
+            if r > 0.5:
+                (<base_body>self.bodies[i]).rotate(0.1)
+            else:
+                (<base_body>self.bodies[i]).rotate(-0.1)
             if self.bodies[i].type == DYNAMIC:
                 (<base_body>self.bodies[i]).step()
             for j in range(i+1, n):
                 if self.bodies[i].type != STATIC or self.bodies[j].type != STATIC:
                     if (self.bodies[i].radius + self.bodies[j].radius) >= ((<base_body>self.bodies[i]).plane.parent_vector.distance_to((<base_body>self.bodies[j]).plane.parent_vector)):
-                        self.col.check(<base_body>self.bodies[i], <base_body>self.bodies[j])
+                        self.collider.check(<base_body>self.bodies[i], <base_body>self.bodies[j])
+            (<base_body>self.bodies[i]).show(self.window, (0, 0, 0), 1, False)

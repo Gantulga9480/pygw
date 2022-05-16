@@ -8,15 +8,14 @@ cdef int STATIC, DYNAMIC
 
 cdef class body_dynamics:
 
-    cdef double radius
+    cdef double radius, factor
     cdef Vector2d acceleration, velocity
 
-    cdef void react(self, Vector2d pos, double factor)
+    cdef void react(self, Vector2d pos)
 
 cdef class base_body(polygon):
 
     cdef readonly int type, id
-    cdef int speed_factor
     cdef body_dynamics body
     cdef double radius
 

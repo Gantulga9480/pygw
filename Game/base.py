@@ -9,6 +9,7 @@ class Game:
                  width: int = 640,
                  height: int = 480,
                  fps: int = 60,
+                 flags: int = 0,
                  render: bool = True) -> None:
         pg.init()
 
@@ -16,6 +17,7 @@ class Game:
         self.width: int = width
         self.height: int = height
         self.fps: int = fps
+        self.flags: int = flags
         self.title: str = title
         self.backgroundColor: pg.Color = WHITE
         self.running: bool = True
@@ -29,7 +31,7 @@ class Game:
 
         # Render
         self.sprites: list[pg.Rect] = []
-        self.window: pg.Surface = None
+        self.window = self.get_window(self.width, self.height, self.flags)
 
     def __del__(self):
         pg.quit()
@@ -54,8 +56,6 @@ class Game:
         ...
 
     def __highLevelSetup(self):
-        self.window = self.get_window(self.width,
-                                      self.height)
         self.set_title(self.title)
         self.USR_setup()
 
@@ -64,14 +64,14 @@ class Game:
         ...
 
     def __highLevelEventHandler(self):
-        self.mouse_x, self.mouse_y = pg.mouse.get_pos()
-        self.keys = pg.key.get_pressed()
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.running = False
                 break
             else:
                 self.USR_eventHandler(event)
+        self.mouse_x, self.mouse_y = pg.mouse.get_pos()
+        self.keys = pg.key.get_pressed()
 
     def USR_eventHandler(self, event):
         """ User should override this method """
@@ -93,7 +93,6 @@ class Game:
         pg.display.set_caption(title)
 
     @staticmethod
-    def get_window(width: int, height: int):
+    def get_window(width: int, height: int, flags: int):
         """ Avoid calling outside of PyGameBase instance """
-        flags = pg.FULLSCREEN | pg.HWSURFACE
         return pg.display.set_mode((width, height), flags)

@@ -1,68 +1,50 @@
 from Game.base import Game
-from Game.graphic.cartesian import CartesianPlane, Vector2d
-from Game.physics.body import *
-from Game.physics.collision import collision_detector
-from Game.physics.engine import Engine
-from Game.color import BLACK, RED, GREEN, BLUE, WHITE
+from Game.graphic import CartesianPlane
+from Game.physics import base_body
+from Game.physics import Engine
+import numpy as np
 import pygame as pg
 import random
-import numpy as np
-
-
-FPS = 60
 
 
 class Test(Game):
 
-    def __init__(self, title: str = 'PyGameDemo',
-                 width: int = 1920, height: int = 1080,
-                 fps: int = FPS, render: bool = True) -> None:
-        super().__init__(title, width, height, fps, render)
+    def __init__(self,
+                 title: str = 'PyGameDemo',
+                 width: int = 1920,
+                 height: int = 1080,
+                 fps: int = 60,
+                 flags: int = pg.FULLSCREEN | pg.HWSURFACE,
+                 render: bool = True) -> None:
+        super().__init__(title, width, height, fps, flags, render)
 
         self.plane = CartesianPlane((width, height), 1)
-        self.collider = collision_detector(self.plane)
-
-        self.num_shapes = 100
-
         body_lst = []
 
-        for i in range(self.num_shapes):
+        for i in range(1000):
             body_lst.append(
-                base_body(
-                    i,
-                    1,
-                    self.plane.createRandomVector(set_limit=True),
-                    3, 20))
+                base_body(i,
+                          1,
+                          self.plane.createRandomVector(set_limit=True),
+                          vertex_count=3,
+                          size=15))
             rot = random.random()*6 - 3
             body_lst[-1].rotate(rot)
         self.bodies = np.array(body_lst, dtype=base_body)
-        self.engine = Engine(self.plane, self.bodies)
-
-    def USR_eventHandler(self, event):
-        ...
+        self.engine = Engine(self.window, self.plane, self.bodies)
 
     def USR_loop(self):
         if self.keys[pg.K_UP]:
             self.bodies[0].accel(1)
         elif self.keys[pg.K_DOWN]:
-            self.bodies[0].stop(1/1.1)
+            self.bodies[0].stop(1.1)
         if self.keys[pg.K_LEFT]:
-            self.bodies[0].rotate(6)
+            self.bodies[0].rotate(0.1)
         elif self.keys[pg.K_RIGHT]:
-            self.bodies[0].rotate(-6)
-        self.engine.step()
+            self.bodies[0].rotate(-0.1)
 
     def USR_render(self):
-        for i in range(len(self.bodies)):
-            # if random.random() > 0.5:
-            #     self.bodies[i].accel(1)
-            # else:
-            #     self.bodies[i].stop(1/1.1)
-            # if random.random() > 0.5:
-            #     self.bodies[i].rotate(6)
-            # else:
-            #     self.bodies[i].rotate(-6)
-            self.bodies[i].show(self.window, BLACK, 1, show_vertex=False)
+        self.engine.step()
         self.set_title(f'fps {round(self.clock.get_fps())}')
 
 
