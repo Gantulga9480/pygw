@@ -29,16 +29,16 @@ cdef class Engine:
         cdef double r
 
         for i in range(n):
-            r = random()
-            if r > 0.5:
-                (<base_body>self.bodies[i]).accel(0.01)
-            else:
-                (<base_body>self.bodies[i]).stop(1/1.1)
-            if r > 0.5:
-                (<base_body>self.bodies[i]).rotate(0.1)
-            else:
-                (<base_body>self.bodies[i]).rotate(-0.1)
             if self.bodies[i].type == DYNAMIC:
+                r = random()
+                if r > 0.5:
+                    (<base_body>self.bodies[i]).accel(0.01)
+                else:
+                    (<base_body>self.bodies[i]).stop(1/1.1)
+                if r > 0.5:
+                    (<base_body>self.bodies[i]).rotate(0.1)
+                else:
+                    (<base_body>self.bodies[i]).rotate(-0.1)
                 (<base_body>self.bodies[i]).step()
             for j in range(i+1, n):
                 if self.bodies[i].type != STATIC or self.bodies[j].type != STATIC:
