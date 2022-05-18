@@ -6,7 +6,6 @@ cdef class CartesianPlane:
     cdef double unit_length
     cdef readonly Vector2d parent_vector
     cdef point2d _center
-    cdef bint logging
     cdef double x_min
     cdef double y_min
     cdef double x_max

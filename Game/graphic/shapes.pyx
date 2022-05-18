@@ -3,7 +3,7 @@ from Game.graphic.cartesian cimport CartesianPlane, Vector2d
 from Game.math.core cimport pi
 from libc.math cimport sqrt
 import numpy as np
-from pygame.draw import aalines, lines
+from pygame.draw import aalines, lines, polygon as poly
 
 
 cdef class shape:
@@ -52,19 +52,19 @@ cdef class shape:
     @cython.wraparound(False)
     @cython.boundscheck(False)
     @cython.nonecheck(False)
-    def show(self, window, color, width, show_vertex):
+    def show(self, window, color, show_vertex=False):
         cdef int i
         cdef list heads = []
+        if show_vertex:
             # self.position_vec.show(window)
-        for i in range(self.vertex_count):
-            if show_vertex:
-                self.vertices[i].show(window, color, width)
-            heads.append(self.vertices[i].HEAD)
-        # if aa:
-        aalines(window, color, True, heads, width)
-        # else:
-        #     pg.draw.lines(window, color, True,
-        #                   [vertex.HEAD for vertex in self.vertices], width)
+            for i in range(self.vertex_count):
+                self.vertices[i].show(window, (0, 0, 0))
+                heads.append(self.vertices[i].HEAD)
+        else:
+            for i in range(self.vertex_count):
+                heads.append(self.vertices[i].HEAD)
+        # aalines(window, color, True, heads)
+        poly(window, color, heads)
 
 
 cdef class rectangle(shape):

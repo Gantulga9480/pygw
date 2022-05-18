@@ -14,14 +14,12 @@ cdef class CartesianPlane:
                  (double, double) window_size,
                  double unit_length,
                  Vector2d parent_vector=None,
-                 bint set_limit=1,
-                 bint logging=1):
+                 bint set_limit=0):
         if unit_length <= 0:
             raise ValueError("Wrong unit length")
         self.window_size = window_size
         self.unit_length = unit_length
         self.parent_vector = parent_vector
-        self.logging = logging
         if self.parent_vector is not None:
             self._center = self.parent_vector.headXY
         else:
@@ -83,12 +81,11 @@ cdef class CartesianPlane:
         vec.random()
         return vec
 
-    def show(self, window, color, width):
+    def show(self, window, color):
         lines(window, color, False,
               [(self._center._x._num, self._center._y._num-20),
               (self._center._x._num, self._center._y._num),
-              (self._center._x._num+20, self._center._y._num)],
-              width)
+              (self._center._x._num+20, self._center._y._num)])
 
     cpdef double get_X(self, double x):
         return self._center._x._num + x * self.unit_length
@@ -162,11 +159,10 @@ cdef class Vector2d(vector2d):
         return (self.plane._center._x._num, self.plane._center._y._num)
 
     @cython.nonecheck(False)
-    def show(self, window, color, width):
+    def show(self, window, color):
         aaline(window, color,
                (self.plane._center._x._num, self.plane._center._y._num),
-               (self.plane.get_X(self._head._x._num), self.plane.get_Y(self._head._y._num)),
-               width)
+               (self.plane.get_X(self._head._x._num), self.plane.get_Y(self._head._y._num)))
 
     def unit(self, scale=1, vector=True):
         xy = super().unit(scale, False)

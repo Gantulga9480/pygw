@@ -83,22 +83,17 @@ cdef class base_body(polygon):
     @cython.wraparound(False)
     @cython.boundscheck(False)
     @cython.nonecheck(False)
-    def show(self, window, color, width, show_vertex):
+    def show(self, window, color, show_vertex=False):
         cdef int i
         cdef list heads = []
-            # self.position_vec.show(window)
         if show_vertex:
+            # self.position_vec.show(window)
             for i in range(self.vertex_count):
-                (<Vector2d>self.vertices[i]).show(window, color, width)
+                (<Vector2d>self.vertices[i]).show(window, color)
                 heads.append(self.vertices[i].HEAD)
         else:
             for i in range(self.vertex_count):
                 heads.append(self.vertices[i].HEAD)
-        # if aa:
         aalines(window, color, True, heads)
-        # self.body.velocity.show(window, (255, 0, 0), 1)
-        self.body.acceleration.show(window, (0, 0, 255), 3)
-        # else:
-        #     pg.draw.lines(window, color, True,
-        #                   [vertex.HEAD for vertex in self.vertices], width)
-
+        # self.body.velocity.show(window, (255, 0, 0))
+        self.body.acceleration.show(window, (0, 0, 255))
