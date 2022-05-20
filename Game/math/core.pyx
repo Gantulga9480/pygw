@@ -134,17 +134,15 @@ cdef class vector2d:
     def __init__(self,
                  double x,
                  double y,
-                 (double, double) x_lim=(0, 0),
-                 (double, double) y_lim=(0, 0),
                  double max_length = 0,
                  double min_length = 0):
-        self._head = point2d(x, y, x_lim, y_lim)
-        self._tail = point2d(0, 0, x_lim, y_lim)
-        self.x_lim = x_lim
-        self.y_lim = y_lim
+        self._head = point2d(x, y)
+        self._tail = point2d(0, 0)
         self.max_length = max_length
         self.min_length = min_length
         self.update()
+
+    # TODO add max min check in properties
 
     @property
     def x(self):
@@ -204,30 +202,26 @@ cdef class vector2d:
         cdef double x = cos(a) * scale
         cdef double y = sin(a) * scale
         if vector:
-            return vector2d(x, y, self.x_lim, self.y_lim, self.max_length, self.min_length)
+            return vector2d(x, y, self.max_length, self.min_length)
         return (x, y)
 
     def normal(self, double scale=1, bint vector=True):
         cdef double x = -(self._head._y._num - self._tail._y._num) * scale
         cdef double y = (self._head._x._num - self._tail._x._num) * scale
         if vector:
-            return vector2d(x, y, self.x_lim, self.y_lim, self.max_length, self.min_length)
+            return vector2d(x, y, self.max_length, self.min_length)
         return (x, y)
 
     cpdef void set_x_ref(self, scalar o):
         self._head._x = o
-        self.x_lim = (self._head._x._min, self._head._x._max)
         self.update()
 
     cpdef void set_y_ref(self, scalar o):
         self._head._y = o
-        self.y_lim = (self._head._y._min, self._head._y._max)
         self.update()
 
     cpdef void set_head_ref(self, point2d o):
         self._head = o
-        self.x_lim = (self._head._x._min, self._head._x._max)
-        self.y_lim = (self._head._y._min, self._head._y._max)
         self.update()
 
     cpdef void set_tail_x_ref(self, scalar o):
@@ -265,22 +259,26 @@ cdef class vector2d:
 
     cpdef void scale(self, double o):
         cdef (double, double) xy
-        if (self.length() * o) > self.min_length:
+        cdef double v_len = self.length()
+        if o > 1:
             if self.max_length:
-                if (self.length() * o) < self.max_length:
+                if (v_len * o) < self.max_length:
                     self._head._x.scale(o)
                     self._head._y.scale(o)
                 else:
                     xy = self.unit(self.max_length, False)
                     self._head._x._num = xy[0]
                     self._head._y._num = xy[1]
-            else:
+            self._head._x.scale(o)
+            self._head._y.scale(o)
+        elif o < 1:
+            if (v_len * o) > self.min_length:
                 self._head._x.scale(o)
                 self._head._y.scale(o)
-        else:
-            xy = self.unit(self.min_length, False)
-            self._head._x._num = xy[0]
-            self._head._y._num = xy[1]
+            else:
+                xy = self.unit(self.min_length, False)
+                self._head._x._num = xy[0]
+                self._head._y._num = xy[1]
         self.update()
 
     cpdef void rotate(self, double radians):

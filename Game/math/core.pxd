@@ -23,8 +23,6 @@ cdef class point2d:
 
 cdef class vector2d:
     cdef point2d _head, _tail
-    cdef (double, double) x_lim
-    cdef (double, double) y_lim
     cdef double max_length, min_length
 
     cpdef void add(self, double o)

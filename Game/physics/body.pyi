@@ -22,8 +22,7 @@ class base_body(polygon):
                  body_type: int,
                  pos: Vector2d,
                  vertex_count: int = 2,
-                 size: float = 1,
-                 limit_vertex: bool = True) -> None: ...
+                 size: float = 1) -> None: ...
 
     def step(self) -> None: ...
 

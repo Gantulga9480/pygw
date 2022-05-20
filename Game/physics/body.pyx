@@ -18,11 +18,11 @@ cdef class body_dynamics:
     def __init__(self, CartesianPlane space, int body_type) -> None:
         self.factor = 60
         if body_type == DYNAMIC:
-            self.acceleration = Vector2d(space, 1, 0, 10)
-            self.velocity = Vector2d(space, 1, 0, 200)
+            self.acceleration = Vector2d(space, 1, 0, 10, 1)
+            self.velocity = Vector2d(space, 1, 0, 200, 1)
         else:
-            self.acceleration = Vector2d(space, 0, 0, 0)
-            self.velocity = Vector2d(space, 0, 0, 0)
+            self.acceleration = Vector2d(space, 0, 0, 0, 0)
+            self.velocity = Vector2d(space, 0, 0, 0, 0)
 
     @cython.cdivision(True)
     cdef void react(self, Vector2d pos):
@@ -50,10 +50,9 @@ cdef class base_body(polygon):
                  int body_type,
                  Vector2d pos,
                  int vertex_count=2,
-                 double size=1,
-                 bint limit_vertex=1) -> None:
+                 double size=1) -> None:
         plane = CartesianPlane((size, size), 1, pos)
-        super().__init__(plane, vertex_count, size, limit_vertex)
+        super().__init__(plane, vertex_count, size)
         self.id = body_id
         self.type = body_type
         self.radius = size

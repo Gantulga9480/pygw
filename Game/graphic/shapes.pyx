@@ -11,11 +11,8 @@ cdef class shape:
     def __cinit__(self, *args, **kwargs):
         self.vertex_count = 0
 
-    def __init__(self,
-                 CartesianPlane plane,
-                 bint limit_vertex=1):
+    def __init__(self, CartesianPlane plane):
         self.plane = plane
-        self.limit_vertex = limit_vertex
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
@@ -31,9 +28,8 @@ cdef class shape:
     cpdef void scale(self, double factor):
         cdef int i
         cdef double v_len
-        cdef double _max = 0
         cdef double _min = (<Vector2d>self.vertices[0]).length()
-        cdef double max_len = self.vertices[0].max_length
+        cdef double _max = _min
         for i in range(self.vertex_count):
             v_len = (<Vector2d>self.vertices[i]).length()
             if v_len > _max:
@@ -41,11 +37,12 @@ cdef class shape:
             elif v_len < _min:
                 _min = v_len
         if factor > 1:
-            if not self.limit_vertex or ((_max * factor) <= max_len):
-                for i in range(self.vertex_count):
-                    (<Vector2d>self.vertices[i]).scale(factor)
+            # TODO max len check
+            # if ((_max * factor) <= self.vertices[0].max_length):
+            for i in range(self.vertex_count):
+                (<Vector2d>self.vertices[i]).scale(factor)
         elif factor < 1:
-            if _min * factor >= 1:
+            if _min * factor >= self.vertices[0].min_length:
                 for i in range(self.vertex_count):
                     (<Vector2d>self.vertices[i]).scale(factor)
 
@@ -73,10 +70,8 @@ cdef class rectangle(shape):
         ...
 
     def __init__(self,
-                 CartesianPlane plane,
-                 (double, double) size,
-                 bint limit_vertex=1):
-        super().__init__(plane, limit_vertex)
+                 CartesianPlane plane, (double, double) size):
+        super().__init__(plane)
 
         self.vertex_count = 4
 
@@ -98,10 +93,8 @@ cdef class triangle(shape):
         ...
 
     def __init__(self,
-                 CartesianPlane plane,
-                 (double, double) size,
-                 bint limit_vertex=1):
-        super().__init__(plane, limit_vertex)
+                 CartesianPlane plane, (double, double) size):
+        super().__init__(plane)
 
         self.vertex_count = 3
 
@@ -121,11 +114,8 @@ cdef class polygon(shape):
         ...
 
     def __init__(self,
-                 CartesianPlane plane,
-                 int vertex_count=2,
-                 double size=1,
-                 bint limit_vertex=1):
-        super(polygon, self).__init__(plane, limit_vertex)
+                 CartesianPlane plane, int vertex_count=2, double size=1):
+        super(polygon, self).__init__(plane)
 
         self.vertex_count = vertex_count
 
@@ -136,7 +126,23 @@ cdef class polygon(shape):
         cdef int i
 
         for i in range(vertex_count):
-            vers.append(Vector2d(self.plane, size, 0, max_length=self.plane.x_max))
+            # TODO
+            vers.append(Vector2d(self.plane, size, 0))
             vers[-1].rotate(pi/2 + 2*pi/vertex_count * i)
 
         self.vertices = np.array(vers, dtype=Vector2d)
+
+    @cython.wraparound(False)
+    @cython.boundscheck(False)
+    @cython.nonecheck(False)
+    cpdef void scale(self, double factor):
+        cdef int i
+        cdef v_len
+        if factor > 1:
+            for i in range(self.vertex_count):
+                (<Vector2d>self.vertices[i]).scale(factor)
+        elif factor < 1:
+            v_len = (<Vector2d>self.vertices[0]).length()
+            if v_len * factor >= self.vertices[0].min_length:
+                for i in range(self.vertex_count):
+                    (<Vector2d>self.vertices[i]).scale(factor)

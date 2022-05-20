@@ -39,7 +39,6 @@ class Environment(Game):
         self.plane.show(self.window, RED)
         self.current_vector.show(self.window, BLUE)
         self.current_shape.show(self.window, BLACK)
-        pg.draw.polygon
         for shape in self.shapes:
             shape[1].show(self.window, (0, 255, 0))
 

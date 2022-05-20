@@ -4,7 +4,6 @@ from Game.graphic.cartesian cimport CartesianPlane, Vector2d
 cdef class shape:
 
     cdef readonly CartesianPlane plane
-    cdef bint limit_vertex
     cdef Vector2d[:] vertices
     cdef int vertex_count
 
@@ -18,4 +17,4 @@ cdef class triangle(shape):
     pass
 
 cdef class polygon(shape):
-    pass
+    cpdef void scale(self, double factor)

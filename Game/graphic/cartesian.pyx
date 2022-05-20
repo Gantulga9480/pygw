@@ -13,8 +13,7 @@ cdef class CartesianPlane:
     def __init__(self,
                  (double, double) window_size,
                  double unit_length,
-                 Vector2d parent_vector=None,
-                 bint set_limit=0):
+                 Vector2d parent_vector=None):
         if unit_length <= 0:
             raise ValueError("Wrong unit length")
         self.window_size = window_size
@@ -23,16 +22,7 @@ cdef class CartesianPlane:
         if self.parent_vector is not None:
             self._center = self.parent_vector.headXY
         else:
-            if set_limit:
-                self._center = point2d(
-                                       floor(self.window_size[0] / 2),
-                                       floor(self.window_size[1] / 2),
-                                       (0, self.window_size[0]),
-                                       (0, self.window_size[1]))
-            else:
-                self._center = point2d(
-                                       floor(self.window_size[0] / 2),
-                                       floor(self.window_size[1] / 2))
+            self._center = point2d(floor(self.window_size[0] / 2), floor(self.window_size[1] / 2))
         self.set_limit()
         if self.parent_vector is not None:
             self.window_size = self.parent_vector.plane.window_size
@@ -69,23 +59,23 @@ cdef class CartesianPlane:
                      double x=1,
                      double y=0,
                      double max_length=0,
-                     double min_length=1,
-                     bint set_limit=0):
-        return Vector2d(self, x, y, max_length, min_length, set_limit)
+                     double min_length=1):
+        return Vector2d(self, x, y, max_length, min_length)
 
     def createRandomVector(self,
                            double max_length=0,
-                           double min_length=1,
-                           bint set_limit=0):
-        vec = Vector2d(self, 1, 0, max_length, min_length, set_limit)
+                           double min_length=1):
+        vec = Vector2d(self, 1, 0, max_length, min_length)
         vec.random()
         return vec
 
-    def show(self, window, color):
-        lines(window, color, False,
-              [(self._center._x._num, self._center._y._num-20),
-              (self._center._x._num, self._center._y._num),
-              (self._center._x._num+20, self._center._y._num)])
+    def show(self, window):
+        # draw x axis
+        line(window, (255, 0, 0), (self._center._x._num, self._center._y._num),
+             (self._center._x._num, self._center._y._num-20))
+        # draw y axis
+        line(window, (0, 255, 0), (self._center._x._num, self._center._y._num),
+             (self._center._x._num+20, self._center._y._num))
 
     cpdef double get_X(self, double x):
         return self._center._x._num + x * self.unit_length
@@ -129,18 +119,10 @@ cdef class Vector2d(vector2d):
                  double x=1,
                  double y=0,
                  double max_length=0,
-                 double min_length=1,
-                 bint set_limit=0):
+                 double min_length=1):
         self.plane = plane
         self.headXY = point2d(0, 0)
-        self.is_limited = set_limit
-        if set_limit:
-            super().__init__(x, y,
-                             (-self.plane.x_max, self.plane.x_max),
-                             (-self.plane.y_max, self.plane.y_max),
-                             max_length, min_length)
-        else:
-            super().__init__(x, y, (0, 0), (0, 0), max_length, min_length)
+        super().__init__(x, y, max_length, min_length)
 
     @property
     def X(self):
@@ -168,16 +150,14 @@ cdef class Vector2d(vector2d):
         xy = super().unit(scale, False)
         if vector:
             return Vector2d(self.plane,
-                            xy[0], xy[1],
-                            self.max_length, self.min_length, self.is_limited)
+                            xy[0], xy[1], self.max_length, self.min_length)
         return xy
 
     def normal(self, scale=1, vector=True):
         xy = super().normal(scale, False)
         if vector:
             return Vector2d(self.plane,
-                            xy[0], xy[1],
-                            self.max_length, self.min_length, self.is_limited)
+                            xy[0], xy[1], self.max_length, self.min_length)
         return xy
 
     @cython.cdivision(True)

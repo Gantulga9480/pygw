@@ -25,7 +25,6 @@ cdef class Vector2d(vector2d):
 
     cdef CartesianPlane plane
     cdef point2d headXY
-    cdef bint is_limited
 
     cpdef void random(self)
     cdef (double, double) get_HEAD(self)

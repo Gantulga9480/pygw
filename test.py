@@ -26,8 +26,8 @@ class Test(Game):
             body_lst.append(
                 base_body(i,
                           1,
-                          self.plane.createRandomVector(set_limit=True),
-                          vertex_count=5,
+                          self.plane.createRandomVector(max_length=height),
+                          vertex_count=3,
                           size=10))
             rot = random.random()*6 - 3
             body_lst[-1].rotate(rot)
@@ -62,7 +62,7 @@ class Test(Game):
         #               size=200))
         # body_lst[-1].rotate(math.pi/4)
 
-        self.test_body_vec = self.plane.createVector(400, 0, set_limit=False)
+        self.test_body_vec = self.plane.createVector(400, 0)
 
         body_lst.append(
             base_body(1000+i,
