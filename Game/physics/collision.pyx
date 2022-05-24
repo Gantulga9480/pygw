@@ -58,6 +58,7 @@ cdef class collision_detector:
     @cython.boundscheck(False)
     @cython.cdivision(True)
     @cython.nonecheck(False)
+    @cython.initializedcheck(False)
     cdef void diagonal_intersect(self, base_body body1, base_body body2):
         cdef base_body b1 = body1
         cdef base_body b2 = body2

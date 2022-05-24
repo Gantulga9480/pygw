@@ -62,7 +62,6 @@ cdef class base_body(polygon):
     cpdef void step(self):
         self.body.react(self.plane.parent_vector)
 
-    @cython.cdivision(True)
     cpdef void accel(self, double factor):
         self.body.acceleration.add(factor)
 
@@ -70,7 +69,9 @@ cdef class base_body(polygon):
     cpdef void stop(self, double factor):
         self.body.velocity.scale(1/factor)
 
-    @cython.cdivision(True)
+    @cython.wraparound(False)
+    @cython.boundscheck(False)
+    @cython.initializedcheck(False)
     cpdef void rotate(self, double angle):
         cdef int i
         for i in range(self.vertex_count):
@@ -80,7 +81,7 @@ cdef class base_body(polygon):
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
-    @cython.nonecheck(False)
+    @cython.initializedcheck(False)
     def show(self, color, show_vertex=False):
         cdef int i
         cdef list heads = []

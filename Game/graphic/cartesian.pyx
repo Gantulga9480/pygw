@@ -26,8 +26,8 @@ cdef class CartesianPlane:
         else:
             self._center = point2d(floor(self.window_size[0] / 2), floor(self.window_size[1] / 2))
         self.set_limit()
-        if self.parent_vector is not None:
-            self.window_size = self.parent_vector.plane.window_size
+        # if self.parent_vector is not None:
+        #     self.window_size = self.parent_vector.plane.window_size
 
     @property
     def X(self):

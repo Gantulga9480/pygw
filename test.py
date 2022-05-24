@@ -22,8 +22,8 @@ class Test(Game):
         self.plane = CartesianPlane(self.window, (width, height), 1)
         body_lst = []
 
-        for i in range(500):
-            vec = self.plane.createRandomVector(max_length=height)
+        for i in range(10):
+            vec = self.plane.createRandomVector(max_length=500)
             body_lst.append(
                 base_body(i,
                           1,
@@ -93,6 +93,7 @@ class Test(Game):
             # self.test_body_vec.x += 1
 
     def USR_render(self):
+        self.bodies[-1].step()
         self.engine.step()
         self.set_title(f'fps {round(self.clock.get_fps())}')
 

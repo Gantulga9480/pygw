@@ -17,11 +17,15 @@ class Environment(Game):
                  render: bool = True) -> None:
         super().__init__(title, width, height, fps, flags, render)
 
-        self.plane = CartesianPlane(self.window, (width, height), 1, None)
+        self.plane = CartesianPlane(self.window,
+                                    self.window.get_size(),
+                                    1, None)
 
         self.shape_vec = self.plane.createVector(1, 0)
 
-        self.shape_plane = CartesianPlane(self.window, (500, 500), 1, self.shape_vec)
+        self.shape_plane = CartesianPlane(self.window,
+                                          (500, 500),
+                                          1, self.shape_vec)
 
         self.rec = triangle(self.shape_plane, (100, 100, 30))
 
@@ -44,6 +48,7 @@ class Environment(Game):
     def USR_render(self):
         self.plane.show()
         self.shape_plane.show()
+        self.shape_vec.show(BLACK)
         self.rec.show(RED, True)
 
 
