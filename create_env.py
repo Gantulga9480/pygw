@@ -17,7 +17,7 @@ class Environment(Game):
                  render: bool = True) -> None:
         super().__init__(title, width, height, fps, flags, render)
 
-        self.plane = CartesianPlane(self.window, (width, height), 1, None)
+        self.plane = CartesianPlane(self.window, (width, height), unit_length=1)
 
         self.shapes: list[list[Vector2d, polygon]] = []
         self.current_vertex_count = 5
@@ -61,10 +61,9 @@ class Environment(Game):
         shape_size = 100
         self.current_vector = Vector2d(self.plane, 1, 1, 0, 0)
         self.current_shape_plane = CartesianPlane(self.window, (500, 500),
-                                                  1, self.current_vector)
-        self.current_shape = polygon(self.current_shape_plane,
-                                     self.current_vertex_count,
-                                     shape_size)
+                                                  self.current_vector)
+        self.current_shape = polygon_test(self.current_shape_plane,
+                                          [200, 200, 10, 200, 200])
 
 
 Environment().mainloop()
