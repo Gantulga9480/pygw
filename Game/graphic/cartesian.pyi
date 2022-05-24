@@ -18,8 +18,8 @@ class CartesianPlane:
     def __init__(self,
                  window: Surface,
                  window_size: tuple,
-                 unit_length: float,
-                 parent_vector: Vector2d = None) -> None: ...
+                 parent_vector: Vector2d = None,
+                 unit_length: float = 1.0) -> None: ...
 
     @property
     def X(self) -> float: ...

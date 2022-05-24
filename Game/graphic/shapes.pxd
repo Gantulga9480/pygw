@@ -17,5 +17,8 @@ cdef class rectangle(shape):
 cdef class triangle(shape):
     pass
 
+cdef class polygon_test(shape):
+    pass
+
 cdef class polygon(shape):
     cpdef void scale(self, double factor)

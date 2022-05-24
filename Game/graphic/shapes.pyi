@@ -32,3 +32,8 @@ class polygon(shape):
                  parent_space: CartesianPlane,
                  vertex_count: int = 2,
                  size: float = 1.0) -> None: ...
+
+
+class polygon_test(shape):
+
+    def __init__(self, plane: CartesianPlane, sizes: list) -> None: ...

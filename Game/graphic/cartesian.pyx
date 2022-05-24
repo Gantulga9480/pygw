@@ -13,21 +13,22 @@ cdef class CartesianPlane:
     def __init__(self,
                  window,
                  (double, double) window_size,
-                 double unit_length,
-                 Vector2d parent_vector=None):
+                 Vector2d parent_vector=None,
+                 double unit_length=1):
         if unit_length <= 0:
             raise ValueError("Wrong unit length")
         self.window = window
         self.window_size = window_size
-        self.unit_length = unit_length
         self.parent_vector = parent_vector
-        if self.parent_vector is not None:
-            self._center = self.parent_vector.headXY
-        else:
-            self._center = point2d(floor(self.window_size[0] / 2), floor(self.window_size[1] / 2))
-        self.set_limit()
+        self.unit_length = (unit_length if self.parent_vector is None
+                            else self.parent_vector.plane.unit_length)
+        self._center = (self.parent_vector.headXY if self.parent_vector
+                        else point2d(floor(self.window_size[0] / 2), floor(self.window_size[1] / 2)))
         # if self.parent_vector is not None:
-        #     self.window_size = self.parent_vector.plane.window_size
+        #     self._center = self.parent_vector.headXY
+        # else:
+        #     self._center = point2d(floor(self.window_size[0] / 2), floor(self.window_size[1] / 2))
+        self.set_limit()
 
     @property
     def X(self):

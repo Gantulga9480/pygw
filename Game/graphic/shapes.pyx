@@ -45,7 +45,7 @@ cdef class shape:
                 for i in range(self.vertex_count):
                     (<Vector2d>self.vertices[i]).scale(factor)
         elif factor < 1:
-            if _min * factor >= self.vertices[0].min_length:
+            if _max * factor >= self.vertices[0].min_length:
                 for i in range(self.vertex_count):
                     (<Vector2d>self.vertices[i]).scale(factor)
 
@@ -153,3 +153,24 @@ cdef class polygon(shape):
             if v_len * factor >= self.vertices[0].min_length:
                 for i in range(self.vertex_count):
                     (<Vector2d>self.vertices[i]).scale(factor)
+
+
+cdef class polygon_test(shape):
+
+    def __cinit__(self, *args, **kwargs):
+        ...
+
+    def __init__(self, CartesianPlane plane, list sizes):
+        super(polygon_test, self).__init__(plane)
+
+        self.vertex_count = sizes.__len__()
+
+        cdef list vers = []
+        cdef int i
+
+        for i in range(self.vertex_count):
+            # TODO
+            vers.append(Vector2d(self.plane, sizes[i], 0, self.plane.window_size[0], 0))
+            vers[-1].rotate(pi/2 + 2*pi/self.vertex_count * i)
+
+        self.vertices = np.array(vers, dtype=Vector2d)
