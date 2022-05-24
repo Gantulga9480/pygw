@@ -17,38 +17,34 @@ class Environment(Game):
                  render: bool = True) -> None:
         super().__init__(title, width, height, fps, flags, render)
 
-        self.plane = CartesianPlane((width, height), 1, None, False)
+        self.plane = CartesianPlane(self.window, (width, height), 1, None)
 
-        self.create_shape()
+        self.shape_vec = self.plane.createVector(1, 0)
 
-        self.shapes: list[list[Vector2d, polygon]] = []
+        self.shape_plane = CartesianPlane(self.window, (500, 500), 1, self.shape_vec)
+
+        self.rec = triangle(self.shape_plane, (100, 100, 30))
 
     def USR_eventHandler(self, event):
-        if event.type == pg.KEYUP:
-            if event.key == pg.K_c:
-                self.create_shape()
-            elif event.key == pg.K_s:
-                self.shapes.append([self.current_vector, self.current_shape])
-                self.create_shape()
+        ...
 
     def USR_loop(self):
-        self.current_vector.x = self.plane.to_x(self.mouse_x)
-        self.current_vector.y = self.plane.to_y(self.mouse_y)
+        self.shape_vec.x = self.plane.to_x(self.mouse_x)
+        self.shape_vec.y = self.plane.to_y(self.mouse_y)
+
+        if self.keys[pg.K_UP]:
+            self.rec.scale(1.1)
+        elif self.keys[pg.K_DOWN]:
+            self.rec.scale(1/1.1)
+        if self.keys[pg.K_LEFT]:
+            self.rec.rotate(0.05)
+        elif self.keys[pg.K_RIGHT]:
+            self.rec.rotate(-0.05)
 
     def USR_render(self):
-        self.plane.show(self.window, RED)
-        self.current_vector.show(self.window, BLUE)
-        self.current_shape.show(self.window, BLACK)
-        for shape in self.shapes:
-            shape[1].show(self.window, (0, 255, 0))
-
-    def create_shape(self):
-        shape_size = 50
-        x = self.plane.to_x(self.mouse_x)
-        y = self.plane.to_y(self.mouse_y)
-        self.current_vector = Vector2d(self.plane, x, y, 0, 0, True)
-        self.current_shape_plane = CartesianPlane((shape_size, shape_size), 1, self.current_vector, True)
-        self.current_shape = polygon(self.current_shape_plane, 20, shape_size, True)
+        self.plane.show()
+        self.shape_plane.show()
+        self.rec.show(RED, True)
 
 
 Environment().mainloop()

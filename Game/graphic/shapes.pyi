@@ -12,7 +12,6 @@ class shape:
     def scale(self, factor) -> None: ...
 
     def show(self,
-             window: Surface,
              color: Color,
              show_vertex: bool = False) -> None: ...
 

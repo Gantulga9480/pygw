@@ -48,10 +48,9 @@ cdef class base_body(polygon):
     def __init__(self,
                  int body_id,
                  int body_type,
-                 Vector2d pos,
+                 CartesianPlane plane,
                  int vertex_count=2,
                  double size=1) -> None:
-        plane = CartesianPlane((size, size), 1, pos)
         super().__init__(plane, vertex_count, size)
         self.id = body_id
         self.type = body_type
@@ -82,17 +81,17 @@ cdef class base_body(polygon):
     @cython.wraparound(False)
     @cython.boundscheck(False)
     @cython.nonecheck(False)
-    def show(self, window, color, show_vertex=False):
+    def show(self, color, show_vertex=False):
         cdef int i
         cdef list heads = []
         if show_vertex:
             # self.position_vec.show(window)
             for i in range(self.vertex_count):
-                (<Vector2d>self.vertices[i]).show(window, color)
+                (<Vector2d>self.vertices[i]).show(color)
                 heads.append(self.vertices[i].HEAD)
         else:
             for i in range(self.vertex_count):
                 heads.append(self.vertices[i].HEAD)
-        aalines(window, color, True, heads)
+        aalines(self.window, color, True, heads)
         # self.body.velocity.show(window, (255, 0, 0))
-        self.body.acceleration.show(window, (0, 0, 255))
+        self.body.acceleration.show((0, 0, 255))

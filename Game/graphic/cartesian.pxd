@@ -2,6 +2,7 @@ from Game.math.core cimport point2d, vector2d
 
 
 cdef class CartesianPlane:
+    cdef object window
     cdef (double, double) window_size
     cdef double unit_length
     cdef readonly Vector2d parent_vector
@@ -23,6 +24,7 @@ cdef class CartesianPlane:
 
 cdef class Vector2d(vector2d):
 
+    cdef object window
     cdef CartesianPlane plane
     cdef point2d headXY
 

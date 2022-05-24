@@ -20,7 +20,7 @@ class base_body(polygon):
     def __init__(self,
                  id: int,
                  body_type: int,
-                 pos: Vector2d,
+                 plane: CartesianPlane,
                  vertex_count: int = 2,
                  size: float = 1) -> None: ...
 
@@ -33,6 +33,5 @@ class base_body(polygon):
     def rotate(self, angle: float) -> None: ...
 
     def show(self,
-             window: Surface,
              color: Color,
              show_vertex: bool = False) -> None: ...

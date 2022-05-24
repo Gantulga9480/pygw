@@ -19,14 +19,15 @@ class Test(Game):
                  render: bool = True) -> None:
         super().__init__(title, width, height, fps, flags, render)
 
-        self.plane = CartesianPlane((width, height), 1)
+        self.plane = CartesianPlane(self.window, (width, height), 1)
         body_lst = []
 
-        for i in range(1000):
+        for i in range(500):
+            vec = self.plane.createRandomVector(max_length=height)
             body_lst.append(
                 base_body(i,
                           1,
-                          self.plane.createRandomVector(max_length=height),
+                          CartesianPlane(self.window, (10, 10), 1, vec),
                           vertex_count=3,
                           size=10))
             rot = random.random()*6 - 3
@@ -66,26 +67,30 @@ class Test(Game):
 
         body_lst.append(
             base_body(1000+i,
-                      0,
-                      self.test_body_vec,
+                      1,
+                      CartesianPlane(self.window, (100, 100), 1, self.test_body_vec),
                       vertex_count=4,
-                      size=100))
+                      size=30))
         body_lst[-1].rotate(math.pi/4)
 
         self.bodies = np.array(body_lst, dtype=base_body)
-        self.engine = Engine(self.window, self.plane, self.bodies)
+        self.engine = Engine(self.plane, self.bodies)
 
     def USR_loop(self):
         # self.test_body_vec.x = self.plane.to_x(self.mouse_x)
         # self.test_body_vec.y = self.plane.to_y(self.mouse_y)
         if self.keys[pg.K_UP]:
-            self.test_body_vec.y += 1
+            self.bodies[-1].accel(1.1)
+            # self.test_body_vec.y += 1
         elif self.keys[pg.K_DOWN]:
-            self.test_body_vec.y -= 1
+            self.bodies[-1].stop(1.1)
+            # self.test_body_vec.y -= 1
         if self.keys[pg.K_LEFT]:
-            self.test_body_vec.x -= 1
+            self.bodies[-1].rotate(0.1)
+            # self.test_body_vec.x -= 1
         elif self.keys[pg.K_RIGHT]:
-            self.test_body_vec.x += 1
+            self.bodies[-1].rotate(-0.1)
+            # self.test_body_vec.x += 1
 
     def USR_render(self):
         self.engine.step()

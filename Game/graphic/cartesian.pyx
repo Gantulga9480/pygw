@@ -11,11 +11,13 @@ cdef class CartesianPlane:
         ...
 
     def __init__(self,
+                 window,
                  (double, double) window_size,
                  double unit_length,
                  Vector2d parent_vector=None):
         if unit_length <= 0:
             raise ValueError("Wrong unit length")
+        self.window = window
         self.window_size = window_size
         self.unit_length = unit_length
         self.parent_vector = parent_vector
@@ -69,13 +71,13 @@ cdef class CartesianPlane:
         vec.random()
         return vec
 
-    def show(self, window):
+    def show(self):
         # draw x axis
-        line(window, (255, 0, 0), (self._center._x._num, self._center._y._num),
-             (self._center._x._num, self._center._y._num-20))
+        line(self.window, (255, 0, 0), (self._center._x._num, self._center._y._num),
+             (self._center._x._num, self._center._y._num-20), 2)
         # draw y axis
-        line(window, (0, 255, 0), (self._center._x._num, self._center._y._num),
-             (self._center._x._num+20, self._center._y._num))
+        line(self.window, (0, 255, 0), (self._center._x._num, self._center._y._num),
+             (self._center._x._num+20, self._center._y._num), 2)
 
     cpdef double get_X(self, double x):
         return self._center._x._num + x * self.unit_length
@@ -120,6 +122,7 @@ cdef class Vector2d(vector2d):
                  double y=0,
                  double max_length=0,
                  double min_length=1):
+        self.window = plane.window
         self.plane = plane
         self.headXY = point2d(0, 0)
         super().__init__(x, y, max_length, min_length)
@@ -141,8 +144,8 @@ cdef class Vector2d(vector2d):
         return (self.plane._center._x._num, self.plane._center._y._num)
 
     @cython.nonecheck(False)
-    def show(self, window, color):
-        aaline(window, color,
+    def show(self, color):
+        aaline(self.window, color,
                (self.plane._center._x._num, self.plane._center._y._num),
                (self.plane.get_X(self._head._x._num), self.plane.get_Y(self._head._y._num)))
 
@@ -160,7 +163,6 @@ cdef class Vector2d(vector2d):
                             xy[0], xy[1], self.max_length, self.min_length)
         return xy
 
-    @cython.cdivision(True)
     cpdef void random(self):
         self._head._x._num = (random() * 2 - 1) * self.plane.x_max
         self._head._y._num = (random() * 2 - 1) * self.plane.y_max

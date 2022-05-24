@@ -1,7 +1,7 @@
 import cython
 from Game.graphic.cartesian cimport CartesianPlane, Vector2d
 from Game.math.core cimport pi
-from libc.math cimport sqrt
+from libc.math cimport sqrt, atan2
 import numpy as np
 from pygame.draw import aalines, lines, polygon as poly
 
@@ -12,6 +12,7 @@ cdef class shape:
         self.vertex_count = 0
 
     def __init__(self, CartesianPlane plane):
+        self.window = plane.window
         self.plane = plane
 
     @cython.wraparound(False)
@@ -49,19 +50,19 @@ cdef class shape:
     @cython.wraparound(False)
     @cython.boundscheck(False)
     @cython.nonecheck(False)
-    def show(self, window, color, show_vertex=False):
+    def show(self, color, show_vertex=False):
         cdef int i
         cdef list heads = []
         if show_vertex:
-            # self.position_vec.show(window)
+            # self.position_vec.show()
             for i in range(self.vertex_count):
-                self.vertices[i].show(window, (0, 0, 0))
+                self.vertices[i].show((0, 0, 0))
                 heads.append(self.vertices[i].HEAD)
         else:
             for i in range(self.vertex_count):
                 heads.append(self.vertices[i].HEAD)
-        # aalines(window, color, True, heads)
-        poly(window, color, heads)
+        aalines(self.window, color, True, heads)
+        # poly(self.window, color, heads)
 
 
 cdef class rectangle(shape):
@@ -69,8 +70,7 @@ cdef class rectangle(shape):
     def __cinit__(self, *args, **kwargs):
         ...
 
-    def __init__(self,
-                 CartesianPlane plane, (double, double) size):
+    def __init__(self, CartesianPlane plane, (double, double) size):
         super().__init__(plane)
 
         self.vertex_count = 4
@@ -79,10 +79,14 @@ cdef class rectangle(shape):
 
         cdef list vers = []
         cdef int i
+        cdef double angle[4]
+        cdef double a1 = atan2(size[1], size[0])
+        cdef double a2 = pi - a1
+        angle[:] = [a1, a2, -a2, -a1]
 
-        for i in range(4):
-            vers.append(Vector2d(self.plane, length, 0, max_length=self.plane.x_max))
-            vers[-1].rotate(pi/2 + pi/2 * i)
+        for i in range(self.vertex_count):
+            vers.append(Vector2d(self.plane, length, 0))
+            vers[-1].rotate(angle[i])
 
         self.vertices = np.array(vers, dtype=Vector2d)
 
@@ -92,8 +96,7 @@ cdef class triangle(shape):
     def __cinit__(self, *args, **kwargs):
         ...
 
-    def __init__(self,
-                 CartesianPlane plane, (double, double) size):
+    def __init__(self, CartesianPlane plane, (double, double, double) size):
         super().__init__(plane)
 
         self.vertex_count = 3
@@ -101,8 +104,8 @@ cdef class triangle(shape):
         cdef list vers = []
         cdef int i
 
-        for i in range(3):
-            vers.append(Vector2d(self.plane, size[i], 0, max_length=self.plane.x_max))
+        for i in range(self.vertex_count):
+            vers.append(Vector2d(self.plane, size[i], 0))
             vers[-1].rotate(pi/2 + 2*pi/3 * i)
 
         self.vertices = np.array(vers, dtype=Vector2d)
