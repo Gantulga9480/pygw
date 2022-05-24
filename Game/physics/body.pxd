@@ -1,6 +1,6 @@
 import cython
 from Game.graphic.cartesian cimport CartesianPlane, Vector2d
-from Game.graphic.shapes cimport polygon
+from Game.graphic.shapes cimport polygon, polygon_test
 
 
 cdef int STATIC, DYNAMIC
@@ -24,3 +24,13 @@ cdef class base_body(polygon):
     cpdef void stop(self, double factor)
     cpdef void rotate(self, double angle)
 
+cdef class base_body_test(polygon_test):
+
+    cdef readonly int type, id
+    cdef body_dynamics body
+    cdef double radius
+
+    cpdef void step(self)
+    cpdef void accel(self, double factor)
+    cpdef void stop(self, double factor)
+    cpdef void rotate(self, double angle)

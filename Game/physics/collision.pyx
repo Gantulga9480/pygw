@@ -1,6 +1,6 @@
 import cython
 from Game.graphic.cartesian cimport CartesianPlane, Vector2d
-from Game.physics.body cimport DYNAMIC, STATIC, base_body
+from Game.physics.body cimport DYNAMIC, STATIC, base_body_test
 
 
 cdef class collision_detector:
@@ -11,10 +11,10 @@ cdef class collision_detector:
     def __init__(self, CartesianPlane plane) -> None:
         self.plane = plane
 
-    cpdef void check(self, base_body b1, base_body b2):
+    cpdef void check(self, base_body_test b1, base_body_test b2):
         self.diagonal_intersect(b1, b2)
 
-    cdef void static_resolve(self, base_body b1, base_body b2, double dx, double dy):
+    cdef void static_resolve(self, base_body_test b1, base_body_test b2, double dx, double dy):
         cdef double factor = 0.9
         if b1.type == DYNAMIC and b2.type == DYNAMIC:
             b1.body.velocity.scale(factor)
@@ -59,9 +59,9 @@ cdef class collision_detector:
     @cython.cdivision(True)
     @cython.nonecheck(False)
     @cython.initializedcheck(False)
-    cdef void diagonal_intersect(self, base_body body1, base_body body2):
-        cdef base_body b1 = body1
-        cdef base_body b2 = body2
+    cdef void diagonal_intersect(self, base_body_test body1, base_body_test body2):
+        cdef base_body_test b1 = body1
+        cdef base_body_test b2 = body2
         cdef int i, j
         cdef double dx, dy, val
         cdef (double, double) l1s

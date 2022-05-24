@@ -332,14 +332,13 @@ cdef class vector2d:
 
     cdef void add_xy(self, (double, double) xy):
         cdef (double, double) new_xy
-        cdef (double, double) old_xy = self.get_xy()
         self._head._x.add(xy[0])
         self._head._y.add(xy[1])
-        if (self.length() > self.max_length):
-            # self.set_xy(old_xy)
-            new_xy = self.unit(self.max_length, False)
-            self._head._x._num = new_xy[0]
-            self._head._y._num = new_xy[1]
+        if self.max_length:
+            if (self.length() > self.max_length):
+                new_xy = self.unit(self.max_length, False)
+                self._head._x._num = new_xy[0]
+                self._head._y._num = new_xy[1]
         self.update()
 
     cdef (double, double) unit_vector(self, double scale):
