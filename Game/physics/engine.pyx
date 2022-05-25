@@ -44,4 +44,4 @@ cdef class Engine:
                     if self.bodies[i].type != STATIC or self.bodies[j].type != STATIC:
                         if (self.bodies[i].radius + self.bodies[j].radius) >= ((<base_body_test>self.bodies[i]).plane.parent_vector.distance_to((<base_body_test>self.bodies[j]).plane.parent_vector)):
                             self.collider.check(<base_body_test>self.bodies[i], <base_body_test>self.bodies[j])
-            (<base_body_test>self.bodies[i]).show((random()*255, random()*255, random()*255), )
+            (<base_body_test>self.bodies[i]).show((0, 0, 0))
