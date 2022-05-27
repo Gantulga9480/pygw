@@ -1,7 +1,7 @@
 from Game.graphic.cartesian cimport CartesianPlane, Vector2d
 
 
-cdef class shape:
+cdef class Shape:
 
     cdef object window
     cdef readonly CartesianPlane plane
@@ -11,14 +11,11 @@ cdef class shape:
     cpdef void rotate(self, double angle)
     cpdef void scale(self, double factor)
 
-cdef class rectangle(shape):
+cdef class Rectangle(Shape):
     pass
 
-cdef class triangle(shape):
+cdef class Triangle(Shape):
     pass
 
-cdef class polygon_test(shape):
+cdef class Polygon(Shape):
     pass
-
-cdef class polygon(shape):
-    cpdef void scale(self, double factor)

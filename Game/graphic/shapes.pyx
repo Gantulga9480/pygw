@@ -6,7 +6,7 @@ import numpy as np
 from pygame.draw import aalines, lines, polygon as poly
 
 
-cdef class shape:
+cdef class Shape:
 
     def __cinit__(self, *args, **kwargs):
         self.vertex_count = 0
@@ -68,7 +68,7 @@ cdef class shape:
         # poly(self.window, color, heads)
 
 
-cdef class rectangle(shape):
+cdef class Rectangle(Shape):
 
     def __cinit__(self, *args, **kwargs):
         ...
@@ -94,7 +94,7 @@ cdef class rectangle(shape):
         self.vertices = np.array(vers, dtype=Vector2d)
 
 
-cdef class triangle(shape):
+cdef class Triangle(Shape):
 
     def __cinit__(self, *args, **kwargs):
         ...
@@ -114,63 +114,25 @@ cdef class triangle(shape):
         self.vertices = np.array(vers, dtype=Vector2d)
 
 
-cdef class polygon(shape):
+cdef class Polygon(Shape):
 
     def __cinit__(self, *args, **kwargs):
         ...
 
-    def __init__(self,
-                 CartesianPlane plane, int vertex_count=2, double size=1):
-        super(polygon, self).__init__(plane)
+    def __init__(self, CartesianPlane plane, tuple size):
+        super(Polygon, self).__init__(plane)
 
-        self.vertex_count = vertex_count
+        self.vertex_count = size.__len__()
 
-        if vertex_count < 2:
+        if self.vertex_count < 2:
             raise ValueError("Wrong vertex_count, The minimum is 2")
-
-        cdef list vers = []
-        cdef int i
-
-        for i in range(vertex_count):
-            # TODO
-            vers.append(Vector2d(self.plane, size, 0, self.plane.window_size[0]))
-            vers[-1].rotate(pi/2 + 2*pi/vertex_count * i)
-
-        self.vertices = np.array(vers, dtype=Vector2d)
-
-    @cython.wraparound(False)
-    @cython.boundscheck(False)
-    @cython.nonecheck(False)
-    @cython.initializedcheck(False)
-    cpdef void scale(self, double factor):
-        cdef int i
-        cdef double v_len
-        if factor > 1:
-            for i in range(self.vertex_count):
-                (<Vector2d>self.vertices[i]).scale(factor)
-        elif factor < 1:
-            v_len = (<Vector2d>self.vertices[0]).length()
-            if v_len * factor >= self.vertices[0].min_length:
-                for i in range(self.vertex_count):
-                    (<Vector2d>self.vertices[i]).scale(factor)
-
-
-cdef class polygon_test(shape):
-
-    def __cinit__(self, *args, **kwargs):
-        ...
-
-    def __init__(self, CartesianPlane plane, list sizes):
-        super(polygon_test, self).__init__(plane)
-
-        self.vertex_count = sizes.__len__()
 
         cdef list vers = []
         cdef int i
 
         for i in range(self.vertex_count):
             # TODO
-            vers.append(Vector2d(self.plane, sizes[i], 0, self.plane.window_size[0], 0))
+            vers.append(Vector2d(self.plane, size[i], 0, self.plane.window_size[0]))
             vers[-1].rotate(pi/2 + 2*pi/self.vertex_count * i)
 
         self.vertices = np.array(vers, dtype=Vector2d)

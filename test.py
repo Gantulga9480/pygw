@@ -1,6 +1,7 @@
 from Game.base import Game
 from Game.graphic import CartesianPlane
-from Game.physics import base_body, base_body_test
+from Game.physics import PolygonBody, TriangleBody, RectBody
+from Game.physics.body import object_body
 from Game.physics import Engine
 import numpy as np
 import pygame as pg
@@ -23,68 +24,39 @@ class Test(Game):
                                     unit_length=1)
         body_lst = []
 
-        for i in range(100):
-            vec = self.plane.createRandomVector(max_length=500)
-            body_lst.append(
-                base_body_test(i,
-                               1,
-                               CartesianPlane(self.window, (10, 10), vec),
-                               [10, 50, 50, 50, 50, 50, 50]))
+        for i in range(10):
+            vec = self.plane.createRandomVector()
+            if i % 2:
+                body_lst.append(
+                        PolygonBody(i,
+                                    1,
+                                    CartesianPlane(self.window, (10, 10), vec),
+                                    (10, 10, 10, 10, 10)))
+            else:
+                body_lst.append(
+                        RectBody(i,
+                                 1,
+                                 CartesianPlane(self.window, (10, 10), vec),
+                                 (10*math.sqrt(2), 10*math.sqrt(2))))
             rot = random.random()*6 - 3
             body_lst[-1].rotate(rot)
 
-        # for i in range(50):
-        #     body_lst.append(
-        #         base_body(i,
-        #                   1,
-        #                   self.plane.createVector(i*20 - width/4,
-        #                                           400, set_limit=True),
-        #                   vertex_count=5,
-        #                   size=10))
-        #     rot = random.random()*6 - 3
-        #     body_lst[-1].rotate(rot)
+        vec = self.plane.createVector(0, 0)
+        body_lst.append(PolygonBody(i,
+                                    0,
+                                    CartesianPlane(self.window, (10, 10), vec),
+                                    (100, 100, 100, 100, 100, 100, 100)))
 
-        # for i in range(50):
-        #     body_lst.append(
-        #         base_body(i,
-        #                   1,
-        #                   self.plane.createVector(i*20 - width/4,
-        #                                           -400, set_limit=True),
-        #                   vertex_count=5,
-        #                   size=10))
-        #     rot = random.random()*6 - 3
-        #     body_lst[-1].rotate(rot)
-
-        # body_lst.append(
-        #     base_body(1000+i,
-        #               0,
-        #               self.plane.createVector(-400, 0, set_limit=True),
-        #               vertex_count=4,
-        #               size=200))
-        # body_lst[-1].rotate(math.pi/4)
-
-        self.test_body_vec = self.plane.createVector(200, 0)
-
-        body_lst.append(
-            base_body_test(1000+i,
-                           1,
-                           CartesianPlane(self.window, (100, 100),
-                                          self.test_body_vec),
-                           [10, 50, 50, 50, 50, 50, 50]))
-        body_lst[-1].rotate(math.pi/4)
-
-        self.bodies = np.array(body_lst, dtype=base_body)
+        self.bodies = np.array(body_lst, dtype=object_body)
         self.engine = Engine(self.plane, self.bodies)
 
     def USR_loop(self):
-        self.test_body_vec.x = self.plane.to_x(self.mouse_x)
-        self.test_body_vec.y = self.plane.to_y(self.mouse_y)
-        # if self.keys[pg.K_UP]:
-        #     self.bodies[-1].accel(0.01)
-        #     # self.test_body_vec.y += 1
-        # elif self.keys[pg.K_DOWN]:
-        #     self.bodies[-1].stop(1.1)
-        #     # self.test_body_vec.y -= 1
+        if self.keys[pg.K_UP]:
+            self.bodies[-1].accel(0.01)
+            # self.test_body_vec.y += 1
+        elif self.keys[pg.K_DOWN]:
+            self.bodies[-1].stop(1.1)
+            # self.test_body_vec.y -= 1
         if self.keys[pg.K_LEFT]:
             self.bodies[-1].rotate(0.01)
             # self.test_body_vec.x -= 1

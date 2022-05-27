@@ -165,8 +165,13 @@ cdef class Vector2d(vector2d):
         return xy
 
     cpdef void random(self):
-        self._head._x._num = (random() * 2 - 1) * self.plane.x_max
-        self._head._y._num = (random() * 2 - 1) * self.plane.y_max
+        # TODO Fix null vector creation
+        if self.max_length:
+            self._head._x._num = (random() * 2 - 1) * self.max_length
+            self._head._y._num = (random() * 2 - 1) * self.max_length
+        else:
+            self._head._x._num = (random() * 2 - 1) * self.plane.x_max
+            self._head._y._num = (random() * 2 - 1) * self.plane.y_max
         self.update()
 
     cdef (double, double) get_HEAD(self):

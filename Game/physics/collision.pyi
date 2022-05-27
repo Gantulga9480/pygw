@@ -1,7 +1,7 @@
 from Game.graphic.cartesian import CartesianPlane
-from Game.physics.body import base_body
+from Game.physics.body import object_body
 
 
 class collision_detector:
     def __init__(self, plane: CartesianPlane) -> None: ...
-    def check(self, b1: base_body, b2: base_body) -> None: ...
+    def check(self, b1: object_body, b2: object_body) -> None: ...
