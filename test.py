@@ -24,44 +24,72 @@ class Test(Game):
                                     unit_length=1)
         body_lst = []
 
-        for i in range(10):
+        for i in range(100):
             vec = self.plane.createRandomVector()
             if i % 2:
                 body_lst.append(
-                        PolygonBody(i,
-                                    1,
-                                    CartesianPlane(self.window, (10, 10), vec),
-                                    (10, 10, 10, 10, 10)))
+                        TriangleBody(i,
+                                     1,
+                                     CartesianPlane(self.window, (100, 100), vec),
+                                     (20, 20, 20)))
             else:
                 body_lst.append(
                         RectBody(i,
                                  1,
-                                 CartesianPlane(self.window, (10, 10), vec),
-                                 (10*math.sqrt(2), 10*math.sqrt(2))))
+                                 CartesianPlane(self.window, (100, 100), vec),
+                                 (20*math.sqrt(2), 20*math.sqrt(2))))
             rot = random.random()*6 - 3
             body_lst[-1].rotate(rot)
 
-        vec = self.plane.createVector(0, 0)
-        body_lst.append(PolygonBody(i,
-                                    0,
-                                    CartesianPlane(self.window, (10, 10), vec),
-                                    (100, 100, 100, 100, 100, 100, 100)))
+        y = 540
+        for i in range(28):
+            vec = self.plane.createVector(-960, y)
+            body_lst.append(RectBody(1,
+                                     0,
+                                     CartesianPlane(self.window, (900, 900), vec),
+                                     (40, 40)))
+            vec = self.plane.createVector(960, y)
+            body_lst.append(RectBody(1,
+                                     0,
+                                     CartesianPlane(self.window, (900, 900), vec),
+                                     (40, 40)))
+            y -= 40
+
+        x = -920
+        for i in range(47):
+            vec = self.plane.createVector(x, 540)
+            body_lst.append(RectBody(1,
+                                     0,
+                                     CartesianPlane(self.window, (900, 900), vec),
+                                     (40, 40)))
+            vec = self.plane.createVector(x, -540)
+            body_lst.append(RectBody(1,
+                                     0,
+                                     CartesianPlane(self.window, (900, 900), vec),
+                                     (40, 40)))
+            x += 40
+
+        vec = self.plane.createVector(100, 0)
+        body_lst.append(PolygonBody(1,
+                                    1,
+                                    CartesianPlane(self.window, (900, 900), vec),
+                                    (30, 30, 30, 30, 30)))
 
         self.bodies = np.array(body_lst, dtype=object_body)
         self.engine = Engine(self.plane, self.bodies)
 
     def USR_loop(self):
         if self.keys[pg.K_UP]:
-            self.bodies[-1].accel(0.01)
+            self.bodies[-1].accelerate(0.1)
             # self.test_body_vec.y += 1
         elif self.keys[pg.K_DOWN]:
             self.bodies[-1].stop(1.1)
             # self.test_body_vec.y -= 1
         if self.keys[pg.K_LEFT]:
-            self.bodies[-1].rotate(0.01)
+            self.bodies[-1].rotate(0.06)
             # self.test_body_vec.x -= 1
         elif self.keys[pg.K_RIGHT]:
-            self.bodies[-1].rotate(-0.01)
+            self.bodies[-1].rotate(-0.06)
             # self.test_body_vec.x += 1
 
     def USR_render(self):

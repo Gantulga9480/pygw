@@ -4,7 +4,7 @@ _vector2d_or_tuple = Union[vector2d, tuple]
 
 
 class scalar:
-    has_limit: bool
+    is_limit: bool
     def __init__(self, value: float, limits: tuple) -> None: ...
     @property
     def value(self) -> float: ...

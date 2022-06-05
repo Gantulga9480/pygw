@@ -31,10 +31,10 @@ cdef class Shape:
     cpdef void scale(self, double factor):
         cdef int i
         cdef double v_len
-        cdef double _min = (<Vector2d>self.vertices[0]).length()
+        cdef double _min = (<Vector2d>self.vertices[0]).mag()
         cdef double _max = _min
         for i in range(self.vertex_count):
-            v_len = (<Vector2d>self.vertices[i]).length()
+            v_len = (<Vector2d>self.vertices[i]).mag()
             if v_len > _max:
                 _max = v_len
             elif v_len < _min:
@@ -60,10 +60,10 @@ cdef class Shape:
             # self.position_vec.show()
             for i in range(self.vertex_count):
                 self.vertices[i].show((0, 0, 0))
-                heads.append(self.vertices[i].HEAD)
+                heads.append((<Vector2d>self.vertices[i]).get_HEAD())
         else:
             for i in range(self.vertex_count):
-                heads.append(self.vertices[i].HEAD)
+                heads.append((<Vector2d>self.vertices[i]).get_HEAD())
         aalines(self.window, color, True, heads)
         # poly(self.window, color, heads)
 
@@ -78,7 +78,7 @@ cdef class Rectangle(Shape):
 
         self.vertex_count = 4
 
-        length = sqrt((size[0]//2)**2 + (size[1]//2)**2)
+        cdef double length = sqrt((size[0]//2)**2 + (size[1]//2)**2)
 
         cdef list vers = []
         cdef int i

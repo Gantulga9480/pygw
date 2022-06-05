@@ -18,26 +18,28 @@ cdef class object_dynamics:
     def __init__(self, CartesianPlane space, int body_type) -> None:
         self.factor = 60
         if body_type == DYNAMIC:
-            self.acceleration = Vector2d(space, 1, 0, 100, 1)
-            self.velocity = Vector2d(space, 1, 0, 200, 1)
+            self.a = Vector2d(space, 1, 0, 2, 1)
+            self.v = Vector2d(space, 1, 0, 3, 1)
+            self.a.rotate(pi/2)
+            self.v.rotate(pi/2)
         else:
-            self.acceleration = Vector2d(space, 0, 0, 0, 0)
-            self.velocity = Vector2d(space, 0, 0, 0, 0)
+            self.a = Vector2d(space, 0, 0, 0, 0)
+            self.v = Vector2d(space, 0, 0, 0, 0)
 
     @cython.cdivision(True)
     cdef void react(self, Vector2d pos):
-        cdef double a_len = floor(self.acceleration.length() * 100.0) / 100.0
+        cdef double a_len = floor(self.a.mag() * 100.0) / 100.0
         if a_len > 1:
-            self.velocity.add_xy((self.acceleration._head._x._num / self.factor, self.acceleration._head._y._num / self.factor))
-            self.acceleration.scale(0.81)
+            self.v.add_xy(self.a.get_xy())
+            self.a.scale(0.81)
         else:
-            self.acceleration.set_xy(self.acceleration.unit_vector(1))
-        cdef double v_len = floor(self.velocity.length() * 100.0) / 100.0
+            self.a.set_xy(self.a.unit_vector(1))
+        cdef double v_len = floor(self.v.mag() * 100.0) / 100.0
         if v_len > 1:
-            pos.add_xy((self.velocity._head._x._num / self.factor, self.velocity._head._y._num / self.factor))
-            self.velocity.scale(0.99)
+            pos.add_xy(self.v.get_xy())
+            self.v.scale(0.9)
         else:
-            self.velocity.set_xy(self.velocity.unit_vector(1))
+            self.v.set_xy(self.v.unit_vector(1))
 
 
 cdef class object_body:
@@ -52,18 +54,16 @@ cdef class object_body:
         self.id = body_id
         self.type = body_type
         self.body = object_dynamics(plane, body_type)
-        self.body.acceleration.rotate(pi/2)
-        self.body.velocity.rotate(pi/2)
 
     cpdef void step(self):
         self.body.react(self.shape.plane.parent_vector)
 
-    cpdef void accel(self, double factor):
-        self.body.acceleration.add(factor)
+    cpdef void accelerate(self, double factor):
+        self.body.a.add(factor)
 
     @cython.cdivision(True)
     cpdef void stop(self, double factor):
-        self.body.velocity.scale(1/factor)
+        self.body.v.scale(1/factor)
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
@@ -72,8 +72,8 @@ cdef class object_body:
         cdef int i
         for i in range(self.shape.vertex_count):
             (<Vector2d>self.shape.vertices[i]).rotate(angle)
-        self.body.acceleration.rotate(angle)
-        self.body.velocity.rotate(angle)
+        self.body.a.rotate(angle)
+        self.body.v.rotate(angle)
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
@@ -85,13 +85,13 @@ cdef class object_body:
             # self.position_vec.show(window)
             for i in range(self.shape.vertex_count):
                 (<Vector2d>self.shape.vertices[i]).show(color)
-                heads.append(self.vertices[i].HEAD)
+                heads.append((<Vector2d>self.shape.vertices[i]).get_HEAD())
         else:
             for i in range(self.shape.vertex_count):
-                heads.append(self.shape.vertices[i].HEAD)
+                heads.append((<Vector2d>self.shape.vertices[i]).get_HEAD())
         aalines(self.shape.window, color, True, heads)
-        # self.body.velocity.show(window, (255, 0, 0))
-        self.body.acceleration.show((0, 0, 255))
+        self.body.v.show((255, 0, 0))
+        self.body.a.show((0, 0, 255))
 
 
 cdef class PolygonBody(object_body):

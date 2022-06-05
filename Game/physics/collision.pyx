@@ -15,17 +15,17 @@ cdef class collision_detector:
         self.diagonal_intersect(b1, b2)
 
     cdef void static_resolve(self, object_body b1, object_body b2, double dx, double dy):
-        cdef double factor = 0.9
+        cdef double factor = 0
         if b1.type == DYNAMIC and b2.type == DYNAMIC:
-            b1.body.velocity.scale(factor)
-            b2.body.velocity.scale(factor)
+            b1.body.v.scale(factor)
+            b2.body.v.scale(factor)
             b1.shape.plane.parent_vector.add_xy((-dx/2, -dy/2))
             b2.shape.plane.parent_vector.add_xy((dx/2, dy/2))
         elif b1.type == DYNAMIC and b2.type == STATIC:
-            b1.body.velocity.scale(factor)
+            b1.body.v.scale(factor)
             b1.shape.plane.parent_vector.add_xy((-dx, -dy))
         elif b1.type == STATIC and b2.type == DYNAMIC:
-            b2.body.velocity.scale(factor)
+            b2.body.v.scale(factor)
             b2.shape.plane.parent_vector.add_xy((dx, dy))
 
     @cython.cdivision(True)

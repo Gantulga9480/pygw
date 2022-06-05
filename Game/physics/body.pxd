@@ -9,7 +9,7 @@ cdef int STATIC, DYNAMIC
 cdef class object_dynamics:
 
     cdef double radius, factor
-    cdef Vector2d acceleration, velocity
+    cdef Vector2d a, v
 
     cdef void react(self, Vector2d pos)
 
@@ -21,7 +21,7 @@ cdef class object_body:
     cdef double radius
 
     cpdef void step(self)
-    cpdef void accel(self, double factor)
+    cpdef void accelerate(self, double factor)
     cpdef void stop(self, double factor)
     cpdef void rotate(self, double angle)
 

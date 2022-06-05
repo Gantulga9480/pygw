@@ -28,20 +28,20 @@ cdef class Engine:
         cdef double r
 
         for i in range(n):
-            if self.bodies[i].type == DYNAMIC:
+            if self.bodies[i].type == DYNAMIC and i < n-1:
                 r = random()
                 if r > 0.5:
-                    (<object_body>self.bodies[i]).accel(0.01)
+                    (<object_body>self.bodies[i]).accelerate(0.05)
                 else:
-                    (<object_body>self.bodies[i]).stop(1/1.1)
+                    (<object_body>self.bodies[i]).stop(1.1)
                 if r > 0.5:
-                    (<object_body>self.bodies[i]).rotate(0.1)
+                    (<object_body>self.bodies[i]).rotate(0.06)
                 else:
-                    (<object_body>self.bodies[i]).rotate(-0.1)
+                    (<object_body>self.bodies[i]).rotate(-0.06)
                 (<object_body>self.bodies[i]).step()
             for j in range(n):
                 if i != j:
                     if self.bodies[i].type != STATIC or self.bodies[j].type != STATIC:
                         if (self.bodies[i].radius + self.bodies[j].radius) >= ((<object_body>self.bodies[i]).shape.plane.parent_vector.distance_to((<object_body>self.bodies[j]).shape.plane.parent_vector)):
                             self.collider.check(<object_body>self.bodies[i], <object_body>self.bodies[j])
-            (<object_body>self.bodies[i]).show((0, 0, 0))
+            (<object_body>self.bodies[i]).show((0, 0, 0), True)
