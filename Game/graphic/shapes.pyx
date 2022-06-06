@@ -40,8 +40,11 @@ cdef class Shape:
             elif v_len < _min:
                 _min = v_len
         if factor > 1:
-            # TODO max len check
-            if ((_max * factor) <= self.vertices[0].max_length):
+            if self.vertices[0].max_length:
+                if ((_max * factor) <= self.vertices[0].max_length):
+                    for i in range(self.vertex_count):
+                        (<Vector2d>self.vertices[i]).scale(factor)
+            else:
                 for i in range(self.vertex_count):
                     (<Vector2d>self.vertices[i]).scale(factor)
         elif factor < 1:
@@ -88,7 +91,7 @@ cdef class Rectangle(Shape):
         angle[:] = [a1, a2, -a2, -a1]
 
         for i in range(self.vertex_count):
-            vers.append(Vector2d(self.plane, length, 0, self.plane.window_size[0]))
+            vers.append(Vector2d(self.plane, length, 0))
             vers[-1].rotate(angle[i])
 
         self.vertices = np.array(vers, dtype=Vector2d)
@@ -108,7 +111,7 @@ cdef class Triangle(Shape):
         cdef int i
 
         for i in range(self.vertex_count):
-            vers.append(Vector2d(self.plane, size[i], 0, self.plane.window_size[0]))
+            vers.append(Vector2d(self.plane, size[i], 0))
             vers[-1].rotate(pi/2 + 2*pi/3 * i)
 
         self.vertices = np.array(vers, dtype=Vector2d)
@@ -132,7 +135,7 @@ cdef class Polygon(Shape):
 
         for i in range(self.vertex_count):
             # TODO
-            vers.append(Vector2d(self.plane, size[i], 0, self.plane.window_size[0]))
+            vers.append(Vector2d(self.plane, size[i], 0))
             vers[-1].rotate(pi/2 + 2*pi/self.vertex_count * i)
 
         self.vertices = np.array(vers, dtype=Vector2d)

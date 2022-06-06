@@ -24,56 +24,56 @@ class Test(Game):
                                     unit_length=1)
         body_lst = []
 
-        for i in range(100):
+        for i in range(50):
             vec = self.plane.createRandomVector()
             if i % 2:
                 body_lst.append(
-                        TriangleBody(i,
-                                     1,
-                                     CartesianPlane(self.window, (100, 100), vec),
-                                     (20, 20, 20)))
+                        PolygonBody(i,
+                                    1,
+                                    CartesianPlane(self.window, (20, 20), vec),
+                                    (20, 20, 20, 20, 20)))
             else:
                 body_lst.append(
                         RectBody(i,
                                  1,
-                                 CartesianPlane(self.window, (100, 100), vec),
+                                 CartesianPlane(self.window, (20, 20), vec),
                                  (20*math.sqrt(2), 20*math.sqrt(2))))
             rot = random.random()*6 - 3
             body_lst[-1].rotate(rot)
 
-        y = 540
+        y = height / 2
         for i in range(28):
-            vec = self.plane.createVector(-960, y)
+            vec = self.plane.createVector(-width/2, y)
             body_lst.append(RectBody(1,
                                      0,
-                                     CartesianPlane(self.window, (900, 900), vec),
+                                     CartesianPlane(self.window, (40, 40), vec),
                                      (40, 40)))
-            vec = self.plane.createVector(960, y)
+            vec = self.plane.createVector(width/2, y)
             body_lst.append(RectBody(1,
                                      0,
-                                     CartesianPlane(self.window, (900, 900), vec),
+                                     CartesianPlane(self.window, (40, 40), vec),
                                      (40, 40)))
             y -= 40
 
-        x = -920
+        x = -width/2 + 40
         for i in range(47):
-            vec = self.plane.createVector(x, 540)
+            vec = self.plane.createVector(x, height / 2)
             body_lst.append(RectBody(1,
                                      0,
-                                     CartesianPlane(self.window, (900, 900), vec),
+                                     CartesianPlane(self.window, (40, 40), vec),
                                      (40, 40)))
-            vec = self.plane.createVector(x, -540)
+            vec = self.plane.createVector(x, -height / 2)
             body_lst.append(RectBody(1,
                                      0,
-                                     CartesianPlane(self.window, (900, 900), vec),
+                                     CartesianPlane(self.window, (40, 40), vec),
                                      (40, 40)))
             x += 40
 
         vec = self.plane.createVector(100, 0)
         body_lst.append(PolygonBody(1,
                                     1,
-                                    CartesianPlane(self.window, (900, 900), vec),
-                                    (30, 30, 30, 30, 30)))
+                                    CartesianPlane(self.window, (40, 40), vec),
+                                    (20, 20, 20, 20, 20)))
 
         self.bodies = np.array(body_lst, dtype=object_body)
         self.engine = Engine(self.plane, self.bodies)

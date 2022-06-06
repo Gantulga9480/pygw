@@ -31,7 +31,7 @@ cdef class Engine:
             if self.bodies[i].type == DYNAMIC and i < n-1:
                 r = random()
                 if r > 0.5:
-                    (<object_body>self.bodies[i]).accelerate(0.05)
+                    (<object_body>self.bodies[i]).accelerate(0.1)
                 else:
                     (<object_body>self.bodies[i]).stop(1.1)
                 if r > 0.5:

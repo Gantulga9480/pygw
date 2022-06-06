@@ -154,10 +154,15 @@ cdef class vector2d:
 
     @x.setter
     def x(self, double o):
-        # BUG check min max
-        # self.head.x.set(o)
-        # self.update()
-        raise NotImplementedError
+        cdef _len = sqrt(o*o + self.head.y.num * self.head.y.num)
+        if self.min_length <= _len:
+            if self.max_length:
+                if _len <= self.max_length:
+                    self.head.x.set(o)
+                    self.update()
+            else:
+                self.head.x.set(o)
+                self.update()
 
     @property
     def y(self):
@@ -165,10 +170,15 @@ cdef class vector2d:
 
     @y.setter
     def y(self, double o):
-        # BUG check min max
-        # self.head.y.set(o)
-        # self.update()
-        raise NotImplementedError
+        cdef _len = sqrt(o*o + self.head.x.num * self.head.x.num)
+        if self.min_length <= _len:
+            if self.max_length:
+                if _len <= self.max_length:
+                    self.head.y.set(o)
+                    self.update()
+            else:
+                self.head.y.set(o)
+                self.update()
 
     @property
     def head(self):

@@ -9,7 +9,7 @@ cdef int STATIC, DYNAMIC
 cdef class object_dynamics:
 
     cdef double radius, factor
-    cdef Vector2d a, v
+    cdef Vector2d v
 
     cdef void react(self, Vector2d pos)
 
@@ -24,6 +24,7 @@ cdef class object_body:
     cpdef void accelerate(self, double factor)
     cpdef void stop(self, double factor)
     cpdef void rotate(self, double angle)
+    cpdef void scale(self, double factor)
 
 cdef class PolygonBody(object_body):
     pass

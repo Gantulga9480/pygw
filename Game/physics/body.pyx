@@ -18,26 +18,16 @@ cdef class object_dynamics:
     def __init__(self, CartesianPlane space, int body_type) -> None:
         self.factor = 60
         if body_type == DYNAMIC:
-            self.a = Vector2d(space, 1, 0, 2, 1)
-            self.v = Vector2d(space, 1, 0, 3, 1)
-            self.a.rotate(pi/2)
+            self.v = Vector2d(space, 1, 0, 10, 1)
             self.v.rotate(pi/2)
         else:
-            self.a = Vector2d(space, 0, 0, 0, 0)
             self.v = Vector2d(space, 0, 0, 0, 0)
 
     @cython.cdivision(True)
     cdef void react(self, Vector2d pos):
-        cdef double a_len = floor(self.a.mag() * 100.0) / 100.0
-        if a_len > 1:
-            self.v.add_xy(self.a.get_xy())
-            self.a.scale(0.81)
-        else:
-            self.a.set_xy(self.a.unit_vector(1))
         cdef double v_len = floor(self.v.mag() * 100.0) / 100.0
         if v_len > 1:
             pos.add_xy(self.v.get_xy())
-            self.v.scale(0.9)
         else:
             self.v.set_xy(self.v.unit_vector(1))
 
@@ -59,7 +49,7 @@ cdef class object_body:
         self.body.react(self.shape.plane.parent_vector)
 
     cpdef void accelerate(self, double factor):
-        self.body.a.add(factor)
+        self.body.v.add(factor)
 
     @cython.cdivision(True)
     cpdef void stop(self, double factor):
@@ -69,16 +59,20 @@ cdef class object_body:
     @cython.boundscheck(False)
     @cython.initializedcheck(False)
     cpdef void rotate(self, double angle):
-        cdef int i
-        for i in range(self.shape.vertex_count):
-            (<Vector2d>self.shape.vertices[i]).rotate(angle)
-        self.body.a.rotate(angle)
+        self.shape.rotate(angle)
         self.body.v.rotate(angle)
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
+    @cython.nonecheck(False)
     @cython.initializedcheck(False)
-    def show(self, color, show_vertex=False):
+    cpdef void scale(self, double factor):
+        self.shape.scale(factor)
+
+    @cython.wraparound(False)
+    @cython.boundscheck(False)
+    @cython.initializedcheck(False)
+    def show(self, color, bint show_vertex=False):
         cdef int i
         cdef list heads = []
         if show_vertex:
@@ -91,7 +85,6 @@ cdef class object_body:
                 heads.append((<Vector2d>self.shape.vertices[i]).get_HEAD())
         aalines(self.shape.window, color, True, heads)
         self.body.v.show((255, 0, 0))
-        self.body.a.show((0, 0, 255))
 
 
 cdef class PolygonBody(object_body):
