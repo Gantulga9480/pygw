@@ -16,7 +16,6 @@ cdef class object_dynamics:
         ...
 
     def __init__(self, CartesianPlane space, int body_type) -> None:
-        self.factor = 60
         if body_type == DYNAMIC:
             self.v = Vector2d(space, 1, 0, 10, 1)
             self.v.rotate(pi/2)
@@ -26,8 +25,13 @@ cdef class object_dynamics:
     @cython.cdivision(True)
     cdef void react(self, Vector2d pos):
         cdef double v_len = floor(self.v.mag() * 100.0) / 100.0
+        cdef (double, double) xy
+        cdef (double, double) _xy
         if v_len > 1:
-            pos.add_xy(self.v.get_xy())
+            xy = self.v.get_xy()
+            _xy = self.v.unit_vector(1)
+            pos.add_xy((xy[0] - _xy[0], xy[1] - _xy[1]))
+            self.v.scale(0.99)
         else:
             self.v.set_xy(self.v.unit_vector(1))
 
@@ -41,8 +45,8 @@ cdef class object_body:
                  int body_id,
                  int body_type,
                  CartesianPlane plane):
-        self.id = body_id
-        self.type = body_type
+        self.body_id = body_id
+        self.body_type = body_type
         self.body = object_dynamics(plane, body_type)
 
     cpdef void step(self):

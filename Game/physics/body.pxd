@@ -8,14 +8,14 @@ cdef int STATIC, DYNAMIC
 
 cdef class object_dynamics:
 
-    cdef double radius, factor
+    cdef double radius
     cdef Vector2d v
 
     cdef void react(self, Vector2d pos)
 
 cdef class object_body:
 
-    cdef readonly int type, id
+    cdef readonly int body_type, body_id
     cdef object_dynamics body
     cdef Shape shape
     cdef double radius

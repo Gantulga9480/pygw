@@ -1,12 +1,9 @@
 from Game.base import Game
 from Game.graphic import CartesianPlane
-from Game.physics import PolygonBody, TriangleBody, RectBody
-from Game.physics.body import object_body
-from Game.physics import Engine
-import numpy as np
+from Game.physics import PolygonBody, RectBody, object_body
 import pygame as pg
-import random
 import math
+import json
 
 
 class Test(Game):
@@ -23,7 +20,7 @@ class Test(Game):
         self.plane = CartesianPlane(self.window, (width, height),
                                     unit_length=1)
         self.frames: list[object_body] = []
-        self.bodies: list[object_body] = []
+        self.bodies = []
 
         y = height / 2
         for i in range(28):
@@ -55,60 +52,98 @@ class Test(Game):
 
         self.shape_size = 40
         self.shape_vertex = 4
+        self.type = 0
+        self.shape_dir = math.pi/4
         self.current_vec = self.plane.createVector(0, 0)
-        self.current_shape = PolygonBody(0, 0,
+        self.current_shape = PolygonBody(0, self.type,
                                          CartesianPlane(self.window, (40, 40),
                                                         self.current_vec),
                                          (self.shape_size,
                                           self.shape_size,
                                           self.shape_size,
                                           self.shape_size))
-        self.current_shape.rotate(math.pi/4)
+        self.current_shape.rotate(self.shape_dir)
 
     def USR_eventHandler(self, event):
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_c:
                 self.create_shape()
+            elif event.key == pg.K_d:
+                if self.bodies.__len__() > 0:
+                    self.bodies.pop()
             elif event.key == pg.K_s:
-                self.bodies.append(self.current_shape)
+                self.bodies.append([self.current_shape,
+                                    self.shape_size,
+                                    self.shape_vertex,
+                                    self.shape_dir,
+                                    self.current_vec.x,
+                                    self.current_vec.y])
                 self.create_shape()
             elif event.key == pg.K_UP:
+                self.shape_size *= 1.1
                 self.current_shape.scale(1.1)
             elif event.key == pg.K_DOWN:
+                self.shape_size *= 1/1.1
                 self.current_shape.scale(1/1.1)
             elif event.key == pg.K_RIGHT:
-                self.current_shape.rotate(0.1)
-            elif event.key == pg.K_LEFT:
+                self.shape_dir += -0.1
                 self.current_shape.rotate(-0.1)
+            elif event.key == pg.K_LEFT:
+                self.shape_dir += 0.1
+                self.current_shape.rotate(0.1)
             elif event.key == pg.K_q:
-                if self.shape_vertex > 2:
+                if self.shape_vertex > 3:
                     self.shape_vertex -= 1
                     self.create_shape()
             elif event.key == pg.K_e:
                 self.shape_vertex += 1
                 self.create_shape()
+            elif event.key == pg.K_1:
+                self.type = 1
+                self.create_shape()
+            elif event.key == pg.K_0:
+                self.type = 0
+                self.create_shape()
+            elif event.key == pg.K_f:
+                d = dict()
+                a = []
+                for body in self.bodies:
+                    c = dict()
+                    c['type'] = body[0].body_type
+                    c['size'] = body[1]
+                    c['shape'] = body[2]
+                    c['dir'] = body[3]
+                    c['x'] = body[4]
+                    c['y'] = body[5]
+                    a.append(c)
+                d['bodies'] = a
+                with open('env.json', 'w') as f:
+                    json.dump(d, f)
+                self.running = False
 
     def USR_loop(self):
         self.current_vec.x = self.plane.to_x(self.mouse_x)
         self.current_vec.y = self.plane.to_y(self.mouse_y)
 
     def USR_render(self):
-        self.current_vec.show((0, 0, 0))
-        self.current_shape.show((0, 0, 255))
+        if self.current_shape.body_type == 1:
+            self.current_shape.show((0, 0, 255))
+        else:
+            self.current_shape.show((0, 255, 255))
         for frame in self.frames:
             frame.show((0, 0, 0), True)
         for body in self.bodies:
-            body.show((255, 0, 0))
+            body[0].show((255, 0, 0))
         self.set_title(f'fps {round(self.clock.get_fps())}')
 
     def create_shape(self):
         self.current_vec = self.plane.createVector(0, 0)
         size = tuple([self.shape_size for _ in range(self.shape_vertex)])
-        self.current_shape = PolygonBody(0, 0,
+        self.current_shape = PolygonBody(0, self.type,
                                          CartesianPlane(self.window, (40, 40),
                                                         self.current_vec),
                                          size)
-        self.current_shape.rotate(math.pi/4)
+        self.current_shape.rotate(self.shape_dir)
 
 
 Test().mainloop()

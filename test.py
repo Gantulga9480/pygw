@@ -24,20 +24,20 @@ class Test(Game):
                                     unit_length=1)
         body_lst = []
 
-        for i in range(50):
+        for i in range(500):
             vec = self.plane.createRandomVector()
             if i % 2:
                 body_lst.append(
                         PolygonBody(i,
                                     1,
                                     CartesianPlane(self.window, (20, 20), vec),
-                                    (20, 20, 20, 20, 20)))
+                                    (10, 10, 10, 10, 10)))
             else:
                 body_lst.append(
                         RectBody(i,
                                  1,
                                  CartesianPlane(self.window, (20, 20), vec),
-                                 (20*math.sqrt(2), 20*math.sqrt(2))))
+                                 (10*math.sqrt(2), 10*math.sqrt(2))))
             rot = random.random()*6 - 3
             body_lst[-1].rotate(rot)
 

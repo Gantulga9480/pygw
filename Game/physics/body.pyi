@@ -10,6 +10,9 @@ class object_dynamics:
 
 class object_body:
 
+    body_type: int
+    body_id: int
+
     def __init__(self,
                  id: int,
                  body_type: int,

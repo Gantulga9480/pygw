@@ -28,7 +28,7 @@ cdef class Engine:
         cdef double r
 
         for i in range(n):
-            if self.bodies[i].type == DYNAMIC and i < n-1:
+            if self.bodies[i].body_type == DYNAMIC and i < n-1:
                 r = random()
                 if r > 0.5:
                     (<object_body>self.bodies[i]).accelerate(0.1)
@@ -41,7 +41,7 @@ cdef class Engine:
                 (<object_body>self.bodies[i]).step()
             for j in range(n):
                 if i != j:
-                    if self.bodies[i].type != STATIC or self.bodies[j].type != STATIC:
+                    if self.bodies[i].body_type != STATIC or self.bodies[j].body_type != STATIC:
                         if (self.bodies[i].radius + self.bodies[j].radius) >= ((<object_body>self.bodies[i]).shape.plane.parent_vector.distance_to((<object_body>self.bodies[j]).shape.plane.parent_vector)):
                             self.collider.check(<object_body>self.bodies[i], <object_body>self.bodies[j])
-            (<object_body>self.bodies[i]).show((0, 0, 0), True)
+            (<object_body>self.bodies[i]).show((0, 0, 0))
