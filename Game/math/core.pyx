@@ -143,7 +143,6 @@ cdef class vector2d:
                  double max_length = 0,
                  double min_length = 0):
         self.head = point2d(x, y)
-        self.tail = point2d(0, 0)
         self.max_length = max_length
         self.min_length = min_length
         self.update()
@@ -154,7 +153,7 @@ cdef class vector2d:
 
     @x.setter
     def x(self, double o):
-        cdef _len = sqrt(o*o + self.head.y.num * self.head.y.num)
+        cdef _len = sqrt(o * o + self.head.y.num * self.head.y.num)
         if self.min_length <= _len:
             if self.max_length:
                 if _len <= self.max_length:
@@ -170,7 +169,7 @@ cdef class vector2d:
 
     @y.setter
     def y(self, double o):
-        cdef _len = sqrt(o*o + self.head.x.num * self.head.x.num)
+        cdef _len = sqrt(o * o + self.head.x.num * self.head.x.num)
         if self.min_length <= _len:
             if self.max_length:
                 if _len <= self.max_length:
@@ -186,42 +185,17 @@ cdef class vector2d:
 
     @head.setter
     def head(self, (double, double) o):
-        # BUG check min max
-        # self.head.x.set(o[0])
-        # self.head.y.set(o[1])
-        # self.update()
-        raise NotImplementedError
-
-    @property
-    def tail_x(self):
-        return self.tail.x.num
-
-    @tail_x.setter
-    def tail_x(self, double o):
-        # BUG check min max
-        # self.tail.x.set(o)
-        raise NotImplementedError
-
-    @property
-    def tail_y(self):
-        return self.tail.y.num
-
-    @tail_y.setter
-    def tail_y(self, double o):
-        # BUG check min max
-        # self.tail.y.set(o)
-        raise NotImplementedError
-
-    @property
-    def tail(self):
-        return (self.tail.x.num, self.tail.y.num)
-
-    @tail.setter
-    def tail(self, (double, double) o):
-        # BUG check min max
-        # self.tail.x.set(o[0])
-        # self.tail.y.set(o[1])
-        raise NotImplementedError
+        cdef double _len = sqrt(o[0]*o[0] + o[1]*o[1])
+        if self.min_length <= _len:
+            if self.max_length:
+                if _len <= self.max_length:
+                    self.head.x.set(o[0])
+                    self.head.y.set(o[1])
+                    self.update()
+            else:
+                self.head.x.set(o[0])
+                self.head.y.set(o[1])
+                self.update()
 
     def unit(self, double scale=1, bint vector=True):
         cdef double a = self.dir()
@@ -232,21 +206,22 @@ cdef class vector2d:
         return (x, y)
 
     def normal(self, double scale=1, bint vector=True):
-        cdef double x = -(self.head.y.num - self.tail.y.num) * scale
-        cdef double y = (self.head.x.num - self.tail.x.num) * scale
+        cdef double x = -self.head.y.num * scale
+        cdef double y = self.head.x.num * scale
         if vector:
             return vector2d(x, y, self.max_length, self.min_length)
         return (x, y)
+
+    cpdef void set_x_ref(self, scalar o):
+        raise NotImplementedError
+
+    cpdef void set_y_ref(self, scalar o):
+        raise NotImplementedError
 
     cpdef void set_head_ref(self, point2d o):
         # BUG decide later for more bug free code
         # self.head = o
         # self.update()
-        raise NotImplementedError
-
-    cpdef void set_tail_ref(self, point2d o):
-        # BUG decide later for more bug free code
-        # self.tail = o
         raise NotImplementedError
 
     cpdef void add(self, double o):
@@ -310,14 +285,10 @@ cdef class vector2d:
         self.update()
 
     cpdef double mag(self):
-        cdef double dx = self.head.x.num - self.tail.x.num
-        cdef double dy = self.head.y.num - self.tail.y.num
-        return sqrt(dx*dx + dy*dy)
+        return sqrt(self.head.x.num*self.head.x.num + self.head.y.num*self.head.y.num)
 
     cpdef double dir(self):
-        cdef double dx = self.head.x.num - self.tail.x.num
-        cdef double dy = self.head.y.num - self.tail.y.num
-        return atan2(dy, dx)
+        return atan2(self.head.y.num, self.head.x.num)
 
     cpdef double distance_to(self, vector2d vector):
         cdef double dx = self.head.x.num - vector.head.x.num
@@ -328,44 +299,69 @@ cdef class vector2d:
         return atan2(vector.head.y.num, vector.head.x.num) - self.dir()
 
     cpdef double dot(self, vector2d vector):
-        cdef double x = -(self.head.y.num - self.tail.y.num)
-        cdef double y = (self.head.x.num - self.tail.x.num)
-        cdef double _x = -(vector.head.y.num - vector.tail.y.num)
-        cdef double _y = (vector.head.x.num - vector.tail.x.num)
+        cdef double x = -self.head.y.num
+        cdef double y = self.head.x.num
+        cdef double _x = -vector.head.y.num
+        cdef double _y = vector.head.x.num
         return x * _x + y * _y
 
-    cdef void set_x(self, double x):
-        # BUG check min max
-        # self.head.x.set(x)
-        # self.update()
-        raise NotImplementedError
+    cpdef void update(self):
+        ...
 
-    cdef void set_y(self, double y):
-        # BUG check min max
-        # self.head.y.set(y)
-        # self.update()
-        raise NotImplementedError
+    cdef void set_x(self, double o):
+        cdef _len = sqrt(o * o + self.head.y.num * self.head.y.num)
+        if self.min_length <= _len:
+            if self.max_length:
+                if _len <= self.max_length:
+                    self.head.x.set(o)
+                    self.update()
+            else:
+                self.head.x.set(o)
+                self.update()
 
-    cdef void set_xy(self, (double, double) xy):
-        cdef double _len = sqrt(xy[0]*xy[0] + xy[1]*xy[1])
-        if self.min_length <= _len <= self.max_length:
-            self.head.x.set(xy[0])
-            self.head.y.set(xy[1])
-            self.update()
+    cdef void set_y(self, double o):
+        cdef _len = sqrt(o * o + self.head.x.num * self.head.x.num)
+        if self.min_length <= _len:
+            if self.max_length:
+                if _len <= self.max_length:
+                    self.head.y.set(o)
+                    self.update()
+            else:
+                self.head.y.set(o)
+                self.update()
 
-    cdef (double, double) get_xy(self):
+    cdef void set_head(self, (double, double) o):
+        cdef double _len = sqrt(o[0]*o[0] + o[1]*o[1])
+        if _len >= self.min_length:
+            if self.max_length:
+                if _len <= self.max_length:
+                    self.head.x.set(o[0])
+                    self.head.y.set(o[1])
+                    self.update()
+            else:
+                self.head.x.set(o[0])
+                self.head.y.set(o[1])
+                self.update()
+
+    cdef double get_x(self):
+        return self.head.x.num
+
+    cdef double get_y(self):
+        return self.head.y.num
+
+    cdef (double, double) get_head(self):
         return (self.head.x.num, self.head.y.num)
 
-    cdef void add_xy(self, (double, double) xy):
-        cdef (double, double) new_xy
-        self.head.x.add(xy[0])
-        self.head.y.add(xy[1])
-        if self.max_length:
-            if (self.mag() > self.max_length):
-                new_xy = self.unit_vector(self.max_length)
-                self.head.x.num = new_xy[0]
-                self.head.y.num = new_xy[1]
-        self.update()
+    # cdef void add_xy(self, (double, double) xy):
+    #     cdef (double, double) new_xy
+    #     self.head.x.add(xy[0])
+    #     self.head.y.add(xy[1])
+    #     if self.max_length:
+    #         if (self.mag() > self.max_length):
+    #             new_xy = self.unit_vector(self.max_length)
+    #             self.head.x.num = new_xy[0]
+    #             self.head.y.num = new_xy[1]
+    #     self.update()
 
     cdef (double, double) unit_vector(self, double scale):
         cdef double a = self.dir()
@@ -374,9 +370,6 @@ cdef class vector2d:
         return (x, y)
 
     cdef (double, double) normal_vector(self, double scale):
-        cdef double x = -(self.head.y.num - self.tail.y.num) * scale
-        cdef double y = (self.head.x.num - self.tail.x.num) * scale
+        cdef double x = -self.head.y.num * scale
+        cdef double y = self.head.x.num * scale
         return (x, y)
-
-    cdef void update(self):
-        ...

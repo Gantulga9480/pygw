@@ -28,12 +28,12 @@ cdef class object_dynamics:
         cdef (double, double) xy
         cdef (double, double) _xy
         if v_len > 1:
-            xy = self.v.get_xy()
+            xy = self.v.get_head()
             _xy = self.v.unit_vector(1)
-            pos.add_xy((xy[0] - _xy[0], xy[1] - _xy[1]))
+            pos.set_head((pos.get_x() + xy[0] - _xy[0], pos.get_y() + xy[1] - _xy[1]))
             self.v.scale(0.99)
         else:
-            self.v.set_xy(self.v.unit_vector(1))
+            self.v.set_head(self.v.unit_vector(1))
 
 
 cdef class object_body:

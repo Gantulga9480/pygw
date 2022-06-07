@@ -19,14 +19,14 @@ cdef class collision_detector:
         if b1.body_type == DYNAMIC and b2.body_type == DYNAMIC:
             b1.body.v.scale(factor)
             b2.body.v.scale(factor)
-            b1.shape.plane.parent_vector.add_xy((-dx/2, -dy/2))
-            b2.shape.plane.parent_vector.add_xy((dx/2, dy/2))
+            b1.shape.plane.parent_vector.set_head((b1.shape.plane.parent_vector.head.x.num + -dx/2, b1.shape.plane.parent_vector.head.y.num + -dy/2))
+            b2.shape.plane.parent_vector.set_head((b2.shape.plane.parent_vector.head.x.num + dx/2, b2.shape.plane.parent_vector.head.y.num + dy/2))
         elif b1.body_type == DYNAMIC and b2.body_type == STATIC:
             b1.body.v.scale(factor)
-            b1.shape.plane.parent_vector.add_xy((-dx, -dy))
+            b1.shape.plane.parent_vector.set_head((b1.shape.plane.parent_vector.head.x.num + -dx, b1.shape.plane.parent_vector.head.y.num + -dy))
         elif b1.body_type == STATIC and b2.body_type == DYNAMIC:
             b2.body.v.scale(factor)
-            b2.shape.plane.parent_vector.add_xy((dx, dy))
+            b2.shape.plane.parent_vector.set_head((b2.shape.plane.parent_vector.head.x.num + dx, b2.shape.plane.parent_vector.head.y.num + dy))
 
     @cython.cdivision(True)
     cdef double line_segment_intersect(self, double p0x, double p0y, double p1x, double p1y, double p2x, double p2y, double p3x, double p3y):

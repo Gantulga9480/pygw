@@ -44,29 +44,25 @@ class Test(Game):
         y = height / 2
         for i in range(28):
             vec = self.plane.createVector(-width/2, y)
-            body_lst.append(RectBody(1,
-                                     0,
-                                     CartesianPlane(self.window, (40, 40), vec),
-                                     (40, 40)))
+            body_lst.append(
+                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
+                         (40, 40)))
             vec = self.plane.createVector(width/2, y)
-            body_lst.append(RectBody(1,
-                                     0,
-                                     CartesianPlane(self.window, (40, 40), vec),
-                                     (40, 40)))
+            body_lst.append(
+                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
+                         (40, 40)))
             y -= 40
 
         x = -width/2 + 40
         for i in range(47):
             vec = self.plane.createVector(x, height / 2)
-            body_lst.append(RectBody(1,
-                                     0,
-                                     CartesianPlane(self.window, (40, 40), vec),
-                                     (40, 40)))
+            body_lst.append(
+                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
+                         (40, 40)))
             vec = self.plane.createVector(x, -height / 2)
-            body_lst.append(RectBody(1,
-                                     0,
-                                     CartesianPlane(self.window, (40, 40), vec),
-                                     (40, 40)))
+            body_lst.append(
+                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
+                         (40, 40)))
             x += 40
 
         vec = self.plane.createVector(100, 0)
@@ -81,16 +77,12 @@ class Test(Game):
     def USR_loop(self):
         if self.keys[pg.K_UP]:
             self.bodies[-1].accelerate(0.1)
-            # self.test_body_vec.y += 1
         elif self.keys[pg.K_DOWN]:
             self.bodies[-1].stop(1.1)
-            # self.test_body_vec.y -= 1
         if self.keys[pg.K_LEFT]:
             self.bodies[-1].rotate(0.06)
-            # self.test_body_vec.x -= 1
         elif self.keys[pg.K_RIGHT]:
             self.bodies[-1].rotate(-0.06)
-            # self.test_body_vec.x += 1
 
     def USR_render(self):
         self.bodies[-1].step()

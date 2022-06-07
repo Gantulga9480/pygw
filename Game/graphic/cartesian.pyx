@@ -138,15 +138,18 @@ cdef class Vector2d(vector2d):
 
     @property
     def X(self):
-        return self.plane.to_X(self.head.x.num)
+        self.update()
+        return self.headXY.x.num
 
     @property
     def Y(self):
-        return self.plane.to_Y(self.head.y.num)
+        self.update()
+        return self.headXY.y.num
 
     @property
     def HEAD(self):
-        return (self.plane.to_X(self.head.x.num), self.plane.to_Y(self.head.y.num))
+        self.update()
+        return self.headXY.get_xy()
 
     @property
     def TAIL(self):
@@ -157,7 +160,7 @@ cdef class Vector2d(vector2d):
     def show(self, color):
         aaline(self.window, color,
                (self.plane.center.x.num, self.plane.center.y.num),
-               (self.plane.to_XY(self.head.get_xy())))
+               self.headXY.get_xy())
 
     def unit(self, double scale=1, bint vector=True):
         cdef (double, double) xy = self.unit_vector(scale)
@@ -184,11 +187,20 @@ cdef class Vector2d(vector2d):
             self.head.y.num = (r2 * 2 - 1) * self.plane.y_max
         self.update()
 
+    cpdef void update(self):
+        self.headXY.set_xy(self.plane.to_XY(self.head.get_xy()))
+
+    cdef double get_X(self):
+        self.update()
+        return self.headXY.x.num
+
+    cdef double get_Y(self):
+        self.update()
+        return self.headXY.y.num
+
     cdef (double, double) get_HEAD(self):
-        return (self.plane.to_X(self.head.x.num), self.plane.to_Y(self.head.y.num))
+        self.update()
+        return self.headXY.get_xy()
 
     cdef (double, double) get_TAIL(self):
-        return (self.plane.to_X(self.tail.x.num), self.plane.to_Y(self.tail.y.num))
-
-    cdef void update(self):
-        self.headXY.set_xy(self.plane.to_XY(self.head.get_xy()))
+        return (self.plane.center.x.num, self.plane.center.y.num)

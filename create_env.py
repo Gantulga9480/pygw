@@ -25,29 +25,25 @@ class Test(Game):
         y = height / 2
         for i in range(28):
             vec = self.plane.createVector(-width/2, y)
-            self.frames.append(RectBody(1,
-                                        0,
-                                        CartesianPlane(self.window, (40, 40), vec),
-                                        (40, 40)))
+            self.frames.append(
+                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
+                         (40, 40)))
             vec = self.plane.createVector(width/2, y)
-            self.frames.append(RectBody(1,
-                                        0,
-                                        CartesianPlane(self.window, (40, 40), vec),
-                                        (40, 40)))
+            self.frames.append(
+                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
+                         (40, 40)))
             y -= 40
 
         x = -width/2 + 40
         for i in range(47):
             vec = self.plane.createVector(x, height / 2)
-            self.frames.append(RectBody(1,
-                                        0,
-                                        CartesianPlane(self.window, (40, 40), vec),
-                                        (40, 40)))
+            self.frames.append(
+                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
+                         (40, 40)))
             vec = self.plane.createVector(x, -height / 2)
-            self.frames.append(RectBody(1,
-                                        0,
-                                        CartesianPlane(self.window, (40, 40), vec),
-                                        (40, 40)))
+            self.frames.append(
+                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
+                         (40, 40)))
             x += 40
 
         self.shape_size = 40

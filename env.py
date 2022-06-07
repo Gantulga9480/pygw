@@ -25,29 +25,25 @@ class Environment(Game):
         y = height / 2
         for _ in range(28):
             vec = self.plane.createVector(-width/2, y)
-            self.bodies.append(RectBody(1,
-                                        0,
-                                        CartesianPlane(self.window, (40, 40), vec),
-                                        (40, 40)))
+            self.bodies.append(
+                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
+                         (40, 40)))
             vec = self.plane.createVector(width/2, y)
-            self.bodies.append(RectBody(1,
-                                        0,
-                                        CartesianPlane(self.window, (40, 40), vec),
-                                        (40, 40)))
+            self.bodies.append(
+                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
+                         (40, 40)))
             y -= 40
 
         x = -width/2 + 40
         for _ in range(47):
             vec = self.plane.createVector(x, height / 2)
-            self.bodies.append(RectBody(1,
-                                        0,
-                                        CartesianPlane(self.window, (40, 40), vec),
-                                        (40, 40)))
+            self.bodies.append(
+                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
+                         (40, 40)))
             vec = self.plane.createVector(x, -height / 2)
-            self.bodies.append(RectBody(1,
-                                        0,
-                                        CartesianPlane(self.window, (40, 40), vec),
-                                        (40, 40)))
+            self.bodies.append(
+                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
+                         (40, 40)))
             x += 40
 
         a = dict()
@@ -59,8 +55,8 @@ class Environment(Game):
             vec = self.plane.createVector(body['x'], body['y'])
             size = tuple([body['size'] for _ in range(body['shape'])])
             p = PolygonBody(0, body['type'], CartesianPlane(self.window,
-                                                 (40, 40),
-                                                 vec), size)
+                                                            (40, 40),
+                                                            vec), size)
             p.rotate(body['dir'])
             self.bodies.append(p)
 
@@ -75,16 +71,12 @@ class Environment(Game):
     def USR_loop(self):
         if self.keys[pg.K_UP]:
             self.bodies[-1].accelerate(0.2)
-            # self.test_body_vec.y += 1
         elif self.keys[pg.K_DOWN]:
             self.bodies[-1].stop(1.1)
-            # self.test_body_vec.y -= 1
         if self.keys[pg.K_LEFT]:
             self.bodies[-1].rotate(0.06)
-            # self.test_body_vec.x -= 1
         elif self.keys[pg.K_RIGHT]:
             self.bodies[-1].rotate(-0.06)
-            # self.test_body_vec.x += 1
 
     def USR_render(self):
         self.bodies[-1].step()
