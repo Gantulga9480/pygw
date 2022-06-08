@@ -91,7 +91,7 @@ cdef class Rectangle(Shape):
         angle[:] = [a1, a2, -a2, -a1]
 
         for i in range(self.vertex_count):
-            vers.append(Vector2d(self.plane, length, 0))
+            vers.append(Vector2d(self.plane, length, 0, 0, 1))
             vers[-1].rotate(angle[i])
 
         self.vertices = np.array(vers, dtype=Vector2d)
@@ -111,7 +111,7 @@ cdef class Triangle(Shape):
         cdef int i
 
         for i in range(self.vertex_count):
-            vers.append(Vector2d(self.plane, size[i], 0))
+            vers.append(Vector2d(self.plane, size[i], 0, 0, 1))
             vers[-1].rotate(pi/2 + 2*pi/3 * i)
 
         self.vertices = np.array(vers, dtype=Vector2d)
@@ -135,7 +135,7 @@ cdef class Polygon(Shape):
 
         for i in range(self.vertex_count):
             # TODO
-            vers.append(Vector2d(self.plane, size[i], 0))
+            vers.append(Vector2d(self.plane, size[i], 0, 0, 1))
             vers[-1].rotate(pi/2 + 2*pi/self.vertex_count * i)
 
         self.vertices = np.array(vers, dtype=Vector2d)

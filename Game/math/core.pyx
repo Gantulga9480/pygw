@@ -138,8 +138,8 @@ cdef class vector2d:
         ...
 
     def __init__(self,
-                 x,
-                 y,
+                 double x,
+                 double y,
                  double max_length = 0,
                  double min_length = 0):
         self.head = point2d(x, y)

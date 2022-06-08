@@ -1,7 +1,7 @@
 import cython
 from Game.graphic.cartesian cimport CartesianPlane
 from Game.physics.body cimport object_body, DYNAMIC, STATIC
-from Game.physics.collision cimport collision_detector
+from Game.physics.collision cimport collision
 import numpy as np
 from pygame.draw import aalines
 from random import random
@@ -11,12 +11,12 @@ cdef class Engine:
 
     cdef object_body[:] bodies
     cdef CartesianPlane plane
-    cdef collision_detector collider
+    cdef collision collider
 
     def __init__(self, CartesianPlane plane, object_body[:] bodies):
         self.plane = plane
         self.bodies = bodies
-        self.collider = collision_detector(plane)
+        self.collider = collision(plane)
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
@@ -25,20 +25,20 @@ cdef class Engine:
     def step(self):
         cdef int n = self.bodies.shape[0]
         cdef int i, j
-        cdef double r
+        # cdef double r
 
         for i in range(n):
-            if self.bodies[i].body_type == DYNAMIC and i < n-1:
-                r = random()
-                if r > 0.5:
-                    (<object_body>self.bodies[i]).accelerate(0.1)
-                else:
-                    (<object_body>self.bodies[i]).stop(1.1)
-                if r > 0.5:
-                    (<object_body>self.bodies[i]).rotate(0.06)
-                else:
-                    (<object_body>self.bodies[i]).rotate(-0.06)
-                (<object_body>self.bodies[i]).step()
+            # if self.bodies[i].body_type == DYNAMIC and i < n-1:
+            #     r = random()
+            #     if r > 0.5:
+            #         (<object_body>self.bodies[i]).accelerate(0.1)
+            #     else:
+            #         (<object_body>self.bodies[i]).stop(1.1)
+            #     if r > 0.5:
+            #         (<object_body>self.bodies[i]).rotate(0.06)
+            #     else:
+            #         (<object_body>self.bodies[i]).rotate(-0.06)
+            #     (<object_body>self.bodies[i]).step()
             for j in range(n):
                 if i != j:
                     if self.bodies[i].body_type != STATIC or self.bodies[j].body_type != STATIC:

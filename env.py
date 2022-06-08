@@ -48,7 +48,7 @@ class Environment(Game):
 
         a = dict()
 
-        with open('env.json') as f:
+        with open('objects.json') as f:
             a = json.load(f)
 
         for body in a['bodies']:
@@ -60,6 +60,8 @@ class Environment(Game):
             p.rotate(body['dir'])
             self.bodies.append(p)
 
+        self.agent = self.bodies[-1]
+
         self.engine = Engine(self.plane, np.array(self.bodies,
                                                   dtype=object_body))
 
@@ -70,17 +72,20 @@ class Environment(Game):
 
     def USR_loop(self):
         if self.keys[pg.K_UP]:
-            self.bodies[-1].accelerate(0.2)
+            self.agent.accelerate(0.2)
         elif self.keys[pg.K_DOWN]:
-            self.bodies[-1].stop(1.1)
+            self.agent.stop(1.1)
         if self.keys[pg.K_LEFT]:
-            self.bodies[-1].rotate(0.06)
+            self.agent.rotate(0.06)
         elif self.keys[pg.K_RIGHT]:
-            self.bodies[-1].rotate(-0.06)
+            self.agent.rotate(-0.06)
 
     def USR_render(self):
-        self.bodies[-1].step()
+        self.agent.step()
         self.engine.step()
+
+        print(self.agent.get_speed())
+        print(self.agent.get_pos())
 
 
 Environment().mainloop()

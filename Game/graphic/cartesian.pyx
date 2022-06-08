@@ -31,43 +31,32 @@ cdef class CartesianPlane:
     def X(self):
         return self.center.x.num
 
-    @X.setter
-    def X(self, o):
-        raise NotImplementedError
-
     @property
     def Y(self):
         return self.center.y.num
-
-    @Y.setter
-    def Y(self, o):
-        raise NotImplementedError
 
     @property
     def CENTER(self):
         return (self.center.x.num, self.center.y.num)
 
-    @CENTER.setter
-    def CENTER(self, o):
-        raise NotImplementedError
-
     @property
-    def shape(self):
+    def SIZE(self):
         return (self.x_min, self.x_max, self.y_min, self.y_max)
 
-    def createVector(self,
-                     double x=1,
-                     double y=0,
-                     double max_length=0,
-                     double min_length=1):
+    def createVector(self, x=1, y=0, max_length=0, min_length=0):
         return Vector2d(self, x, y, max_length, min_length)
 
-    def createRandomVector(self,
-                           double max_length=0,
-                           double min_length=1):
+    def createRandomVector(self, max_length=0, min_length=0):
         vec = Vector2d(self, 1, 0, max_length, min_length)
         vec.random()
         return vec
+
+    def createPlane(self, x=0, y=0):
+        return CartesianPlane(self.window,
+                              self.window_size,
+                              Vector2d(self, x, y,
+                                       self.parent_vector.max_length,
+                                       self.parent_vector.min_length))
 
     @cython.optimize.unpack_method_calls(False)
     def show(self):
@@ -77,6 +66,21 @@ cdef class CartesianPlane:
         # draw y axis
         line(self.window, (0, 255, 0), (self.center.x.num, self.center.y.num),
              (self.center.x.num+20, self.center.y.num), 2)
+
+    def get_parent_vector(self):
+        return self.parent_vector
+
+    def get_center_point(self):
+        return self.center
+
+    cpdef object get_window(self):
+        return self.window
+
+    cpdef (double, double) get_window_size(self):
+        return self.window_size
+
+    cpdef double get_unit_length(self):
+        return self.unit_length
 
     cpdef double to_X(self, double x):
         return self.center.x.num + x * self.unit_length
@@ -127,7 +131,7 @@ cdef class Vector2d(vector2d):
                  double x=1,
                  double y=0,
                  double max_length=0,
-                 double min_length=1):
+                 double min_length=0):
         self.window = plane.window
         self.plane = plane
         self.headXY = point2d(0, 0)

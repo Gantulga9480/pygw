@@ -113,7 +113,7 @@ class Test(Game):
                     c['y'] = body[5]
                     a.append(c)
                 d['bodies'] = a
-                with open('env.json', 'w') as f:
+                with open('objects.json', 'w') as f:
                     json.dump(d, f)
                 self.running = False
 

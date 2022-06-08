@@ -49,6 +49,12 @@ cdef class object_body:
         self.body_type = body_type
         self.body = object_dynamics(plane, body_type)
 
+    cpdef double get_speed(self):
+        return floor((self.body.v.mag() - 1.0) * 10.0) / 10.0
+
+    cpdef (double, double) get_pos(self):
+        return self.shape.plane.parent_vector.get_head()
+
     cpdef void step(self):
         self.body.react(self.shape.plane.parent_vector)
 
@@ -89,6 +95,14 @@ cdef class object_body:
                 heads.append((<Vector2d>self.shape.vertices[i]).get_HEAD())
         aalines(self.shape.window, color, True, heads)
         self.body.v.show((255, 0, 0))
+
+
+cdef class DynamicBody(object_body):
+
+    def __cinit__(self, *args, **kwargs):
+        ...
+
+    def __init__(self)
 
 
 cdef class PolygonBody(object_body):

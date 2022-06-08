@@ -20,6 +20,8 @@ cdef class object_body:
     cdef Shape shape
     cdef double radius
 
+    cpdef double get_speed(self)
+    cpdef (double, double) get_pos(self)
     cpdef void step(self)
     cpdef void accelerate(self, double factor)
     cpdef void stop(self, double factor)

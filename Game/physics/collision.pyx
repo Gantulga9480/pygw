@@ -1,12 +1,13 @@
 import cython
 from Game.graphic.cartesian cimport CartesianPlane, Vector2d
 from Game.physics.body cimport DYNAMIC, STATIC, object_body
+from Game.math.util cimport LSI as line_segment_intersect
 
 
-cdef class collision_detector:
+cdef class collision:
 
     def __cinit__(self, *args, **kwargs):
-        ...
+        self.friction_factor = 0.3
 
     def __init__(self, CartesianPlane plane) -> None:
         self.plane = plane
@@ -14,45 +15,18 @@ cdef class collision_detector:
     cpdef void check(self, object_body b1, object_body b2):
         self.diagonal_intersect(b1, b2)
 
-    cdef void static_resolve(self, object_body b1, object_body b2, double dx, double dy):
-        cdef double factor = 0.3
+    cdef void resolve(self, object_body b1, object_body b2, double dx, double dy):
         if b1.body_type == DYNAMIC and b2.body_type == DYNAMIC:
-            b1.body.v.scale(factor)
-            b2.body.v.scale(factor)
+            b1.body.v.scale(self.friction_factor)
+            b2.body.v.scale(self.friction_factor)
             b1.shape.plane.parent_vector.set_head((b1.shape.plane.parent_vector.head.x.num + -dx/2, b1.shape.plane.parent_vector.head.y.num + -dy/2))
             b2.shape.plane.parent_vector.set_head((b2.shape.plane.parent_vector.head.x.num + dx/2, b2.shape.plane.parent_vector.head.y.num + dy/2))
         elif b1.body_type == DYNAMIC and b2.body_type == STATIC:
-            b1.body.v.scale(factor)
+            b1.body.v.scale(self.friction_factor)
             b1.shape.plane.parent_vector.set_head((b1.shape.plane.parent_vector.head.x.num + -dx, b1.shape.plane.parent_vector.head.y.num + -dy))
         elif b1.body_type == STATIC and b2.body_type == DYNAMIC:
-            b2.body.v.scale(factor)
+            b2.body.v.scale(self.friction_factor)
             b2.shape.plane.parent_vector.set_head((b2.shape.plane.parent_vector.head.x.num + dx, b2.shape.plane.parent_vector.head.y.num + dy))
-
-    @cython.cdivision(True)
-    cdef double line_segment_intersect(self, double p0x, double p0y, double p1x, double p1y, double p2x, double p2y, double p3x, double p3y):
-        cdef double s10_x = p1x - p0x
-        cdef double s10_y = p1y - p0y
-        cdef double s32_x = p3x - p2x
-        cdef double s32_y = p3y - p2y
-        cdef double denom = s10_x * s32_y - s32_x * s10_y
-        if denom == 0:
-            return 0  # collinear
-        cdef double denom_is_positive = denom > 0
-        cdef double s02_x = p0x - p2x
-        cdef double s02_y = p0y - p2y
-        cdef double s_numer = s10_x * s02_y - s10_y * s02_x
-        if (s_numer < 0) == denom_is_positive:
-            return 0  # no collision
-        cdef double t_numer = s32_x * s02_y - s32_y * s02_x
-        if (t_numer < 0) == denom_is_positive:
-            return 0  # no collision
-        if (s_numer > denom) == denom_is_positive or \
-                (t_numer > denom) == denom_is_positive:
-            return 0  # no collision
-        # collision detected
-        cdef double t = t_numer / denom
-        # intersection_point = [p0[0] + (t * s10_x), p0[1] + (t * s10_y)]
-        return 1-t
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
@@ -75,11 +49,9 @@ cdef class collision_detector:
                 l2s = self.plane.to_xy((<Vector2d>body2.shape.vertices[j]).get_HEAD())
                 l2e = self.plane.to_xy((<Vector2d>body2.shape.vertices[(j+1)%body2.shape.vertex_count]).get_HEAD())
                 # check these two line segments are intersecting or not
-                val = self.line_segment_intersect(l1s[0], l1s[1], l1e[0], l1e[1], l2s[0], l2s[1], l2e[0], l2e[1])
-                if val > 0:
-                    # points.append(self.plane.getXY(val[0]))
+                val = 1 - line_segment_intersect(l1s[0], l1s[1], l1e[0], l1e[1], l2s[0], l2s[1], l2e[0], l2e[1])
+                if val < 1:
                     dx += (l1e[0] - l1s[0]) * val
                     dy += (l1e[1] - l1s[1]) * val
         if dx != 0 or dy != 0:
-            self.static_resolve(body1, body2, dx, dy)
-        # return points
+            self.resolve(body1, body2, dx, dy)

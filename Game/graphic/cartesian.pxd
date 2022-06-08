@@ -12,7 +12,9 @@ cdef class CartesianPlane:
     cdef double x_max
     cdef double y_max
 
-    cdef void set_limit(self)
+    cpdef object get_window(self)
+    cpdef (double, double) get_window_size(self)
+    cpdef double get_unit_length(self)
     cpdef double to_X(self, double x)
     cpdef double to_Y(self, double y)
     cpdef (double, double) to_XY(self, (double, double) xy)
@@ -22,6 +24,7 @@ cdef class CartesianPlane:
     cdef (double, double) get_CENTER(self)
     cdef double get_X(self)
     cdef double get_Y(self)
+    cdef void set_limit(self)
 
 
 cdef class Vector2d(vector2d):
