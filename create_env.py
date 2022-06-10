@@ -1,6 +1,9 @@
 from Game.base import Game
 from Game.graphic import CartesianPlane
-from Game.physics import PolygonBody, RectBody, object_body
+from Game.physics import (object_body,
+                          StaticRectangleBody,
+                          StaticPolygonBody,
+                          DynamicPolygonBody)
 import pygame as pg
 import math
 import json
@@ -26,39 +29,31 @@ class Test(Game):
         for i in range(28):
             vec = self.plane.createVector(-width/2, y)
             self.frames.append(
-                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
-                         (40, 40)))
+                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
+                                    (40, 40)))
             vec = self.plane.createVector(width/2, y)
             self.frames.append(
-                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
-                         (40, 40)))
+                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
+                                    (40, 40)))
             y -= 40
 
         x = -width/2 + 40
         for i in range(47):
             vec = self.plane.createVector(x, height / 2)
             self.frames.append(
-                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
-                         (40, 40)))
+                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
+                                    (40, 40)))
             vec = self.plane.createVector(x, -height / 2)
             self.frames.append(
-                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
-                         (40, 40)))
+                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
+                                    (40, 40)))
             x += 40
 
         self.shape_size = 40
         self.shape_vertex = 4
         self.type = 0
         self.shape_dir = math.pi/4
-        self.current_vec = self.plane.createVector(0, 0)
-        self.current_shape = PolygonBody(0, self.type,
-                                         CartesianPlane(self.window, (40, 40),
-                                                        self.current_vec),
-                                         (self.shape_size,
-                                          self.shape_size,
-                                          self.shape_size,
-                                          self.shape_size))
-        self.current_shape.rotate(self.shape_dir)
+        self.create_shape()
 
     def USR_eventHandler(self, event):
         if event.type == pg.KEYDOWN:
@@ -125,7 +120,7 @@ class Test(Game):
         if self.current_shape.body_type == 1:
             self.current_shape.show((0, 0, 255))
         else:
-            self.current_shape.show((0, 255, 255))
+            self.current_shape.show((255, 0, 0))
         for frame in self.frames:
             frame.show((0, 0, 0), True)
         for body in self.bodies:
@@ -135,10 +130,16 @@ class Test(Game):
     def create_shape(self):
         self.current_vec = self.plane.createVector(0, 0)
         size = tuple([self.shape_size for _ in range(self.shape_vertex)])
-        self.current_shape = PolygonBody(0, self.type,
-                                         CartesianPlane(self.window, (40, 40),
-                                                        self.current_vec),
-                                         size)
+        if self.type == 1:
+            self.current_shape = DynamicPolygonBody(0,
+                                                    CartesianPlane(self.window, (40, 40),
+                                                                   self.current_vec),
+                                                    size)
+        else:
+            self.current_shape = StaticPolygonBody(0,
+                                                   CartesianPlane(self.window, (40, 40),
+                                                                  self.current_vec),
+                                                   size)
         self.current_shape.rotate(self.shape_dir)
 
 

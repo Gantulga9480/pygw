@@ -10,72 +10,27 @@ STATIC = 0
 DYNAMIC = 1
 
 
-cdef class object_dynamics:
-
-    def __cinit__(self, *args, **kwargs):
-        ...
-
-    def __init__(self, CartesianPlane space, int body_type) -> None:
-        if body_type == DYNAMIC:
-            self.v = Vector2d(space, 1, 0, 10, 1)
-            self.v.rotate(pi/2)
-        else:
-            self.v = Vector2d(space, 0, 0, 0, 0)
-
-    @cython.cdivision(True)
-    cdef void react(self, Vector2d pos):
-        cdef double v_len = floor(self.v.mag() * 100.0) / 100.0
-        cdef (double, double) xy
-        cdef (double, double) _xy
-        if v_len > 1:
-            xy = self.v.get_head()
-            _xy = self.v.unit_vector(1)
-            pos.set_head((pos.get_x() + xy[0] - _xy[0], pos.get_y() + xy[1] - _xy[1]))
-            self.v.scale(0.99)
-        else:
-            self.v.set_head(self.v.unit_vector(1))
-
-
+@cython.optimize.unpack_method_calls(False)
 cdef class object_body:
-
     def __cinit__(self, *args, **kwargs):
-        ...
+        pass
 
-    def __init__(self,
-                 int body_id,
-                 int body_type,
-                 CartesianPlane plane):
+    def __init__(self, int body_id, int body_type):
         self.body_id = body_id
         self.body_type = body_type
-        self.body = object_dynamics(plane, body_type)
 
-    cpdef double get_speed(self):
-        return floor((self.body.v.mag() - 1.0) * 10.0) / 10.0
-
-    cpdef (double, double) get_pos(self):
+    cpdef (double, double) position(self):
         return self.shape.plane.parent_vector.get_head()
 
+    cpdef double speed(self):
+        return floor((self.velocity.mag() - 1.0) * 10.0) / 10.0
+
     cpdef void step(self):
-        self.body.react(self.shape.plane.parent_vector)
+        pass
 
-    cpdef void accelerate(self, double factor):
-        self.body.v.add(factor)
-
-    @cython.cdivision(True)
-    cpdef void stop(self, double factor):
-        self.body.v.scale(1/factor)
-
-    @cython.wraparound(False)
-    @cython.boundscheck(False)
-    @cython.initializedcheck(False)
     cpdef void rotate(self, double angle):
         self.shape.rotate(angle)
-        self.body.v.rotate(angle)
 
-    @cython.wraparound(False)
-    @cython.boundscheck(False)
-    @cython.nonecheck(False)
-    @cython.initializedcheck(False)
     cpdef void scale(self, double factor):
         self.shape.scale(factor)
 
@@ -86,7 +41,6 @@ cdef class object_body:
         cdef int i
         cdef list heads = []
         if show_vertex:
-            # self.position_vec.show(window)
             for i in range(self.shape.vertex_count):
                 (<Vector2d>self.shape.vertices[i]).show(color)
                 heads.append((<Vector2d>self.shape.vertices[i]).get_HEAD())
@@ -94,57 +48,105 @@ cdef class object_body:
             for i in range(self.shape.vertex_count):
                 heads.append((<Vector2d>self.shape.vertices[i]).get_HEAD())
         aalines(self.shape.window, color, True, heads)
-        self.body.v.show((255, 0, 0))
 
+@cython.optimize.unpack_method_calls(False)
+cdef class StaticBody(object_body):
+    def __cinit__(self, *args, **kwargs):
+        pass
 
+    def __init__(self, int body_id, CartesianPlane plane):
+        super().__init__(body_id, STATIC)
+        self.velocity = Vector2d(plane, 1, 0, 1, 1)
+
+@cython.optimize.unpack_method_calls(False)
 cdef class DynamicBody(object_body):
-
     def __cinit__(self, *args, **kwargs):
-        ...
+        pass
 
-    def __init__(self)
+    def __init__(self, int body_id, CartesianPlane plane, int max_speed=1):
+        super().__init__(body_id, DYNAMIC)
+        self.max_speed = max_speed
+        self.velocity = Vector2d(plane, 1, 0, max_speed, 1)
+        self.velocity.rotate(pi/2)
 
+    def show(self, color, bint show_vertex=False):
+        super().show(color, show_vertex)
+        self.velocity.show(color)
 
-cdef class PolygonBody(object_body):
+    @cython.cdivision(True)
+    cpdef void step(self):
+        cdef double v_len = floor(self.velocity.mag() * 100.0) / 100.0
+        cdef (double, double) xy
+        cdef (double, double) _xy
+        if v_len > 1:
+            xy = self.velocity.get_head()
+            _xy = self.velocity.unit_vector(1)
+            self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.get_x() + xy[0] - _xy[0],
+                                                     self.shape.plane.parent_vector.get_y() + xy[1] - _xy[1]))
+            self.velocity.add(-self.max_speed/100)
+        else:
+            self.velocity.set_head(self.velocity.unit_vector(1))
 
+    cpdef void Accelerate(self, double factor):
+        self.velocity.add(factor)
+
+    cpdef void rotate(self, double angle):
+        self.shape.rotate(angle)
+        self.velocity.rotate(angle)
+
+@cython.optimize.unpack_method_calls(False)
+cdef class DynamicPolygonBody(DynamicBody):
     def __cinit__(self, *args, **kwargs):
-        ...
+        pass
 
-    def __init__(self,
-                 int body_id,
-                 int body_type,
-                 CartesianPlane plane,
-                 tuple size):
-        super().__init__(body_id, body_type, plane)
+    def __init__(self, int body_id, CartesianPlane plane, tuple size, int max_speed=1):
+        super().__init__(body_id, plane, max_speed)
         self.radius = max(size)
         self.shape = Polygon(plane, size)
 
-
-cdef class RectBody(object_body):
-
+@cython.optimize.unpack_method_calls(False)
+cdef class DynamicRectangleBody(DynamicBody):
     def __cinit__(self, *args, **kwargs):
-        ...
+        pass
 
-    def __init__(self,
-                 int body_id,
-                 int body_type,
-                 CartesianPlane plane,
-                 tuple size):
-        super().__init__(body_id, body_type, plane)
+    def __init__(self, int body_id, CartesianPlane plane, tuple size, int max_speed=1):
+        super().__init__(body_id, plane, max_speed)
         self.radius = max(size)
         self.shape = Rectangle(plane, size)
 
-
-cdef class TriangleBody(object_body):
-
+@cython.optimize.unpack_method_calls(False)
+cdef class DynamicTriangleBody(DynamicBody):
     def __cinit__(self, *args, **kwargs):
-        ...
+        pass
 
-    def __init__(self,
-                 int body_id,
-                 int body_type,
-                 CartesianPlane plane,
-                 tuple size):
-        super().__init__(body_id, body_type, plane)
+    def __init__(self, int body_id, CartesianPlane plane, tuple size, int max_speed=1):
+        super().__init__(body_id, plane, max_speed)
+        self.radius = max(size)
+        self.shape = Triangle(plane, size)
+
+cdef class StaticPolygonBody(StaticBody):
+    def __cinit__(self, *args, **kwargs):
+        pass
+
+    def __init__(self, int body_id, CartesianPlane plane, tuple size):
+        super().__init__(body_id, plane)
+        self.radius = max(size)
+        self.shape = Polygon(plane, size)
+
+cdef class StaticRectangleBody(StaticBody):
+    def __cinit__(self, *args, **kwargs):
+        pass
+
+    def __init__(self, int body_id, CartesianPlane plane, tuple size):
+        super().__init__(body_id, plane)
+        self.radius = max(size)
+        self.shape = Rectangle(plane, size)
+
+cdef class StaticTriangleBody(StaticBody):
+    def __cinit__(self, *args, **kwargs):
+        pass
+
+    def __init__(self, int body_id, CartesianPlane plane, tuple size):
+        super().__init__(body_id, plane)
         self.radius = max(size)
         self.shape = Triangle(plane, size)

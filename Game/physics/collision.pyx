@@ -17,15 +17,15 @@ cdef class collision:
 
     cdef void resolve(self, object_body b1, object_body b2, double dx, double dy):
         if b1.body_type == DYNAMIC and b2.body_type == DYNAMIC:
-            b1.body.v.scale(self.friction_factor)
-            b2.body.v.scale(self.friction_factor)
+            b1.velocity.scale(self.friction_factor)
+            b2.velocity.scale(self.friction_factor)
             b1.shape.plane.parent_vector.set_head((b1.shape.plane.parent_vector.head.x.num + -dx/2, b1.shape.plane.parent_vector.head.y.num + -dy/2))
             b2.shape.plane.parent_vector.set_head((b2.shape.plane.parent_vector.head.x.num + dx/2, b2.shape.plane.parent_vector.head.y.num + dy/2))
         elif b1.body_type == DYNAMIC and b2.body_type == STATIC:
-            b1.body.v.scale(self.friction_factor)
+            b1.velocity.scale(self.friction_factor)
             b1.shape.plane.parent_vector.set_head((b1.shape.plane.parent_vector.head.x.num + -dx, b1.shape.plane.parent_vector.head.y.num + -dy))
         elif b1.body_type == STATIC and b2.body_type == DYNAMIC:
-            b2.body.v.scale(self.friction_factor)
+            b2.velocity.scale(self.friction_factor)
             b2.shape.plane.parent_vector.set_head((b2.shape.plane.parent_vector.head.x.num + dx, b2.shape.plane.parent_vector.head.y.num + dy))
 
     @cython.wraparound(False)

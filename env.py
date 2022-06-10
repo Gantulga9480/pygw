@@ -1,6 +1,9 @@
 from Game.base import Game
 from Game.graphic import CartesianPlane
-from Game.physics import PolygonBody, RectBody, object_body
+from Game.physics import (object_body,
+                          DynamicPolygonBody,
+                          StaticPolygonBody,
+                          StaticRectangleBody)
 from Game.physics import Engine
 import pygame as pg
 import numpy as np
@@ -26,24 +29,24 @@ class Environment(Game):
         for _ in range(28):
             vec = self.plane.createVector(-width/2, y)
             self.bodies.append(
-                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
-                         (40, 40)))
+                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
+                                    (40, 40)))
             vec = self.plane.createVector(width/2, y)
             self.bodies.append(
-                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
-                         (40, 40)))
+                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
+                                    (40, 40)))
             y -= 40
 
         x = -width/2 + 40
         for _ in range(47):
             vec = self.plane.createVector(x, height / 2)
             self.bodies.append(
-                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
-                         (40, 40)))
+                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
+                                    (40, 40)))
             vec = self.plane.createVector(x, -height / 2)
             self.bodies.append(
-                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
-                         (40, 40)))
+                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
+                                    (40, 40)))
             x += 40
 
         a = dict()
@@ -54,13 +57,14 @@ class Environment(Game):
         for body in a['bodies']:
             vec = self.plane.createVector(body['x'], body['y'])
             size = tuple([body['size'] for _ in range(body['shape'])])
-            p = PolygonBody(0, body['type'], CartesianPlane(self.window,
-                                                            (40, 40),
-                                                            vec), size)
+            if body['type'] == 1:
+                p = DynamicPolygonBody(0, CartesianPlane(self.window, (40, 40), vec), size, 10)
+            else:
+                p = StaticPolygonBody(0, CartesianPlane(self.window, (40, 40), vec), size)
             p.rotate(body['dir'])
             self.bodies.append(p)
 
-        self.agent = self.bodies[-1]
+        self.agent: DynamicPolygonBody = self.bodies[-1]
 
         self.engine = Engine(self.plane, np.array(self.bodies,
                                                   dtype=object_body))
@@ -72,9 +76,9 @@ class Environment(Game):
 
     def USR_loop(self):
         if self.keys[pg.K_UP]:
-            self.agent.accelerate(0.2)
+            self.agent.Accelerate(0.2)
         elif self.keys[pg.K_DOWN]:
-            self.agent.stop(1.1)
+            self.agent.Accelerate(-0.2)
         if self.keys[pg.K_LEFT]:
             self.agent.rotate(0.06)
         elif self.keys[pg.K_RIGHT]:
@@ -83,9 +87,6 @@ class Environment(Game):
     def USR_render(self):
         self.agent.step()
         self.engine.step()
-
-        print(self.agent.get_speed())
-        print(self.agent.get_pos())
 
 
 Environment().mainloop()
