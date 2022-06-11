@@ -25,20 +25,7 @@ cdef class Engine:
     def step(self):
         cdef int n = self.bodies.shape[0]
         cdef int i, j
-        # cdef double r
-
         for i in range(n):
-            # if self.bodies[i].body_type == DYNAMIC and i < n-1:
-            #     r = random()
-            #     if r > 0.5:
-            #         (<object_body>self.bodies[i]).accelerate(0.1)
-            #     else:
-            #         (<object_body>self.bodies[i]).stop(1.1)
-            #     if r > 0.5:
-            #         (<object_body>self.bodies[i]).rotate(0.06)
-            #     else:
-            #         (<object_body>self.bodies[i]).rotate(-0.06)
-            #     (<object_body>self.bodies[i]).step()
             for j in range(n):
                 if i != j:
                     if self.bodies[i].body_type != STATIC or self.bodies[j].body_type != STATIC:

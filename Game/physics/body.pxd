@@ -16,6 +16,7 @@ cdef class object_body:
     cpdef void rotate(self, double angle)
     cpdef void scale(self, double factor)
     cpdef (double, double) position(self)
+    cpdef void follow(self, object_body o)
     cpdef double speed(self)
 
 cdef class StaticBody(object_body):

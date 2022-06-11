@@ -19,6 +19,9 @@ cdef class object_body:
         self.body_id = body_id
         self.body_type = body_type
 
+    cpdef void follow(self, object_body o):
+        self.shape.plane.parent_vector.set_head_ref(o.shape.plane.parent_vector.get_head_ref())
+
     cpdef (double, double) position(self):
         return self.shape.plane.parent_vector.get_head()
 
@@ -38,6 +41,7 @@ cdef class object_body:
     @cython.boundscheck(False)
     @cython.initializedcheck(False)
     def show(self, color, bint show_vertex=False):
+        self.shape.plane.parent_vector.update()
         cdef int i
         cdef list heads = []
         if show_vertex:
@@ -65,6 +69,8 @@ cdef class DynamicBody(object_body):
 
     def __init__(self, int body_id, CartesianPlane plane, int max_speed=1):
         super().__init__(body_id, DYNAMIC)
+        if plane.parent_vector is None:
+            raise AttributeError("A dynamic body can't be made from a base plane, Use child plane instead!")
         self.max_speed = max_speed
         self.velocity = Vector2d(plane, 1, 0, max_speed, 1)
         self.velocity.rotate(pi/2)

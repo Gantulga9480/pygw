@@ -12,6 +12,8 @@ cdef class CartesianPlane:
     cdef double x_max
     cdef double y_max
 
+    cpdef Vector2d get_parent_vector(self)
+    cpdef point2d get_center_point(self)
     cpdef object get_window(self)
     cpdef (double, double) get_window_size(self)
     cpdef double get_unit_length(self)
