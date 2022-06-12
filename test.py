@@ -1,6 +1,6 @@
 from Game.base import Game
 from Game.graphic import CartesianPlane
-from Game.physics import PolygonBody, TriangleBody, RectBody
+from Game.physics import DynamicPolygonBody, DynamicRectangleBody, StaticRectangleBody
 from Game.physics.body import object_body
 from Game.physics import Engine
 import numpy as np
@@ -28,16 +28,14 @@ class Test(Game):
             vec = self.plane.createRandomVector()
             if i % 2:
                 body_lst.append(
-                        PolygonBody(i,
-                                    1,
-                                    CartesianPlane(self.window, (20, 20), vec),
-                                    (10, 10, 10, 10, 10)))
+                        DynamicPolygonBody(i,
+                                           CartesianPlane(self.window, (20, 20), vec),
+                                           (10, 10, 10, 10, 10)))
             else:
                 body_lst.append(
-                        RectBody(i,
-                                 1,
-                                 CartesianPlane(self.window, (20, 20), vec),
-                                 (10*math.sqrt(2), 10*math.sqrt(2))))
+                        DynamicRectangleBody(i,
+                                             CartesianPlane(self.window, (20, 20), vec),
+                                             (10*math.sqrt(2), 10*math.sqrt(2))))
             rot = random.random()*6 - 3
             body_lst[-1].rotate(rot)
 
@@ -45,11 +43,11 @@ class Test(Game):
         for i in range(28):
             vec = self.plane.createVector(-width/2, y)
             body_lst.append(
-                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
+                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
                          (40, 40)))
             vec = self.plane.createVector(width/2, y)
             body_lst.append(
-                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
+                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
                          (40, 40)))
             y -= 40
 
@@ -57,28 +55,27 @@ class Test(Game):
         for i in range(47):
             vec = self.plane.createVector(x, height / 2)
             body_lst.append(
-                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
+                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
                          (40, 40)))
             vec = self.plane.createVector(x, -height / 2)
             body_lst.append(
-                RectBody(1, 0, CartesianPlane(self.window, (40, 40), vec),
+                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
                          (40, 40)))
             x += 40
 
         vec = self.plane.createVector(100, 0)
-        body_lst.append(PolygonBody(1,
-                                    1,
+        body_lst.append(DynamicPolygonBody(1,
                                     CartesianPlane(self.window, (40, 40), vec),
-                                    (20, 20, 20, 20, 20)))
+                                    (20, 20, 20, 20, 20), 10))
 
         self.bodies = np.array(body_lst, dtype=object_body)
         self.engine = Engine(self.plane, self.bodies)
 
     def USR_loop(self):
         if self.keys[pg.K_UP]:
-            self.bodies[-1].accelerate(0.1)
+            self.bodies[-1].Accelerate(0.5)
         elif self.keys[pg.K_DOWN]:
-            self.bodies[-1].stop(1.1)
+            self.bodies[-1].Accelerate(-0.5)
         if self.keys[pg.K_LEFT]:
             self.bodies[-1].rotate(0.06)
         elif self.keys[pg.K_RIGHT]:

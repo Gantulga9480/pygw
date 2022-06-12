@@ -11,13 +11,19 @@ cdef class object_body:
     cdef readonly double radius
     cdef Shape shape
     cdef Vector2d velocity
+    cdef bint is_attached
+    cdef bint is_following_dir
+    cdef object_body parent_body
 
     cpdef void step(self)
     cpdef void rotate(self, double angle)
     cpdef void scale(self, double factor)
     cpdef (double, double) position(self)
-    cpdef void follow(self, object_body o)
     cpdef double speed(self)
+    cpdef void attach(self, object_body o, bint follow_dir)
+    cpdef void detach(self)
+    cdef void follow(self)
+    cpdef void USR_work(self)
 
 cdef class StaticBody(object_body):
     pass

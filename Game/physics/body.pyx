@@ -1,7 +1,7 @@
 import cython
 from Game.graphic.cartesian cimport CartesianPlane, Vector2d
 from Game.graphic.shapes cimport Polygon, Rectangle, Triangle
-from Game.math.core cimport pi
+from Game.math.core cimport pi, point2d
 from pygame.draw import aalines
 from libc.math cimport floor
 
@@ -13,14 +13,40 @@ DYNAMIC = 1
 @cython.optimize.unpack_method_calls(False)
 cdef class object_body:
     def __cinit__(self, *args, **kwargs):
-        pass
+        self.is_attached = False
+        self.body_type = STATIC
+        self.body_id = 0
+        self.radius = 0
 
     def __init__(self, int body_id, int body_type):
         self.body_id = body_id
         self.body_type = body_type
 
-    cpdef void follow(self, object_body o):
+    cpdef void attach(self, object_body o, bint follow_dir):
+        self.is_attached = True
+        self.is_following_dir = follow_dir
+        self.parent_body = o
         self.shape.plane.parent_vector.set_head_ref(o.shape.plane.parent_vector.get_head_ref())
+
+    cpdef void detach(self):
+        if self.is_attached:
+            self.is_attached = False
+            self.is_following_dir = False
+            self.shape.plane.parent_vector.set_head_ref(point2d(self.parent_body.shape.plane.parent_vector.get_x(), self.parent_body.shape.plane.parent_vector.get_y()))
+
+    cpdef void step(self):
+        if self.is_attached and self.is_following_dir:
+            self.follow()
+        else:
+            self.USR_work()
+
+    cpdef void USR_work(self):
+        ...
+
+    cdef void follow(self):
+        cdef double d = self.parent_body.velocity.dir() - self.velocity.dir()
+        self.shape.rotate(d)
+        self.velocity.rotate(d)
 
     cpdef (double, double) position(self):
         return self.shape.plane.parent_vector.get_head()
@@ -28,11 +54,9 @@ cdef class object_body:
     cpdef double speed(self):
         return floor((self.velocity.mag() - 1.0) * 10.0) / 10.0
 
-    cpdef void step(self):
-        pass
-
     cpdef void rotate(self, double angle):
-        self.shape.rotate(angle)
+        if not self.is_following_dir:
+            self.shape.rotate(angle)
 
     cpdef void scale(self, double factor):
         self.shape.scale(factor)
@@ -61,6 +85,7 @@ cdef class StaticBody(object_body):
     def __init__(self, int body_id, CartesianPlane plane):
         super().__init__(body_id, STATIC)
         self.velocity = Vector2d(plane, 1, 0, 1, 1)
+        self.velocity.rotate(pi/2)
 
 @cython.optimize.unpack_method_calls(False)
 cdef class DynamicBody(object_body):
@@ -80,7 +105,7 @@ cdef class DynamicBody(object_body):
         self.velocity.show(color)
 
     @cython.cdivision(True)
-    cpdef void step(self):
+    cpdef void USR_work(self):
         cdef double v_len = floor(self.velocity.mag() * 100.0) / 100.0
         cdef (double, double) xy
         cdef (double, double) _xy
