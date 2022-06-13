@@ -22,11 +22,12 @@ cdef class object_body:
         self.body_id = body_id
         self.body_type = body_type
 
-    cpdef void attach(self, object_body o, bint follow_dir):
-        self.is_attached = True
-        self.is_following_dir = follow_dir
-        self.parent_body = o
-        self.shape.plane.parent_vector.set_head_ref(o.shape.plane.parent_vector.get_head_ref())
+    cpdef void attach_to(self, object_body o, bint follow_dir):
+        if not self.is_attached:
+            self.is_attached = True
+            self.is_following_dir = follow_dir
+            self.parent_body = o
+            self.shape.plane.parent_vector.set_head_ref(o.shape.plane.parent_vector.get_head_ref())
 
     cpdef void detach(self):
         if self.is_attached:
@@ -35,18 +36,17 @@ cdef class object_body:
             self.shape.plane.parent_vector.set_head_ref(point2d(self.parent_body.shape.plane.parent_vector.get_x(), self.parent_body.shape.plane.parent_vector.get_y()))
 
     cpdef void step(self):
-        if self.is_attached and self.is_following_dir:
-            self.follow()
-        else:
-            self.USR_work()
+        cdef double d
+        if self.is_attached:
+            if self.is_following_dir:
+                d = self.parent_body.velocity.dir() - self.velocity.dir()
+                if d != 0:
+                    self.shape.rotate(d)
+                    self.velocity.rotate(d)
+        self.USR_step()
 
-    cpdef void USR_work(self):
+    cpdef void USR_step(self):
         ...
-
-    cdef void follow(self):
-        cdef double d = self.parent_body.velocity.dir() - self.velocity.dir()
-        self.shape.rotate(d)
-        self.velocity.rotate(d)
 
     cpdef (double, double) position(self):
         return self.shape.plane.parent_vector.get_head()
@@ -64,7 +64,7 @@ cdef class object_body:
     @cython.wraparound(False)
     @cython.boundscheck(False)
     @cython.initializedcheck(False)
-    def show(self, color, bint show_vertex=False):
+    def show(self, color=(0, 0, 0), bint show_vertex=False):
         self.shape.plane.parent_vector.update()
         cdef int i
         cdef list heads = []
@@ -100,26 +100,31 @@ cdef class DynamicBody(object_body):
         self.velocity = Vector2d(plane, 1, 0, max_speed, 1)
         self.velocity.rotate(pi/2)
 
-    def show(self, color, bint show_vertex=False):
+    def show(self, color=(0, 0, 0), bint show_vertex=False):
         super().show(color, show_vertex)
         self.velocity.show(color)
 
     @cython.cdivision(True)
-    cpdef void USR_work(self):
+    cpdef void USR_step(self):
         cdef double v_len = floor(self.velocity.mag() * 100.0) / 100.0
         cdef (double, double) xy
         cdef (double, double) _xy
         if v_len > 1:
-            xy = self.velocity.get_head()
-            _xy = self.velocity.unit_vector(1)
-            self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.get_x() + xy[0] - _xy[0],
-                                                     self.shape.plane.parent_vector.get_y() + xy[1] - _xy[1]))
-            self.velocity.add(-self.max_speed/100)
+            if not self.is_attached:
+                xy = self.velocity.get_head()
+                _xy = self.velocity.unit_vector(1)
+                self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.get_x() + xy[0] - _xy[0],
+                                                         self.shape.plane.parent_vector.get_y() + xy[1] - _xy[1]))
+            self.velocity.add(-self.max_speed/120)
         else:
             self.velocity.set_head(self.velocity.unit_vector(1))
 
+    @cython.cdivision(True)
     cpdef void Accelerate(self, double factor):
-        self.velocity.add(factor)
+        if factor == 0:
+            self.velocity.add(self.max_speed/60)
+        else:
+            self.velocity.add(factor)
 
     cpdef void rotate(self, double angle):
         self.shape.rotate(angle)

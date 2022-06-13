@@ -56,7 +56,7 @@ cdef class Shape:
     @cython.boundscheck(False)
     @cython.nonecheck(False)
     @cython.initializedcheck(False)
-    def show(self, color, show_vertex=False):
+    def show(self, color=(0, 0, 0), show_vertex=False):
         cdef int i
         cdef list heads = []
         if show_vertex:

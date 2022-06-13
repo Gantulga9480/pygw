@@ -1,6 +1,5 @@
 *.pyc
 .vscode
-a.py
 *.c
 *.h
 build

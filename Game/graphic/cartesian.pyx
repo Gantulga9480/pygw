@@ -62,9 +62,7 @@ cdef class CartesianPlane:
     def createPlane(self, x=0, y=0):
         return CartesianPlane(self.window,
                               self.window_size,
-                              Vector2d(self, x, y,
-                                       self.parent_vector.max_length,
-                                       self.parent_vector.min_length))
+                              Vector2d(self, x, y))
 
     @cython.optimize.unpack_method_calls(False)
     def show(self):
@@ -193,7 +191,7 @@ cdef class Vector2d(vector2d):
 
     @cython.nonecheck(False)
     @cython.optimize.unpack_method_calls(False)
-    def show(self, color):
+    def show(self, color=(0, 0, 0)):
         self.update()
         aaline(self.window, color,
                self.plane.center.get_xy(),

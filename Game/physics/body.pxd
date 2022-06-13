@@ -20,10 +20,9 @@ cdef class object_body:
     cpdef void scale(self, double factor)
     cpdef (double, double) position(self)
     cpdef double speed(self)
-    cpdef void attach(self, object_body o, bint follow_dir)
+    cpdef void attach_to(self, object_body o, bint follow_dir)
     cpdef void detach(self)
-    cdef void follow(self)
-    cpdef void USR_work(self)
+    cpdef void USR_step(self)
 
 cdef class StaticBody(object_body):
     pass

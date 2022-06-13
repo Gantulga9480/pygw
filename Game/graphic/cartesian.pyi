@@ -1,5 +1,6 @@
-from typing import Any
+from typing import Any, Union
 from Game.math.core import vector2d, point2d
+from Game.color import BLACK
 from pygame.color import Color
 from pygame import Surface
 
@@ -79,4 +80,4 @@ class Vector2d(vector2d):
 
     def normal(self, scale: float, vector: bool) -> Any: ...
     def random(self) -> None: ...
-    def show(self, color: Color) -> None: ...
+    def show(self, color: Union[Color, tuple] = BLACK) -> None: ...
