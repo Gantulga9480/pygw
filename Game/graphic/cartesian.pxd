@@ -2,15 +2,12 @@ from Game.math.core cimport point2d, vector2d
 
 
 cdef class CartesianPlane:
-    cdef object window
-    cdef (double, double) window_size
-    cdef double unit_length
-    cdef readonly Vector2d parent_vector
-    cdef point2d center
-    cdef double x_min
-    cdef double y_min
-    cdef double x_max
-    cdef double y_max
+    cdef public object window
+    cdef public (double, double) window_size
+    cdef public double unit_length
+    cdef public Vector2d parent_vector
+    cdef public point2d center
+    cdef public double x_min, y_min, x_max, y_max
 
     cpdef Vector2d get_parent_vector(self)
     cpdef point2d get_center_point(self)

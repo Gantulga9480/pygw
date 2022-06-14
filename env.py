@@ -1,13 +1,26 @@
 from Game.base import Game
-from Game.graphic import CartesianPlane
+from Game.graphic import CartesianPlane, Polygon
 from Game.physics import (object_body,
                           DynamicPolygonBody,
                           StaticPolygonBody,
-                          StaticRectangleBody)
+                          StaticRectangleBody,
+                          StaticBody)
 from Game.physics import Engine
 import pygame as pg
 import numpy as np
 import json
+
+
+class Sensor(StaticBody):
+
+    def __init__(self, body_id: int, plane: CartesianPlane) -> None:
+        super().__init__(body_id, plane)
+        x = tuple([100 for _ in range(10)])
+        self.shape = Polygon(plane, x)
+        self.radius = 100
+
+    def USR_resolve_collision(self, o: object_body, dxy: tuple) -> None:
+        print(dxy)
 
 
 class Environment(Game):
@@ -65,6 +78,9 @@ class Environment(Game):
             self.bodies.append(p)
 
         self.agent: DynamicPolygonBody = self.bodies[-1]
+        self.sensor = Sensor(0, self.plane.createPlane())
+        self.bodies.append(self.sensor)
+        self.agent.attach(self.sensor, True)
 
         self.engine = Engine(self.plane, np.array(self.bodies,
                                                   dtype=object_body))
@@ -86,6 +102,7 @@ class Environment(Game):
 
     def USR_render(self):
         self.agent.step()
+        self.sensor.step()
         self.engine.step()
 
 

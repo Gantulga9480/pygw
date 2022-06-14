@@ -24,9 +24,10 @@ cdef class Engine:
     @cython.initializedcheck(False)
     def step(self):
         cdef int n = self.bodies.shape[0]
-        cdef int i, js
+        cdef int i, j
         cdef (double, double) dxy
         for i in range(n):
+            (<object_body>self.bodies[i]).step()
             for j in range(n):
                 if i != j:
                     if self.bodies[i].body_type == DYNAMIC:

@@ -7,11 +7,15 @@ from pygame import Surface
 
 class CartesianPlane:
 
-    """
-    screen_size - (width ,height) = pygame window size in pixel
-    unit_length - pixel count for 1 unit length in cartesian system
-    parent      - (optional) parent plance instance
-    """
+    window: Surface
+    window_size: tuple
+    unit_length: float
+    parent_vector: Vector2d
+    center: point2d
+    x_min: float
+    y_min: float
+    x_max: float
+    y_max: float
 
     def __init__(self,
                  window: Surface,
