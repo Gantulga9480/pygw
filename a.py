@@ -1,7 +1,21 @@
 from Game import Game
 from Game.graphic import CartesianPlane
-from Game.physics import DynamicPolygonBody, StaticPolygonBody
+from Game.physics import (DynamicPolygonBody,
+                          StaticPolygonBody,
+                          StaticBody,
+                          object_body)
+from Game.graphic import Polygon
 import pygame as pg
+
+
+class Sensor(StaticBody):
+
+    def __init__(self, body_id: int, plane: CartesianPlane) -> None:
+        super().__init__(body_id, plane)
+        self.shape = Polygon(plane, ())
+
+    def USR_resolve_collision(self, o: object_body, dxy: tuple) -> None:
+        ...
 
 
 class Test(Game):
@@ -11,8 +25,8 @@ class Test(Game):
         self.plane = CartesianPlane(self.window, (self.width, self.height))
         p = self.plane.createPlane()
         self.d = DynamicPolygonBody(1, p, (30, 0), 10)
-        self.s = DynamicPolygonBody(0, p.createPlane(y=30), (50, 50, 50, 1, 1, 1, 50, 50), 10)
-        self.s.attach_to(self.d, True)
+        self.s = DynamicPolygonBody(0, self.plane.createPlane(y=30), (50, 50, 50, 1, 1, 1, 50, 50), 10)
+        self.d.attach(self.s, True)
         self.mainloop()
 
     def USR_eventHandler(self, event):
@@ -40,9 +54,9 @@ class Test(Game):
             self.s.rotate(-0.1)
 
         if self.keys[pg.K_z]:
-            self.s.attach_to(self.d, True)
+            self.d.attach(self.s, True)
         elif self.keys[pg.K_c]:
-            self.s.detach()
+            self.d.detach(self.s)
 
         self.d.step()
         self.s.step()

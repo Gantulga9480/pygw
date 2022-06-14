@@ -14,6 +14,7 @@ DYNAMIC = 1
 cdef class object_body:
     def __cinit__(self, *args, **kwargs):
         self.is_attached = False
+        self.is_following_dir = False
         self.body_type = STATIC
         self.body_id = 0
         self.radius = 0
@@ -23,18 +24,18 @@ cdef class object_body:
         self.body_id = body_id
         self.body_type = body_type
 
-    cpdef void attach_to(self, object_body o, bint follow_dir):
-        if not self.is_attached:
-            self.is_attached = True
-            self.is_following_dir = follow_dir
-            self.parent_body = o
-            self.shape.plane.parent_vector.set_head_ref(o.shape.plane.parent_vector.get_head_ref())
+    cpdef void attach(self, object_body o, bint follow_dir):
+        if not o.is_attached:
+            o.is_attached = True
+            o.is_following_dir = follow_dir
+            o.parent_body = self
+            o.shape.plane.parent_vector.set_head_ref(self.shape.plane.parent_vector.get_head_ref())
 
-    cpdef void detach(self):
-        if self.is_attached:
-            self.is_attached = False
-            self.is_following_dir = False
-            self.shape.plane.parent_vector.set_head_ref(point2d(self.parent_body.shape.plane.parent_vector.get_x(), self.parent_body.shape.plane.parent_vector.get_y()))
+    cpdef void detach(self, object_body o):
+        if o.is_attached and o.parent_body is self:
+            o.is_attached = False
+            o.is_following_dir = False
+            self.shape.plane.parent_vector.set_head_ref(point2d(self.shape.plane.parent_vector.get_x(), self.shape.plane.parent_vector.get_y()))
 
     cpdef void step(self):
         cdef double d
