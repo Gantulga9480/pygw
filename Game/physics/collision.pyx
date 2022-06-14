@@ -1,39 +1,26 @@
 import cython
 from Game.graphic.cartesian cimport CartesianPlane, Vector2d
-from Game.physics.body cimport DYNAMIC, STATIC, object_body
+from Game.physics.body cimport object_body
 from Game.math.util cimport LSI as line_segment_intersect
 
 
 cdef class collision:
 
     def __cinit__(self, *args, **kwargs):
-        self.friction_factor = 0.3
+        pass
 
     def __init__(self, CartesianPlane plane) -> None:
         self.plane = plane
 
-    cpdef void check(self, object_body b1, object_body b2):
-        self.diagonal_intersect(b1, b2)
-
-    cdef void resolve(self, object_body b1, object_body b2, double dx, double dy):
-        if b1.body_type == DYNAMIC and b2.body_type == DYNAMIC:
-            b1.velocity.scale(self.friction_factor)
-            b2.velocity.scale(self.friction_factor)
-            b1.shape.plane.parent_vector.set_head((b1.shape.plane.parent_vector.head.x.num + -dx/2, b1.shape.plane.parent_vector.head.y.num + -dy/2))
-            b2.shape.plane.parent_vector.set_head((b2.shape.plane.parent_vector.head.x.num + dx/2, b2.shape.plane.parent_vector.head.y.num + dy/2))
-        elif b1.body_type == DYNAMIC and b2.body_type == STATIC:
-            b1.velocity.scale(self.friction_factor)
-            b1.shape.plane.parent_vector.set_head((b1.shape.plane.parent_vector.head.x.num + -dx, b1.shape.plane.parent_vector.head.y.num + -dy))
-        elif b1.body_type == STATIC and b2.body_type == DYNAMIC:
-            b2.velocity.scale(self.friction_factor)
-            b2.shape.plane.parent_vector.set_head((b2.shape.plane.parent_vector.head.x.num + dx, b2.shape.plane.parent_vector.head.y.num + dy))
+    cpdef (double, double) check(self, object_body b1, object_body b2):
+        return self.diagonal_intersect(b1, b2)
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
     @cython.cdivision(True)
     @cython.nonecheck(False)
     @cython.initializedcheck(False)
-    cdef void diagonal_intersect(self, object_body body1, object_body body2):
+    cdef (double, double) diagonal_intersect(self, object_body body1, object_body body2):
         cdef int i, j
         cdef double dx = 0, dy = 0, val
         cdef (double, double) l1s
@@ -53,5 +40,4 @@ cdef class collision:
                 if val < 1:
                     dx += (l1e[0] - l1s[0]) * val
                     dy += (l1e[1] - l1s[1]) * val
-        if dx != 0 or dy != 0:
-            self.resolve(body1, body2, dx, dy)
+        return (dx, dy)

@@ -9,8 +9,9 @@ class Test(Game):
     def __init__(self) -> None:
         super().__init__(width=1920, height=1080, flags=pg.FULLSCREEN | pg.HWSURFACE)
         self.plane = CartesianPlane(self.window, (self.width, self.height))
-        self.s = StaticPolygonBody(0, self.plane.createPlane(), (50, 50, 50, 1, 1, 1, 50, 50))
-        self.d = DynamicPolygonBody(1, self.plane.createPlane(), (30, 30, 30, 30, 30), 10)
+        p = self.plane.createPlane()
+        self.d = DynamicPolygonBody(1, p, (30, 0), 10)
+        self.s = DynamicPolygonBody(0, p.createPlane(y=30), (50, 50, 50, 1, 1, 1, 50, 50), 10)
         self.s.attach_to(self.d, True)
         self.mainloop()
 
@@ -29,9 +30,18 @@ class Test(Game):
         elif self.keys[pg.K_RIGHT]:
             self.d.rotate(-0.1)
 
+        if self.keys[pg.K_w]:
+            self.s.Accelerate(0.5)
+        elif self.keys[pg.K_s]:
+            self.s.Accelerate(-0.5)
         if self.keys[pg.K_a]:
-            self.s.attach_to(self.d, True)
+            self.s.rotate(0.1)
         elif self.keys[pg.K_d]:
+            self.s.rotate(-0.1)
+
+        if self.keys[pg.K_z]:
+            self.s.attach_to(self.d, True)
+        elif self.keys[pg.K_c]:
             self.s.detach()
 
         self.d.step()

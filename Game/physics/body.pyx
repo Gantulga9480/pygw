@@ -17,6 +17,7 @@ cdef class object_body:
         self.body_type = STATIC
         self.body_id = 0
         self.radius = 0
+        self.friction_factor = 0.3
 
     def __init__(self, int body_id, int body_type):
         self.body_id = body_id
@@ -37,22 +38,18 @@ cdef class object_body:
 
     cpdef void step(self):
         cdef double d
-        if self.is_attached:
-            if self.is_following_dir:
-                d = self.parent_body.velocity.dir() - self.velocity.dir()
-                if d != 0:
-                    self.shape.rotate(d)
-                    self.velocity.rotate(d)
+        if self.is_attached and self.is_following_dir:
+            d = self.parent_body.velocity.dir() - self.velocity.dir()
+            if d != 0:
+                self.shape.rotate(d)
+                self.velocity.rotate(d)
         self.USR_step()
 
     cpdef void USR_step(self):
-        ...
+        pass
 
-    cpdef (double, double) position(self):
-        return self.shape.plane.parent_vector.get_head()
-
-    cpdef double speed(self):
-        return floor((self.velocity.mag() - 1.0) * 10.0) / 10.0
+    cpdef void USR_resolve_collision(self, object_body o, (double, double) dxy):
+        pass
 
     cpdef void rotate(self, double angle):
         if not self.is_following_dir:
@@ -77,6 +74,12 @@ cdef class object_body:
                 heads.append((<Vector2d>self.shape.vertices[i]).get_HEAD())
         aalines(self.shape.window, color, True, heads)
 
+    cpdef (double, double) position(self):
+        return self.shape.plane.parent_vector.get_head()
+
+    cpdef double speed(self):
+        return floor((self.velocity.mag() - 1.0) * 10.0) / 10.0
+
 @cython.optimize.unpack_method_calls(False)
 cdef class StaticBody(object_body):
     def __cinit__(self, *args, **kwargs):
@@ -86,6 +89,11 @@ cdef class StaticBody(object_body):
         super().__init__(body_id, STATIC)
         self.velocity = Vector2d(plane, 1, 0, 1, 1)
         self.velocity.rotate(pi/2)
+
+    cpdef void USR_resolve_collision(self, object_body o, (double, double) dxy):
+        if o.body_type == DYNAMIC:
+            o.velocity.scale(self.friction_factor)
+            o.shape.plane.parent_vector.set_head((o.shape.plane.parent_vector.head.x.num + dxy[0], o.shape.plane.parent_vector.head.y.num + dxy[1]))
 
 @cython.optimize.unpack_method_calls(False)
 cdef class DynamicBody(object_body):
@@ -100,9 +108,15 @@ cdef class DynamicBody(object_body):
         self.velocity = Vector2d(plane, 1, 0, max_speed, 1)
         self.velocity.rotate(pi/2)
 
-    def show(self, color=(0, 0, 0), bint show_vertex=False):
-        super().show(color, show_vertex)
-        self.velocity.show(color)
+    cpdef void USR_resolve_collision(self, object_body o, (double, double) dxy):
+        if o.body_type == DYNAMIC:
+            self.velocity.scale(self.friction_factor)
+            o.velocity.scale(self.friction_factor)
+            self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.head.x.num + -dxy[0]/2, self.shape.plane.parent_vector.head.y.num + -dxy[1]/2))
+            o.shape.plane.parent_vector.set_head((o.shape.plane.parent_vector.head.x.num + dxy[0]/2, o.shape.plane.parent_vector.head.y.num + dxy[1]/2))
+        elif o.body_type == STATIC:
+            self.velocity.scale(self.friction_factor)
+            self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.head.x.num + -dxy[0], self.shape.plane.parent_vector.head.y.num + -dxy[1]))
 
     @cython.cdivision(True)
     cpdef void USR_step(self):
@@ -127,8 +141,13 @@ cdef class DynamicBody(object_body):
             self.velocity.add(factor)
 
     cpdef void rotate(self, double angle):
-        self.shape.rotate(angle)
-        self.velocity.rotate(angle)
+        if not self.is_following_dir:
+            self.shape.rotate(angle)
+            self.velocity.rotate(angle)
+
+    def show(self, color=(0, 0, 0), bint show_vertex=False):
+        super().show(color, show_vertex)
+        self.velocity.show(color)
 
 @cython.optimize.unpack_method_calls(False)
 cdef class DynamicPolygonBody(DynamicBody):

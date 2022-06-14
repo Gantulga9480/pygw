@@ -9,6 +9,7 @@ cdef int STATIC, DYNAMIC
 cdef class object_body:
     cdef readonly int body_type, body_id
     cdef readonly double radius
+    cdef double friction_factor
     cdef Shape shape
     cdef Vector2d velocity
     cdef bint is_attached
@@ -23,6 +24,7 @@ cdef class object_body:
     cpdef void attach_to(self, object_body o, bint follow_dir)
     cpdef void detach(self)
     cpdef void USR_step(self)
+    cpdef void USR_resolve_collision(self, object_body o, (double, double) dxy)
 
 cdef class StaticBody(object_body):
     pass
