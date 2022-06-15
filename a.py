@@ -8,18 +8,6 @@ from Game.graphic import Polygon
 import pygame as pg
 
 
-class Sensor(StaticBody):
-
-    def __init__(self, body_id: int, plane: CartesianPlane) -> None:
-        super().__init__(body_id, plane)
-        x = tuple([100 for _ in range(10)])
-        self.shape = Polygon(plane, x)
-        self.radius = 100
-
-    def USR_resolve_collision(self, o: object_body, dxy: tuple) -> None:
-        ...
-
-
 class Test(Game):
 
     def __init__(self) -> None:

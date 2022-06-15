@@ -16,10 +16,11 @@ cdef class object_body:
     def __cinit__(self, *args, **kwargs):
         self.is_attached = False
         self.is_following_dir = False
-        self.type = STATIC
+        self.type = FREE
         self.id = 0
         self.radius = 0
         self.friction_factor = 0.3
+        self.parent_body = None
 
     def __init__(self, int id, int type):
         self.id = id
