@@ -1,6 +1,6 @@
 import cython
 from Game.graphic.cartesian cimport CartesianPlane
-from Game.physics.body cimport object_body, DYNAMIC, STATIC
+from Game.physics.body cimport object_body, STATIC
 from Game.physics.collision cimport collision
 import numpy as np
 from pygame.draw import aalines
@@ -30,9 +30,8 @@ cdef class Engine:
             (<object_body>self.bodies[i]).step()
             for j in range(n):
                 if i != j:
-                    if self.bodies[i].body_type == DYNAMIC:
-                        if (self.bodies[i].radius + self.bodies[j].radius) >= ((<object_body>self.bodies[i]).shape.plane.parent_vector.distance_to((<object_body>self.bodies[j]).shape.plane.parent_vector)):
-                            dxy = self.collider.check(<object_body>self.bodies[i], <object_body>self.bodies[j])
-                            if dxy[0] != 0 or dxy[1] != 0:
-                                (<object_body>self.bodies[i]).USR_resolve_collision(<object_body>self.bodies[j], dxy)
+                    if self.bodies[i].type != STATIC:
+                        if self.bodies[i].id != self.bodies[j].id:
+                            if (self.bodies[i].radius + self.bodies[j].radius) >= ((<object_body>self.bodies[i]).shape.plane.parent_vector.distance_to((<object_body>self.bodies[j]).shape.plane.parent_vector)):
+                                self.collider.check(<object_body>self.bodies[i], <object_body>self.bodies[j])
             (<object_body>self.bodies[i]).show((0, 0, 0))

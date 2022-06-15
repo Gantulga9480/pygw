@@ -24,16 +24,16 @@ class Test(Game):
                                     unit_length=1)
         body_lst = []
 
-        for i in range(500):
+        for i in range(100):
             vec = self.plane.createRandomVector()
             if i % 2:
                 body_lst.append(
-                        DynamicPolygonBody(i,
+                        DynamicPolygonBody(i+10,
                                            CartesianPlane(self.window, (20, 20), vec),
                                            (10, 10, 10, 10, 10)))
             else:
                 body_lst.append(
-                        DynamicRectangleBody(i,
+                        DynamicRectangleBody(i+10,
                                              CartesianPlane(self.window, (20, 20), vec),
                                              (10*math.sqrt(2), 10*math.sqrt(2))))
             rot = random.random()*6 - 3
@@ -43,30 +43,35 @@ class Test(Game):
         for i in range(28):
             vec = self.plane.createVector(-width/2, y)
             body_lst.append(
-                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
-                         (40, 40)))
+                StaticRectangleBody(
+                    0, CartesianPlane(self.window, (40, 40), vec),
+                    (40, 40)))
             vec = self.plane.createVector(width/2, y)
             body_lst.append(
-                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
-                         (40, 40)))
+                StaticRectangleBody(
+                    0, CartesianPlane(self.window, (40, 40), vec),
+                    (40, 40)))
             y -= 40
 
         x = -width/2 + 40
         for i in range(47):
             vec = self.plane.createVector(x, height / 2)
             body_lst.append(
-                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
-                         (40, 40)))
+                StaticRectangleBody(
+                    0, CartesianPlane(self.window, (40, 40), vec),
+                    (40, 40)))
             vec = self.plane.createVector(x, -height / 2)
             body_lst.append(
-                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
-                         (40, 40)))
+                StaticRectangleBody(
+                    0, CartesianPlane(self.window, (40, 40), vec),
+                    (40, 40)))
             x += 40
 
         vec = self.plane.createVector(100, 0)
-        body_lst.append(DynamicPolygonBody(1,
-                                    CartesianPlane(self.window, (40, 40), vec),
-                                    (20, 20, 20, 20, 20), 10))
+        body_lst.append(
+            DynamicPolygonBody(
+                600, CartesianPlane(self.window, (40, 40), vec),
+                (20, 20, 20, 20, 20), 10))
 
         self.bodies = np.array(body_lst, dtype=object_body)
         self.engine = Engine(self.plane, self.bodies)
@@ -82,7 +87,6 @@ class Test(Game):
             self.bodies[-1].rotate(-0.06)
 
     def USR_render(self):
-        self.bodies[-1].step()
         self.engine.step()
         self.set_title(f'fps {round(self.clock.get_fps())}')
 

@@ -1,10 +1,16 @@
-from Game.graphic.cartesian import CartesianPlane
+from Game.graphic.cartesian import CartesianPlane, Vector2d
 from Game.color import BLACK
 from pygame.color import Color
+from pygame import Surface
+import numpy as np
 from typing import Union
 
 
 class Shape:
+    window: Surface
+    plane: CartesianPlane
+    vertex_count: int
+    vertices: np.ndarray[Vector2d]
     def __init__(self, plane: CartesianPlane) -> None: ...
     def rotate(self, angle) -> None: ...
     def scale(self, factor) -> None: ...

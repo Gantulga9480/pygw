@@ -83,15 +83,6 @@ cdef class CartesianPlane:
             self.parent_vector.update()
         return self.center
 
-    cpdef object get_window(self):
-        return self.window
-
-    cpdef (double, double) get_window_size(self):
-        return self.window_size
-
-    cpdef double get_unit_length(self):
-        return self.unit_length
-
     cpdef double to_X(self, double x):
         if self.parent_vector:
             self.parent_vector.update()
@@ -125,20 +116,6 @@ cdef class CartesianPlane:
             self.parent_vector.update()
         return ((XY[0] - self.center.x.num) / self.unit_length, (self.center.y.num - XY[1]) / self.unit_length)
 
-    @cython.cdivision(True)
-    cdef void set_limit(self):
-        if self.parent_vector:
-            self.parent_vector.update()
-        self.x_min = floor((self.center.x.num - self.window_size[0]) / self.unit_length)
-        self.x_max = floor((self.window_size[0] - self.center.x.num) / self.unit_length)
-        self.y_min = floor((self.center.y.num - self.window_size[1]) / self.unit_length)
-        self.y_max = floor((self.window_size[1] - self.center.y.num) / self.unit_length)
-
-    cdef (double, double) get_CENTER(self):
-        if self.parent_vector:
-            self.parent_vector.update()
-        return (self.center.x.num, self.center.y.num)
-
     cdef double get_X(self):
         if self.parent_vector:
             self.parent_vector.update()
@@ -148,6 +125,20 @@ cdef class CartesianPlane:
         if self.parent_vector:
             self.parent_vector.update()
         return self.center.y.num
+
+    cdef (double, double) get_CENTER(self):
+        if self.parent_vector:
+            self.parent_vector.update()
+        return (self.center.x.num, self.center.y.num)
+
+    @cython.cdivision(True)
+    cdef void set_limit(self):
+        if self.parent_vector:
+            self.parent_vector.update()
+        self.x_min = floor((self.center.x.num - self.window_size[0]) / self.unit_length)
+        self.x_max = floor((self.window_size[0] - self.center.x.num) / self.unit_length)
+        self.y_min = floor((self.center.y.num - self.window_size[1]) / self.unit_length)
+        self.y_max = floor((self.window_size[1] - self.center.y.num) / self.unit_length)
 
 
 @cython.optimize.unpack_method_calls(False)

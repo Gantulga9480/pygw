@@ -32,23 +32,15 @@ cdef class Shape:
         cdef int i
         cdef double v_len
         cdef double _min = (<Vector2d>self.vertices[0]).mag()
-        cdef double _max = _min
         for i in range(self.vertex_count):
             v_len = (<Vector2d>self.vertices[i]).mag()
-            if v_len > _max:
-                _max = v_len
-            elif v_len < _min:
+            if v_len < _min:
                 _min = v_len
         if factor > 1:
-            if self.vertices[0].max_length:
-                if ((_max * factor) <= self.vertices[0].max_length):
-                    for i in range(self.vertex_count):
-                        (<Vector2d>self.vertices[i]).scale(factor)
-            else:
-                for i in range(self.vertex_count):
-                    (<Vector2d>self.vertices[i]).scale(factor)
+            for i in range(self.vertex_count):
+                (<Vector2d>self.vertices[i]).scale(factor)
         elif factor < 1:
-            if _max * factor >= self.vertices[0].min_length:
+            if _min * factor >= self.vertices[0].min_length:
                 for i in range(self.vertex_count):
                     (<Vector2d>self.vertices[i]).scale(factor)
 
@@ -126,9 +118,6 @@ cdef class Polygon(Shape):
         super(Polygon, self).__init__(plane)
 
         self.vertex_count = size.__len__()
-
-        if self.vertex_count < 2:
-            raise ValueError("Wrong vertex_count, The minimum is 2")
 
         cdef list vers = []
         cdef int i

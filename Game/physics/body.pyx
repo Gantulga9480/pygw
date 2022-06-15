@@ -8,6 +8,7 @@ from libc.math cimport floor
 
 STATIC = 0
 DYNAMIC = 1
+FREE = 2
 
 
 @cython.optimize.unpack_method_calls(False)
@@ -15,14 +16,14 @@ cdef class object_body:
     def __cinit__(self, *args, **kwargs):
         self.is_attached = False
         self.is_following_dir = False
-        self.body_type = STATIC
-        self.body_id = 0
+        self.type = STATIC
+        self.id = 0
         self.radius = 0
         self.friction_factor = 0.3
 
-    def __init__(self, int body_id, int body_type):
-        self.body_id = body_id
-        self.body_type = body_type
+    def __init__(self, int id, int type):
+        self.id = id
+        self.type = type
 
     cpdef void attach(self, object_body o, bint follow_dir):
         if not o.is_attached:
@@ -57,7 +58,22 @@ cdef class object_body:
             self.shape.rotate(angle)
 
     cpdef void scale(self, double factor):
-        self.shape.scale(factor)
+        cdef int i
+        cdef double v_len
+        cdef double _min = (<Vector2d>self.shape.vertices[0]).mag()
+        for i in range(self.shape.vertex_count):
+            v_len = (<Vector2d>self.shape.vertices[i]).mag()
+            if v_len < _min:
+                _min = v_len
+        if factor > 1:
+            for i in range(self.shape.vertex_count):
+                (<Vector2d>self.shape.vertices[i]).scale(factor)
+            self.radius *= factor
+        elif factor < 1:
+            if _min * factor >= self.shape.vertices[0].min_length:
+                for i in range(self.shape.vertex_count):
+                    (<Vector2d>self.shape.vertices[i]).scale(factor)
+                self.radius *= factor
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
@@ -82,17 +98,56 @@ cdef class object_body:
         return floor((self.velocity.mag() - 1.0) * 10.0) / 10.0
 
 @cython.optimize.unpack_method_calls(False)
+cdef class FreeBody(object_body):
+    def __cinit__(self, *args, **kwargs):
+        pass
+
+    def __init__(self, int id, CartesianPlane plane):
+        super().__init__(id, FREE)
+        self.velocity = Vector2d(plane, 1, 0, 0, 1)
+        self.velocity.rotate(pi/2)
+
+    @cython.cdivision(True)
+    cpdef void USR_step(self):
+        cdef double v_len = floor(self.velocity.mag() * 100.0) / 100.0
+        cdef (double, double) xy
+        cdef (double, double) _xy
+        if v_len > 1:
+            if not self.is_attached:
+                xy = self.velocity.get_head()
+                _xy = self.velocity.unit_vector(1)
+                self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.get_x() + xy[0] - _xy[0],
+                                                         self.shape.plane.parent_vector.get_y() + xy[1] - _xy[1]))
+        else:
+            self.velocity.set_head(self.velocity.unit_vector(1))
+
+    cpdef void Accelerate(self, double factor):
+        if factor == 0:
+            self.velocity.add(0.1)
+        else:
+            self.velocity.add(factor)
+
+    cpdef void rotate(self, double angle):
+        if not self.is_following_dir:
+            self.shape.rotate(angle)
+            self.velocity.rotate(angle)
+
+    def show(self, color=(0, 0, 0), bint show_vertex=False):
+        super().show(color, show_vertex)
+        self.velocity.show(color)
+
+@cython.optimize.unpack_method_calls(False)
 cdef class StaticBody(object_body):
     def __cinit__(self, *args, **kwargs):
         pass
 
-    def __init__(self, int body_id, CartesianPlane plane):
-        super().__init__(body_id, STATIC)
+    def __init__(self, int id, CartesianPlane plane):
+        super().__init__(id, STATIC)
         self.velocity = Vector2d(plane, 1, 0, 1, 1)
         self.velocity.rotate(pi/2)
 
     cpdef void USR_resolve_collision(self, object_body o, (double, double) dxy):
-        if o.body_type == DYNAMIC:
+        if o.type == DYNAMIC:
             o.velocity.scale(self.friction_factor)
             o.shape.plane.parent_vector.set_head((o.shape.plane.parent_vector.head.x.num + dxy[0], o.shape.plane.parent_vector.head.y.num + dxy[1]))
 
@@ -101,8 +156,8 @@ cdef class DynamicBody(object_body):
     def __cinit__(self, *args, **kwargs):
         pass
 
-    def __init__(self, int body_id, CartesianPlane plane, int max_speed=1):
-        super().__init__(body_id, DYNAMIC)
+    def __init__(self, int id, CartesianPlane plane, int max_speed=1):
+        super().__init__(id, DYNAMIC)
         if plane.parent_vector is None:
             raise AttributeError("A dynamic body can't be made from a base plane, Use child plane instead!")
         self.max_speed = max_speed
@@ -110,12 +165,12 @@ cdef class DynamicBody(object_body):
         self.velocity.rotate(pi/2)
 
     cpdef void USR_resolve_collision(self, object_body o, (double, double) dxy):
-        if o.body_type == DYNAMIC:
+        if o.type == DYNAMIC:
             self.velocity.scale(self.friction_factor)
             o.velocity.scale(self.friction_factor)
             self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.head.x.num + -dxy[0]/2, self.shape.plane.parent_vector.head.y.num + -dxy[1]/2))
             o.shape.plane.parent_vector.set_head((o.shape.plane.parent_vector.head.x.num + dxy[0]/2, o.shape.plane.parent_vector.head.y.num + dxy[1]/2))
-        elif o.body_type == STATIC:
+        elif o.type == STATIC:
             self.velocity.scale(self.friction_factor)
             self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.head.x.num + -dxy[0], self.shape.plane.parent_vector.head.y.num + -dxy[1]))
 
@@ -155,8 +210,8 @@ cdef class DynamicPolygonBody(DynamicBody):
     def __cinit__(self, *args, **kwargs):
         pass
 
-    def __init__(self, int body_id, CartesianPlane plane, tuple size, int max_speed=1):
-        super().__init__(body_id, plane, max_speed)
+    def __init__(self, int id, CartesianPlane plane, tuple size, int max_speed=1):
+        super().__init__(id, plane, max_speed)
         self.radius = max(size)
         self.shape = Polygon(plane, size)
 
@@ -165,8 +220,8 @@ cdef class DynamicRectangleBody(DynamicBody):
     def __cinit__(self, *args, **kwargs):
         pass
 
-    def __init__(self, int body_id, CartesianPlane plane, tuple size, int max_speed=1):
-        super().__init__(body_id, plane, max_speed)
+    def __init__(self, int id, CartesianPlane plane, tuple size, int max_speed=1):
+        super().__init__(id, plane, max_speed)
         self.radius = max(size)
         self.shape = Rectangle(plane, size)
 
@@ -175,8 +230,8 @@ cdef class DynamicTriangleBody(DynamicBody):
     def __cinit__(self, *args, **kwargs):
         pass
 
-    def __init__(self, int body_id, CartesianPlane plane, tuple size, int max_speed=1):
-        super().__init__(body_id, plane, max_speed)
+    def __init__(self, int id, CartesianPlane plane, tuple size, int max_speed=1):
+        super().__init__(id, plane, max_speed)
         self.radius = max(size)
         self.shape = Triangle(plane, size)
 
@@ -184,8 +239,8 @@ cdef class StaticPolygonBody(StaticBody):
     def __cinit__(self, *args, **kwargs):
         pass
 
-    def __init__(self, int body_id, CartesianPlane plane, tuple size):
-        super().__init__(body_id, plane)
+    def __init__(self, int id, CartesianPlane plane, tuple size):
+        super().__init__(id, plane)
         self.radius = max(size)
         self.shape = Polygon(plane, size)
 
@@ -193,8 +248,8 @@ cdef class StaticRectangleBody(StaticBody):
     def __cinit__(self, *args, **kwargs):
         pass
 
-    def __init__(self, int body_id, CartesianPlane plane, tuple size):
-        super().__init__(body_id, plane)
+    def __init__(self, int id, CartesianPlane plane, tuple size):
+        super().__init__(id, plane)
         self.radius = max(size)
         self.shape = Rectangle(plane, size)
 
@@ -202,7 +257,16 @@ cdef class StaticTriangleBody(StaticBody):
     def __cinit__(self, *args, **kwargs):
         pass
 
-    def __init__(self, int body_id, CartesianPlane plane, tuple size):
-        super().__init__(body_id, plane)
+    def __init__(self, int id, CartesianPlane plane, tuple size):
+        super().__init__(id, plane)
         self.radius = max(size)
         self.shape = Triangle(plane, size)
+
+cdef class FreePolygonBody(FreeBody):
+    def __cinit__(self, *args, **kwargs):
+        pass
+
+    def __init__(self, int id, CartesianPlane plane, tuple size):
+        super().__init__(id, plane)
+        self.radius = max(size)
+        self.shape = Polygon(plane, size)

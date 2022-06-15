@@ -3,13 +3,13 @@ from Game.graphic.cartesian cimport CartesianPlane, Vector2d
 from Game.graphic.shapes cimport Shape
 
 
-cdef int STATIC, DYNAMIC
+cdef int STATIC, DYNAMIC, FREE
 
 
 cdef class object_body:
-    cdef public int body_type, body_id
+    cdef public int type, id
     cdef public double radius
-    cdef public friction_factor
+    cdef public double friction_factor
     cdef public Shape shape
     cdef public Vector2d velocity
     cdef bint is_attached
@@ -25,6 +25,9 @@ cdef class object_body:
     cpdef void detach(self, object_body o)
     cpdef void USR_step(self)
     cpdef void USR_resolve_collision(self, object_body o, (double, double) dxy)
+
+cdef class FreeBody(object_body):
+    cpdef void Accelerate(self, double factor)
 
 cdef class StaticBody(object_body):
     pass
@@ -49,4 +52,7 @@ cdef class StaticRectangleBody(StaticBody):
     pass
 
 cdef class StaticTriangleBody(StaticBody):
+    pass
+
+cdef class FreePolygonBody(FreeBody):
     pass

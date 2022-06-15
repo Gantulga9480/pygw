@@ -1,10 +1,11 @@
 from Game.physics.body import (object_body,
-                               DynamicBody, StaticBody,
+                               DynamicBody, StaticBody, FreeBody,
                                DynamicPolygonBody,
                                DynamicRectangleBody,
                                DynamicTriangleBody,
                                StaticPolygonBody,
                                StaticRectangleBody,
-                               StaticTriangleBody)
+                               StaticTriangleBody,
+                               FreePolygonBody)
 from Game.physics.collision import collision
 from Game.physics.engine import Engine

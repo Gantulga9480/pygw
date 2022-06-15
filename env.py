@@ -1,26 +1,35 @@
 from Game.base import Game
-from Game.graphic import CartesianPlane, Polygon
+from Game.graphic import CartesianPlane
 from Game.physics import (object_body,
                           DynamicPolygonBody,
                           StaticPolygonBody,
                           StaticRectangleBody,
-                          StaticBody)
+                          FreePolygonBody)
 from Game.physics import Engine
 import pygame as pg
 import numpy as np
 import json
 
 
-class Sensor(StaticBody):
+class Sensor(FreePolygonBody):
 
-    def __init__(self, body_id: int, plane: CartesianPlane) -> None:
-        super().__init__(body_id, plane)
-        x = tuple([100 for _ in range(10)])
-        self.shape = Polygon(plane, x)
-        self.radius = 100
+    def __init__(self, id: int, plane: CartesianPlane) -> None:
+        super().__init__(id, plane, (50, 50, 50, 1, 1, 1, 50, 50))
+        self.state = [0, 0]
 
     def USR_resolve_collision(self, o: object_body, dxy: tuple) -> None:
-        print(dxy)
+        self.state = [dxy[0], dxy[1]]
+
+    def USR_step(self) -> None:
+        ...
+
+    def get_state(self):
+        state = self.state.copy()
+        self.state = [0, 0]
+        return state
+
+    def show(self, color, show_vertex: bool = False) -> None:
+        return super().show((255, 0, 0), show_vertex)
 
 
 class Environment(Game):
@@ -42,11 +51,11 @@ class Environment(Game):
         for _ in range(28):
             vec = self.plane.createVector(-width/2, y)
             self.bodies.append(
-                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
+                StaticRectangleBody(0, CartesianPlane(self.window, (40, 40), vec),
                                     (40, 40)))
             vec = self.plane.createVector(width/2, y)
             self.bodies.append(
-                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
+                StaticRectangleBody(0, CartesianPlane(self.window, (40, 40), vec),
                                     (40, 40)))
             y -= 40
 
@@ -54,11 +63,11 @@ class Environment(Game):
         for _ in range(47):
             vec = self.plane.createVector(x, height / 2)
             self.bodies.append(
-                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
+                StaticRectangleBody(0, CartesianPlane(self.window, (40, 40), vec),
                                     (40, 40)))
             vec = self.plane.createVector(x, -height / 2)
             self.bodies.append(
-                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
+                StaticRectangleBody(0, CartesianPlane(self.window, (40, 40), vec),
                                     (40, 40)))
             x += 40
 
@@ -71,14 +80,14 @@ class Environment(Game):
             vec = self.plane.createVector(body['x'], body['y'])
             size = tuple([body['size'] for _ in range(body['shape'])])
             if body['type'] == 1:
-                p = DynamicPolygonBody(0, CartesianPlane(self.window, (40, 40), vec), size, 10)
+                p = DynamicPolygonBody(1, CartesianPlane(self.window, (40, 40), vec), size, 10)
             else:
                 p = StaticPolygonBody(0, CartesianPlane(self.window, (40, 40), vec), size)
             p.rotate(body['dir'])
             self.bodies.append(p)
 
         self.agent: DynamicPolygonBody = self.bodies[-1]
-        self.sensor = Sensor(0, self.plane.createPlane())
+        self.sensor = Sensor(1, self.plane.createPlane())
         self.bodies.append(self.sensor)
         self.agent.attach(self.sensor, True)
 
@@ -99,10 +108,9 @@ class Environment(Game):
             self.agent.rotate(0.06)
         elif self.keys[pg.K_RIGHT]:
             self.agent.rotate(-0.06)
+        print(self.sensor.get_state())
 
     def USR_render(self):
-        self.agent.step()
-        self.sensor.step()
         self.engine.step()
 
 
