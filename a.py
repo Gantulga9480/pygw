@@ -27,10 +27,6 @@ class Ray(FreeBody):
                 # ... every edge of second shape
                 l2s = self.shape.plane.get_parent_vector().plane.to_xy(o.shape.vertices[j].HEAD)
                 l2e = self.shape.plane.get_parent_vector().plane.to_xy(o.shape.vertices[(j+1)%o.shape.vertex_count].HEAD)
-                xy = self.shape.plane.get_parent_vector().plane.to_XY(l2e)
-                pg.draw.circle(self.shape.plane.window, (255, 0, 0), xy, 5)
-                xy = self.shape.plane.get_parent_vector().plane.to_XY(l2s)
-                pg.draw.circle(self.shape.plane.window, (255, 0, 0), xy, 5)
                 # check these two line segments are intersecting or not
                 val = LSI(l1s[0], l1s[1], l1e[0], l1e[1], l2s[0], l2s[1], l2e[0], l2e[1])
                 if val != 0:

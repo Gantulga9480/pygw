@@ -119,6 +119,7 @@ cdef class FreeBody(object_body):
                 _xy = self.velocity.unit_vector(1)
                 self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.get_x() + xy[0] - _xy[0],
                                                          self.shape.plane.parent_vector.get_y() + xy[1] - _xy[1]))
+                self.velocity.set_head(self.velocity.unit_vector(1))
         else:
             self.velocity.set_head(self.velocity.unit_vector(1))
 

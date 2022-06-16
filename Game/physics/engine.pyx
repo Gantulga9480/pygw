@@ -1,6 +1,6 @@
 import cython
 from Game.graphic.cartesian cimport CartesianPlane
-from Game.physics.body cimport object_body, STATIC
+from Game.physics.body cimport object_body, STATIC, FREE
 from Game.physics.collision cimport collision
 import numpy as np
 from pygame.draw import aalines
