@@ -23,25 +23,28 @@ cdef class collision:
     cdef void diagonal_intersect(self, object_body body1, object_body body2):
         cdef object_body b1 = body1
         cdef object_body b2 = body2
-        cdef int i, j
+        cdef int i, j, k
         cdef double dx = 0, dy = 0, val
         cdef (double, double) l1s
         cdef (double, double) l1e
         cdef (double, double) l2s
         cdef (double, double) l2e
-        for i in range(2):
-            if i == 1:
+        for k in range(2):
+            if k == 1:
                 b1 = body2
                 b2 = body1
             dx = 0
             dy = 0
+
+            l1s = self.plane.to_xy(b1.shape.plane.get_CENTER())
             for i in range(b1.shape.vertex_count):
                 # check for every vertex of first shape against ...
-                l1s = self.plane.to_xy(b1.shape.plane.get_CENTER())
                 l1e = self.plane.to_xy((<Vector2d>b1.shape.vertices[i]).get_HEAD())
+                l2s = self.plane.to_xy((<Vector2d>b2.shape.vertices[0]).get_HEAD())
                 for j in range(b2.shape.vertex_count):
                     # ... every edge of second shape
-                    l2s = self.plane.to_xy((<Vector2d>b2.shape.vertices[j]).get_HEAD())
+                    if j > 0:
+                        l2s = l2e
                     l2e = self.plane.to_xy((<Vector2d>b2.shape.vertices[(j+1)%b2.shape.vertex_count]).get_HEAD())
                     # check these two line segments are intersecting or not
                     val = 1 - line_segment_intersect(l1s[0], l1s[1], l1e[0], l1e[1], l2s[0], l2s[1], l2e[0], l2e[1])
