@@ -22,17 +22,17 @@ cdef class Engine:
     @cython.boundscheck(False)
     @cython.nonecheck(False)
     @cython.initializedcheck(False)
-    def step(self):
+    def update(self):
         cdef int n = self.bodies.shape[0]
         cdef int i, j
         cdef (double, double) dxy
         # Check for every body ...
         for i in range(n):
-            # Take one step in environment
+            # Take one gentle step in environment
             (<object_body>self.bodies[i]).step()
             # ... Against every other body
             for j in range(n):
-                # Will not check body against itself
+                # Will not check bodies against itself
                 if i != j:
                     # Will not check STATIC body and not gonna check against FREE body
                     if self.bodies[i].type != STATIC and self.bodies[j].type != FREE:
@@ -41,4 +41,5 @@ cdef class Engine:
                             # radius1 + radius2 >= distance to body2 from body1 means we have some work to do
                             if (self.bodies[i].radius + self.bodies[j].radius) >= ((<object_body>self.bodies[i]).shape.plane.parent_vector.distance_to((<object_body>self.bodies[j]).shape.plane.parent_vector)):
                                 self.collider.check(<object_body>self.bodies[i], <object_body>self.bodies[j])
+            # Throw body on to screen
             (<object_body>self.bodies[i]).show((0, 0, 0))

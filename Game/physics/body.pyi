@@ -1,8 +1,10 @@
 from Game.graphic.cartesian import CartesianPlane, Vector2d
 from Game.graphic.shapes import Shape
+from Game.math import point2d
 from Game.color import BLACK
 from pygame.color import Color
 from typing import Union
+import numpy as np
 
 
 class object_body:
@@ -12,7 +14,8 @@ class object_body:
     friction_factor: float
     shape: Shape
     velocity: Vector2d
-    def __init__(self, id: int, type: int) -> None: ...
+    collision_point: list[point2d]
+    def __init__(self, id: int, type: int, vertex_count: int) -> None: ...
     def position(self) -> tuple: ...
     def speed(self) -> float: ...
     def step(self) -> None: ...
@@ -26,15 +29,15 @@ class object_body:
 
 
 class FreeBody(object_body):
-    def __init__(self, id: int, plane: CartesianPlane) -> None: ...
+    def __init__(self, id: int, plane: CartesianPlane, vertex_count: int) -> None: ...
 
 
 class StaticBody(object_body):
-    def __init__(self, id: int, plane: CartesianPlane) -> None: ...
+    def __init__(self, id: int, plane: CartesianPlane, vertex_count: int) -> None: ...
 
 
 class DynamicBody(object_body):
-    def __init__(self, id: int, plane: CartesianPlane, max_speed: float = 1) -> None: ...
+    def __init__(self, id: int, plane: CartesianPlane, vertex_count: int, max_speed: float = 1) -> None: ...
     def Accelerate(self, factor: float) -> None: ...
 
 

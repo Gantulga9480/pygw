@@ -2,6 +2,7 @@ import cython
 from Game.graphic.cartesian cimport CartesianPlane, Vector2d
 from Game.physics.body cimport object_body
 from Game.math.util cimport LSI as line_segment_intersect
+from Game.math.core cimport point2d
 
 
 cdef class collision:
@@ -18,7 +19,6 @@ cdef class collision:
     @cython.wraparound(False)
     @cython.boundscheck(False)
     @cython.cdivision(True)
-    @cython.nonecheck(False)
     @cython.initializedcheck(False)
     cdef void diagonal_intersect(self, object_body body1, object_body body2):
         cdef object_body b1 = body1
@@ -35,7 +35,6 @@ cdef class collision:
                 b2 = body1
             dx = 0
             dy = 0
-
             l1s = self.plane.to_xy(b1.shape.plane.get_CENTER())
             for i in range(b1.shape.vertex_count):
                 # check for every vertex of first shape against ...
@@ -47,9 +46,13 @@ cdef class collision:
                         l2s = l2e
                     l2e = self.plane.to_xy((<Vector2d>b2.shape.vertices[(j+1)%b2.shape.vertex_count]).get_HEAD())
                     # check these two line segments are intersecting or not
-                    val = 1 - line_segment_intersect(l1s[0], l1s[1], l1e[0], l1e[1], l2s[0], l2s[1], l2e[0], l2e[1])
-                    if val < 1:
-                        dx += (l1e[0] - l1s[0]) * val
-                        dy += (l1e[1] - l1s[1]) * val
+                    val = line_segment_intersect(l1s[0], l1s[1], l1e[0], l1e[1], l2s[0], l2s[1], l2e[0], l2e[1])
+                    if val != 0:
+                        dx += (l1e[0] - l1s[0]) * (1 - val)
+                        dy += (l1e[1] - l1s[1]) * (1 - val)
+                        (<point2d>b1.collision_point[i]).set_x((l1e[0] - l1s[0]) * val)
+                        (<point2d>b1.collision_point[i]).set_y((l1e[1] - l1s[1]) * val)
             if dx != 0 or dy != 0:
                 b1.USR_resolve_collision(b2, (dx, dy))
+                for i in range(b1.shape.vertex_count):
+                    (<point2d>b1.collision_point[i]).set_xy((0, 0))

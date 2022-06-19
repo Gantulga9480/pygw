@@ -10,29 +10,17 @@ import numpy as np
 class Ray(FreeBody):
 
     def __init__(self, body_id: int, plane: CartesianPlane) -> None:
-        super().__init__(body_id, plane)
+        super().__init__(body_id, plane, 2)
         self.shape = Polygon(plane, (50, 0))
         self.radius = 50
 
     def USR_resolve_collision(self, o: object_body, dxy: tuple) -> None:
+        # super().USR_resolve_collision(o, dxy)
         for i in range(1):
-            # check for every vertex of first shape against ...
-            l1s = self.shape.plane.get_parent_vector().plane.to_xy(self.shape.vertices[i].TAIL)
-            l1e = self.shape.plane.get_parent_vector().plane.to_xy(self.shape.vertices[i].HEAD)
-            xy = self.shape.plane.get_parent_vector().plane.to_XY(l1e)
-            pg.draw.circle(self.shape.plane.window, (255, 0, 0), xy, 5)
-            xy = self.shape.plane.get_parent_vector().plane.to_XY(l1s)
-            pg.draw.circle(self.shape.plane.window, (255, 0, 0), xy, 5)
-            for j in range(o.shape.vertex_count):
-                # ... every edge of second shape
-                l2s = self.shape.plane.get_parent_vector().plane.to_xy(o.shape.vertices[j].HEAD)
-                l2e = self.shape.plane.get_parent_vector().plane.to_xy(o.shape.vertices[(j+1)%o.shape.vertex_count].HEAD)
-                # check these two line segments are intersecting or not
-                val = LSI(l1s[0], l1s[1], l1e[0], l1e[1], l2s[0], l2s[1], l2e[0], l2e[1])
-                if val != 0:
-                    x = self.shape.plane.to_X((l1e[0] - l1s[0]) * val)
-                    y = self.shape.plane.to_Y((l1e[1] - l1s[1]) * val)
-                    pg.draw.circle(self.shape.plane.window, (255, 0, 0), (x, y), 5)
+            if self.collision_point[i].x != 0 or self.collision_point[i].y != 0:
+                xy = self.shape.plane.to_XY((self.collision_point[i].x, self.collision_point[i].y))
+                pg.draw.circle(self.shape.window, (255, 0, 0), xy, 5)
+                print(np.sqrt(self.collision_point[i].x**2 + self.collision_point[i].y**2))
 
 
 class Test(Game):
@@ -68,7 +56,7 @@ class Test(Game):
             self.r.Accelerate(-0.5)
 
     def USR_render(self):
-        self.e.step()
+        self.e.update()
         # self.r.step()
         # self.r.show((255, 0, 0))
         # self.s.show((0, 0, 0))

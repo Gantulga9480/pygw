@@ -1,6 +1,7 @@
 import cython
 from Game.graphic.cartesian cimport CartesianPlane, Vector2d
 from Game.graphic.shapes cimport Shape
+from Game.math.core cimport point2d
 
 
 cdef int STATIC, DYNAMIC, FREE
@@ -12,6 +13,7 @@ cdef class object_body:
     cdef public double friction_factor
     cdef public Shape shape
     cdef public Vector2d velocity
+    cdef readonly point2d[:] collision_point
     cdef bint is_attached
     cdef bint is_following_dir
     cdef object_body parent_body
