@@ -1,5 +1,5 @@
 import cython
-from pygame.draw import lines, line, aaline
+from pygame.draw import line, aaline
 from Game.math.core cimport scalar, point2d, vector2d
 from libc.math cimport floor
 from random import random
@@ -25,8 +25,6 @@ cdef class CartesianPlane:
                             else self.parent_vector.plane.unit_length)
         self.center = (self.parent_vector.headXY if self.parent_vector
                        else point2d(floor(self.window_size[0] / 2), floor(self.window_size[1] / 2)))
-        if self.parent_vector:
-            self.parent_vector.update()
         self.set_limit()
 
     @property
@@ -157,6 +155,7 @@ cdef class Vector2d(vector2d):
         self.plane = plane
         self.headXY = point2d(0, 0)
         super().__init__(x, y, max_length, min_length)
+        self.update()
 
     def __repr__(self):
         return f'X:{self.X}, Y:{self.Y} - x:{self.head.x}, y:{self.head.y}'
@@ -178,6 +177,7 @@ cdef class Vector2d(vector2d):
 
     @property
     def TAIL(self):
+        self.update()
         return (self.plane.center.x.num, self.plane.center.y.num)
 
     @cython.nonecheck(False)
@@ -200,7 +200,6 @@ cdef class Vector2d(vector2d):
             return Vector2d(self.plane, xy[0], xy[1], self.max_length, self.min_length)
         return xy
 
-    # @cython.optimize.unpack_method_calls(False)
     cpdef void random(self):
         # TODO Fix null vector creation
         cdef double r1 = random()
@@ -211,7 +210,6 @@ cdef class Vector2d(vector2d):
         else:
             self.head.x.num = (r1 * 2 - 1) * self.plane.x_max
             self.head.y.num = (r2 * 2 - 1) * self.plane.y_max
-        # self.update()
 
     cpdef void update(self):
         self.headXY.set_xy(self.plane.to_XY(self.head.get_xy()))
@@ -229,4 +227,5 @@ cdef class Vector2d(vector2d):
         return self.headXY.get_xy()
 
     cdef (double, double) get_TAIL(self):
+        self.update()
         return (self.plane.center.x.num, self.plane.center.y.num)

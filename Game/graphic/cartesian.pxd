@@ -30,6 +30,7 @@ cdef class Vector2d(vector2d):
     cdef point2d headXY
 
     cpdef void random(self)
+    cpdef void update(self)
     cdef double get_X(self)
     cdef double get_Y(self)
     cdef (double, double) get_HEAD(self)
