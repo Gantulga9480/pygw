@@ -11,6 +11,9 @@ cdef class Shape:
     cpdef void rotate(self, double angle)
     cpdef void scale(self, double factor)
 
+cdef class Line(Shape):
+    pass
+
 cdef class Rectangle(Shape):
     pass
 
