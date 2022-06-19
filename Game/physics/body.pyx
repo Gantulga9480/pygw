@@ -1,6 +1,6 @@
 import cython
 from Game.graphic.cartesian cimport CartesianPlane, Vector2d
-from Game.graphic.shapes cimport Polygon, Rectangle, Triangle
+from Game.graphic.shapes cimport Polygon, Rectangle, Triangle, Line
 from Game.math.core cimport pi, point2d
 from pygame.draw import aalines
 from libc.math cimport floor
@@ -60,6 +60,9 @@ cdef class object_body:
         if not self.is_following_dir:
             self.shape.rotate(angle)
 
+    @cython.wraparound(False)
+    @cython.boundscheck(False)
+    @cython.initializedcheck(False)
     cpdef void scale(self, double factor):
         cdef int i
         cdef double v_len
@@ -106,6 +109,8 @@ cdef class FreeBody(object_body):
         pass
 
     def __init__(self, int id, CartesianPlane plane, int vertex_count):
+        if plane.parent_vector is None:
+            raise AttributeError("A body can't be made from a base plane, Use child plane instead!")
         super().__init__(id, FREE, vertex_count)
         self.velocity = Vector2d(plane, 1, 0, 0, 1)
         self.velocity.rotate(pi/2)
@@ -145,6 +150,8 @@ cdef class StaticBody(object_body):
         pass
 
     def __init__(self, int id, CartesianPlane plane, int vertex_count):
+        if plane.parent_vector is None:
+            raise AttributeError("A body can't be made from a base plane, Use child plane instead!")
         super().__init__(id, STATIC, vertex_count)
         self.velocity = Vector2d(plane, 1, 0, 1, 1)
         self.velocity.rotate(pi/2)
@@ -160,9 +167,9 @@ cdef class DynamicBody(object_body):
         pass
 
     def __init__(self, int id, CartesianPlane plane, int vertex_count, double max_speed=1):
-        super().__init__(id, DYNAMIC, vertex_count)
         if plane.parent_vector is None:
-            raise AttributeError("A dynamic body can't be made from a base plane, Use child plane instead!")
+            raise AttributeError("A body can't be made from a base plane, Use child plane instead!")
+        super().__init__(id, DYNAMIC, vertex_count)
         self.max_speed = max_speed
         self.velocity = Vector2d(plane, 1, 0, max_speed, 1)
         self.velocity.rotate(pi/2)
@@ -207,6 +214,30 @@ cdef class DynamicBody(object_body):
     def show(self, color=(0, 0, 0), bint show_vertex=False):
         super().show(color, show_vertex)
         self.velocity.show(color)
+
+
+cdef class Ray(FreeBody):
+
+    def __cinit__(self, *args, **kwargs):
+        pass
+
+    def __init__(self, int id, CartesianPlane plane, double length):
+        super().__init__(id, plane, 1)
+        self.radius = length
+        self.shape = Line(plane, length)
+
+    @cython.wraparound(False)
+    @cython.boundscheck(False)
+    @cython.initializedcheck(False)
+    cpdef void scale(self, double factor):
+        (<Vector2d>self.vertices[0]).scale(factor)
+
+    @cython.wraparound(False)
+    @cython.boundscheck(False)
+    @cython.initializedcheck(False)
+    def show(self, color=(0, 0, 0), bint show_vertex=False):
+        self.shape.plane.parent_vector.update()
+
 
 @cython.optimize.unpack_method_calls(False)
 cdef class DynamicPolygonBody(DynamicBody):
