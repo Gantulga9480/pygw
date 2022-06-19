@@ -1,6 +1,10 @@
 from Game import Game
 from Game.graphic import CartesianPlane, Polygon
-from Game.physics import (object_body, FreeBody, DynamicBody, StaticPolygonBody)
+from Game.physics import (object_body,
+                          FreeBody,
+                          DynamicBody,
+                          StaticPolygonBody,
+                          DynamicPolygonBody)
 from Game.physics import Engine
 from Game.math import LSI
 import pygame as pg
@@ -11,16 +15,17 @@ class Ray(FreeBody):
 
     def __init__(self, body_id: int, plane: CartesianPlane) -> None:
         super().__init__(body_id, plane, 2)
-        self.shape = Polygon(plane, (50, 0))
-        self.radius = 50
+        self.shape = Polygon(plane, (100, 0))
+        self.radius = 100
 
     def USR_resolve_collision(self, o: object_body, dxy: tuple) -> None:
         # super().USR_resolve_collision(o, dxy)
+        pg.draw.aaline()
         for i in range(1):
             if self.collision_point[i].x != 0 or self.collision_point[i].y != 0:
                 xy = self.shape.plane.to_XY((self.collision_point[i].x, self.collision_point[i].y))
                 pg.draw.circle(self.shape.window, (255, 0, 0), xy, 5)
-                print(np.sqrt(self.collision_point[i].x**2 + self.collision_point[i].y**2))
+                # print(np.sqrt(self.collision_point[i].x**2 + self.collision_point[i].y**2))
 
 
 class Test(Game):
@@ -29,9 +34,13 @@ class Test(Game):
         super().__init__(width=1920, height=1080, flags=pg.FULLSCREEN | pg.HWSURFACE)
         self.plane = CartesianPlane(self.window, (self.width, self.height))
         self.r = Ray(0, self.plane.createPlane(200, 200))
+
+        self.d = DynamicPolygonBody(0, self.plane.createPlane(200, 200), (30, 30, 30), 5)
+
+        self.d.attach(self.r, True)
         self.s = StaticPolygonBody(1, self.plane.createPlane(), (100, 100, 100, 100))
 
-        self.e = Engine(self.plane, np.array([self.r, self.s], dtype=object_body))
+        self.e = Engine(self.plane, np.array([self.r, self.d, self.s], dtype=object_body))
 
         self.mainloop()
 
@@ -42,18 +51,13 @@ class Test(Game):
 
     def USR_loop(self):
         if self.keys[pg.K_UP]:
-            self.r.Accelerate(0.5)
+            self.d.Accelerate(0.5)
         elif self.keys[pg.K_DOWN]:
-            self.r.Accelerate(-0.5)
+            self.d.Accelerate(-0.5)
         if self.keys[pg.K_LEFT]:
-            self.r.rotate(0.1)
+            self.d.rotate(0.1)
         elif self.keys[pg.K_RIGHT]:
-            self.r.rotate(-0.1)
-
-        if self.keys[pg.K_w]:
-            self.r.Accelerate(0.5)
-        elif self.keys[pg.K_s]:
-            self.r.Accelerate(-0.5)
+            self.d.rotate(-0.1)
 
     def USR_render(self):
         self.e.update()
