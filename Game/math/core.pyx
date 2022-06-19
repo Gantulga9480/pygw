@@ -151,7 +151,6 @@ cdef class vector2d:
         self.head = point2d(x, y)
         self.max_length = max_length
         self.min_length = min_length
-        self.update()
 
     @property
     def x(self):
@@ -159,7 +158,7 @@ cdef class vector2d:
 
     @x.setter
     def x(self, double o):
-        cdef _len = sqrt(o * o + self.head.y.num * self.head.y.num)
+        cdef double _len = sqrt(o * o + self.head.y.num * self.head.y.num)
         if self.min_length <= _len:
             if self.max_length:
                 if _len <= self.max_length:
@@ -173,7 +172,7 @@ cdef class vector2d:
 
     @y.setter
     def y(self, double o):
-        cdef _len = sqrt(o * o + self.head.x.num * self.head.x.num)
+        cdef double _len = sqrt(o * o + self.head.x.num * self.head.x.num)
         if self.min_length <= _len:
             if self.max_length:
                 if _len <= self.max_length:
@@ -318,11 +317,8 @@ cdef class vector2d:
         cdef double _y = vector.head.x.num
         return x * _x + y * _y
 
-    cpdef void update(self):
-        ...
-
     cdef void set_x(self, double o):
-        cdef _len = sqrt(o * o + self.head.y.num * self.head.y.num)
+        cdef double _len = sqrt(o * o + self.head.y.num * self.head.y.num)
         if self.min_length <= _len:
             if self.max_length:
                 if _len <= self.max_length:
@@ -331,7 +327,7 @@ cdef class vector2d:
                 self.head.x.set_value(o)
 
     cdef void set_y(self, double o):
-        cdef _len = sqrt(o * o + self.head.x.num * self.head.x.num)
+        cdef double _len = sqrt(o * o + self.head.x.num * self.head.x.num)
         if self.min_length <= _len:
             if self.max_length:
                 if _len <= self.max_length:
