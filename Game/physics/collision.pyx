@@ -1,6 +1,6 @@
 import cython
 from Game.graphic.cartesian cimport CartesianPlane, Vector2d
-from Game.physics.body cimport object_body
+from Game.physics.body cimport object_body, FREE
 from Game.math.util cimport LSI as line_segment_intersect
 from Game.math.core cimport point2d
 
@@ -31,8 +31,11 @@ cdef class collision:
         cdef (double, double) l2e
         for k in range(2):
             if k == 1:
-                b1 = body2
-                b2 = body1
+                if body2.type == FREE:
+                    break
+                else:
+                    b1 = body2
+                    b2 = body1
             dx = 0
             dy = 0
             l1s = self.plane.to_xy(b1.shape.plane.get_CENTER())
