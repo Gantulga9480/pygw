@@ -5,7 +5,7 @@ from libc.math cimport sqrt, atan2
 import numpy as np
 from pygame.draw import aalines, aaline
 
-
+@cython.optimize.unpack_method_calls(False)
 cdef class Shape:
 
     def __cinit__(self, *args, **kwargs):
@@ -52,17 +52,15 @@ cdef class Shape:
         cdef int i
         cdef list heads = []
         if show_vertex:
-            # self.position_vec.show()
             for i in range(self.vertex_count):
-                self.vertices[i].show((0, 0, 0))
-                heads.append((<Vector2d>self.vertices[i]).get_HEAD())
+                (<Vector2d>self.vertices[i]).show(color)
+                heads.append((<Vector2d>self.vertices[i]).headXY.get_xy())
         else:
             for i in range(self.vertex_count):
                 heads.append((<Vector2d>self.vertices[i]).get_HEAD())
         aalines(self.window, color, True, heads)
-        # poly(self.window, color, heads)
 
-
+@cython.optimize.unpack_method_calls(False)
 cdef class Line(Shape):
 
     def __cinit__(self, *args, **kwargs):
@@ -100,9 +98,10 @@ cdef class Line(Shape):
     @cython.nonecheck(False)
     @cython.initializedcheck(False)
     def show(self, color=(0, 0, 0), show_vertex=False):
-        aaline(self.window, color, (<Vector2d>self.vertices[0]).get_TAIL(), (<Vector2d>self.vertices[0]).get_HEAD())
+        (<Vector2d>self.vertices[0]).update()
+        aaline(self.window, color, self.plane.center.get_xy(), (<Vector2d>self.vertices[0]).headXY.get_xy())
 
-
+@cython.optimize.unpack_method_calls(False)
 cdef class Rectangle(Shape):
 
     def __cinit__(self, *args, **kwargs):
@@ -128,7 +127,7 @@ cdef class Rectangle(Shape):
 
         self.vertices = np.array(vers, dtype=Vector2d)
 
-
+@cython.optimize.unpack_method_calls(False)
 cdef class Triangle(Shape):
 
     def __cinit__(self, *args, **kwargs):
@@ -148,7 +147,7 @@ cdef class Triangle(Shape):
 
         self.vertices = np.array(vers, dtype=Vector2d)
 
-
+@cython.optimize.unpack_method_calls(False)
 cdef class Polygon(Shape):
 
     def __cinit__(self, *args, **kwargs):

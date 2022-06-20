@@ -6,7 +6,7 @@ import numpy as np
 from pygame.draw import aalines
 from random import random
 
-
+@cython.optimize.unpack_method_calls(False)
 cdef class Engine:
 
     cdef object_body[:] bodies

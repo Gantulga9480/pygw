@@ -4,7 +4,7 @@ from Game.physics.body cimport object_body
 from Game.math.util cimport LSI as line_segment_intersect
 from Game.math.core cimport point2d
 
-
+@cython.optimize.unpack_method_calls(False)
 cdef class collision:
 
     def __cinit__(self, *args, **kwargs):
@@ -54,5 +54,6 @@ cdef class collision:
                         (<point2d>b1.collision_point[i]).set_y((l1e[1] - l1s[1]) * val)
             if dx != 0 or dy != 0:
                 b1.USR_resolve_collision(b2, (dx, dy))
+            else:
                 for i in range(b1.shape.vertex_count):
                     (<point2d>b1.collision_point[i]).set_xy((0, 0))
