@@ -4,32 +4,27 @@ from Game.physics import (object_body,
                           DynamicPolygonBody,
                           StaticPolygonBody,
                           StaticRectangleBody,
-                          FreePolygonBody)
+                          FreePolygonBody,
+                          Ray)
 from Game.physics import Engine
 import pygame as pg
 import numpy as np
 import json
 
 
-class Sensor(FreePolygonBody):
+class Sensor:
 
-    def __init__(self, id: int, plane: CartesianPlane) -> None:
-        super().__init__(id, plane, (50, 50, 50, 1, 1, 1, 50, 50))
-        self.state = [0, 0]
-
-    def USR_resolve_collision(self, o: object_body, dxy: tuple) -> None:
-        self.state = [dxy[0], dxy[1]]
-
-    def USR_step(self) -> None:
-        ...
+    def __init__(self, id: int, plane: CartesianPlane, vertex_count: int, radius: float) -> None:
+        self.rays: list[Ray] = []
+        for i in range(vertex_count):
+            self.rays.append(Ray(id, plane, radius))
+            self.rays[-1].shape.vertices[0].rotate(np.pi/2 + 2*np.pi/vertex_count * i)
 
     def get_state(self):
-        state = self.state.copy()
-        self.state = [0, 0]
+        state = []
+        for point in self.rays:
+            state.append(np.sqrt(point.collision_point[0].x**2 + point.collision_point[0].y**2))
         return state
-
-    def show(self, color, show_vertex: bool = False) -> None:
-        return super().show((255, 0, 0), show_vertex)
 
 
 class Environment(Game):
@@ -87,9 +82,10 @@ class Environment(Game):
             self.bodies.append(p)
 
         self.agent: DynamicPolygonBody = self.bodies[-1]
-        self.sensor = Sensor(1, self.plane.createPlane())
-        self.bodies.append(self.sensor)
-        self.agent.attach(self.sensor, True)
+        self.r = Sensor(1, self.plane.createPlane(), 10, 100)
+        for r in self.r.rays:
+            self.agent.attach(r, True)
+        self.bodies.extend(self.r.rays)
 
         self.engine = Engine(self.plane, np.array(self.bodies,
                                                   dtype=object_body))
@@ -108,10 +104,10 @@ class Environment(Game):
             self.agent.rotate(0.06)
         elif self.keys[pg.K_RIGHT]:
             self.agent.rotate(-0.06)
-        print(self.sensor.get_state())
 
     def USR_render(self):
-        self.engine.step()
+        self.engine.update()
+        print(self.r.get_state())
 
 
 Environment().mainloop()

@@ -4,28 +4,21 @@ from Game.physics import (object_body,
                           FreeBody,
                           DynamicBody,
                           StaticPolygonBody,
-                          DynamicPolygonBody)
+                          DynamicPolygonBody,
+                          Ray)
 from Game.physics import Engine
 from Game.math import LSI
 import pygame as pg
 import numpy as np
 
 
-class Ray(FreeBody):
+class Sensor:
 
-    def __init__(self, body_id: int, plane: CartesianPlane) -> None:
-        super().__init__(body_id, plane, 2)
-        self.shape = Polygon(plane, (100, 0))
-        self.radius = 100
-
-    def USR_resolve_collision(self, o: object_body, dxy: tuple) -> None:
-        # super().USR_resolve_collision(o, dxy)
-        pg.draw.aaline()
-        for i in range(1):
-            if self.collision_point[i].x != 0 or self.collision_point[i].y != 0:
-                xy = self.shape.plane.to_XY((self.collision_point[i].x, self.collision_point[i].y))
-                pg.draw.circle(self.shape.window, (255, 0, 0), xy, 5)
-                # print(np.sqrt(self.collision_point[i].x**2 + self.collision_point[i].y**2))
+    def __init__(self, id: int, plane: CartesianPlane, vertex_count: int, radius: float) -> None:
+        self.rays: list[Ray] = []
+        for i in range(vertex_count):
+            self.rays.append(Ray(id, plane, radius))
+            self.rays[-1].shape.vertices[0].rotate(np.pi/2 + 2*np.pi/vertex_count * i)
 
 
 class Test(Game):
@@ -33,14 +26,21 @@ class Test(Game):
     def __init__(self) -> None:
         super().__init__(width=1920, height=1080, flags=pg.FULLSCREEN | pg.HWSURFACE)
         self.plane = CartesianPlane(self.window, (self.width, self.height))
-        self.r = Ray(0, self.plane.createPlane(200, 200))
+        self.r = Sensor(0, self.plane.createPlane(), 6, 100)
 
         self.d = DynamicPolygonBody(0, self.plane.createPlane(200, 200), (30, 30, 30), 5)
 
-        self.d.attach(self.r, True)
+        for r in self.r.rays:
+            self.d.attach(r, True)
+
         self.s = StaticPolygonBody(1, self.plane.createPlane(), (100, 100, 100, 100))
 
-        self.e = Engine(self.plane, np.array([self.r, self.d, self.s], dtype=object_body))
+        b = []
+        b.append(self.d)
+        b.append(self.s)
+        b.extend(self.r.rays)
+
+        self.e = Engine(self.plane, np.array(b, dtype=object_body))
 
         self.mainloop()
 

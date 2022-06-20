@@ -67,3 +67,7 @@ class StaticTriangleBody(StaticBody):
 
 class FreePolygonBody(FreeBody):
     def __init__(self, id: int, plane: CartesianPlane, size: tuple) -> None: ...
+
+
+class Ray(FreeBody):
+    def __init__(self, id: int, plane: CartesianPlane, length: float) -> None: ...

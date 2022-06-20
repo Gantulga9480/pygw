@@ -58,3 +58,6 @@ cdef class StaticTriangleBody(StaticBody):
 
 cdef class FreePolygonBody(FreeBody):
     pass
+
+cdef class Ray(FreeBody):
+    pass

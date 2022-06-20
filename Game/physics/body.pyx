@@ -2,7 +2,7 @@ import cython
 from Game.graphic.cartesian cimport CartesianPlane, Vector2d
 from Game.graphic.shapes cimport Polygon, Rectangle, Triangle, Line
 from Game.math.core cimport pi, point2d
-from pygame.draw import aalines
+from pygame.draw import aalines, aaline, circle
 from libc.math cimport floor
 import numpy as np
 
@@ -85,13 +85,12 @@ cdef class object_body:
     @cython.boundscheck(False)
     @cython.initializedcheck(False)
     def show(self, color=(0, 0, 0), bint show_vertex=False):
-        self.shape.plane.parent_vector.update()
         cdef int i
         cdef list heads = []
         if show_vertex:
             for i in range(self.shape.vertex_count):
                 (<Vector2d>self.shape.vertices[i]).show(color)
-                heads.append((<Vector2d>self.shape.vertices[i]).get_HEAD())
+                heads.append((<Vector2d>self.shape.vertices[i]).headXY.get_xy())
         else:
             for i in range(self.shape.vertex_count):
                 heads.append((<Vector2d>self.shape.vertices[i]).get_HEAD())
@@ -215,16 +214,22 @@ cdef class DynamicBody(object_body):
         super().show(color, show_vertex)
         self.velocity.show(color)
 
-
+@cython.optimize.unpack_method_calls(False)
 cdef class Ray(FreeBody):
 
     def __cinit__(self, *args, **kwargs):
-        pass
+        ...
 
     def __init__(self, int id, CartesianPlane plane, double length):
         super().__init__(id, plane, 1)
         self.radius = length
         self.shape = Line(plane, length)
+
+    @cython.wraparound(False)
+    @cython.boundscheck(False)
+    @cython.initializedcheck(False)
+    cpdef void USR_resolve_collision(self, object_body o, (double, double) dxy):
+        circle(self.shape.window, (255, 0, 0), self.shape.plane.to_XY((<point2d>self.collision_point[0]).get_xy()), 4)
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
@@ -236,8 +241,7 @@ cdef class Ray(FreeBody):
     @cython.boundscheck(False)
     @cython.initializedcheck(False)
     def show(self, color=(0, 0, 0), bint show_vertex=False):
-        self.shape.plane.parent_vector.update()
-
+        self.shape.show(color)
 
 @cython.optimize.unpack_method_calls(False)
 cdef class DynamicPolygonBody(DynamicBody):
@@ -269,6 +273,7 @@ cdef class DynamicTriangleBody(DynamicBody):
         self.radius = max(size)
         self.shape = Triangle(plane, size)
 
+@cython.optimize.unpack_method_calls(False)
 cdef class StaticPolygonBody(StaticBody):
     def __cinit__(self, *args, **kwargs):
         pass
@@ -278,6 +283,7 @@ cdef class StaticPolygonBody(StaticBody):
         self.radius = max(size)
         self.shape = Polygon(plane, size)
 
+@cython.optimize.unpack_method_calls(False)
 cdef class StaticRectangleBody(StaticBody):
     def __cinit__(self, *args, **kwargs):
         pass
@@ -287,6 +293,7 @@ cdef class StaticRectangleBody(StaticBody):
         self.radius = max(size)
         self.shape = Rectangle(plane, size)
 
+@cython.optimize.unpack_method_calls(False)
 cdef class StaticTriangleBody(StaticBody):
     def __cinit__(self, *args, **kwargs):
         pass
@@ -296,6 +303,7 @@ cdef class StaticTriangleBody(StaticBody):
         self.radius = max(size)
         self.shape = Triangle(plane, size)
 
+@cython.optimize.unpack_method_calls(False)
 cdef class FreePolygonBody(FreeBody):
     def __cinit__(self, *args, **kwargs):
         pass

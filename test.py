@@ -24,7 +24,7 @@ class Test(Game):
                                     unit_length=1)
         body_lst = []
 
-        for i in range(100):
+        for i in range(500):
             vec = self.plane.createRandomVector()
             if i % 2:
                 body_lst.append(
@@ -87,7 +87,7 @@ class Test(Game):
             self.bodies[-1].rotate(-0.06)
 
     def USR_render(self):
-        self.engine.step()
+        self.engine.update()
         self.set_title(f'fps {round(self.clock.get_fps())}')
 
 
