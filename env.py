@@ -10,21 +10,36 @@ from Game.physics import Engine
 import pygame as pg
 import numpy as np
 import json
+from math import dist
 
 
 class Sensor:
 
-    def __init__(self, id: int, plane: CartesianPlane, vertex_count: int, radius: float) -> None:
+    def __init__(self,
+                 id: int,
+                 plane: CartesianPlane,
+                 ray_count: int,
+                 radius: float) -> None:
         self.rays: list[Ray] = []
-        for i in range(vertex_count):
-            self.rays.append(Ray(id, plane, radius))
-            self.rays[-1].shape.vertices[0].rotate(np.pi/2 + 2*np.pi/vertex_count * i)
+        for i in range(ray_count):
+            r = Ray(id, plane, radius)
+            r.shape.color = (230, 230, 230)
+            r.shape.vertices[0].rotate(np.pi/2 + 2*np.pi/ray_count * i)
+            self.rays.append(r)
 
-    def get_state(self):
-        state = []
-        for point in self.rays:
-            state.append(np.sqrt(point.collision_point[0].x**2 + point.collision_point[0].y**2))
-        return state
+    def state(self):
+        s = []
+        for ray in self.rays:
+            d = dist([ray.x, ray.y], [0, 0])
+            if d == 0:
+                s.append(ray.radius)
+            else:
+                s.append(d)
+        return s
+
+    def reset(self):
+        for ray in self.rays:
+            ray.reset()
 
 
 class Environment(Game):
@@ -46,11 +61,13 @@ class Environment(Game):
         for _ in range(28):
             vec = self.plane.createVector(-width/2, y)
             self.bodies.append(
-                StaticRectangleBody(0, CartesianPlane(self.window, (40, 40), vec),
+                StaticRectangleBody(0,
+                                    CartesianPlane(self.window, (40, 40), vec),
                                     (40, 40)))
             vec = self.plane.createVector(width/2, y)
             self.bodies.append(
-                StaticRectangleBody(0, CartesianPlane(self.window, (40, 40), vec),
+                StaticRectangleBody(0,
+                                    CartesianPlane(self.window, (40, 40), vec),
                                     (40, 40)))
             y -= 40
 
@@ -58,11 +75,13 @@ class Environment(Game):
         for _ in range(47):
             vec = self.plane.createVector(x, height / 2)
             self.bodies.append(
-                StaticRectangleBody(0, CartesianPlane(self.window, (40, 40), vec),
+                StaticRectangleBody(0,
+                                    CartesianPlane(self.window, (40, 40), vec),
                                     (40, 40)))
             vec = self.plane.createVector(x, -height / 2)
             self.bodies.append(
-                StaticRectangleBody(0, CartesianPlane(self.window, (40, 40), vec),
+                StaticRectangleBody(0,
+                                    CartesianPlane(self.window, (40, 40), vec),
                                     (40, 40)))
             x += 40
 
@@ -75,17 +94,27 @@ class Environment(Game):
             vec = self.plane.createVector(body['x'], body['y'])
             size = tuple([body['size'] for _ in range(body['shape'])])
             if body['type'] == 1:
-                p = DynamicPolygonBody(1, CartesianPlane(self.window, (40, 40), vec), size, 10)
+                p = DynamicPolygonBody(1,
+                                       CartesianPlane(self.window,
+                                                      (40, 40), vec), size, 10)
+                p.shape.color = (255, 0, 255)
             else:
-                p = StaticPolygonBody(0, CartesianPlane(self.window, (40, 40), vec), size)
+                p = StaticPolygonBody(0,
+                                      CartesianPlane(self.window,
+                                                     (40, 40), vec), size)
             p.rotate(body['dir'])
             self.bodies.append(p)
 
         self.agent: DynamicPolygonBody = self.bodies[-1]
         self.r = Sensor(1, self.plane.createPlane(), 10, 100)
+        a = FreePolygonBody(1, self.plane.createPlane(), (17, 5, 5))
+        a.shape.color = (0, 0, 255)
+        self.agent.attach(a, True)
         for r in self.r.rays:
             self.agent.attach(r, True)
+
         self.bodies.extend(self.r.rays)
+        self.bodies.append(a)
 
         self.engine = Engine(self.plane, np.array(self.bodies,
                                                   dtype=object_body))
@@ -106,8 +135,13 @@ class Environment(Game):
             self.agent.rotate(-0.06)
 
     def USR_render(self):
+        self.r.reset()
         self.engine.update()
-        print(self.r.get_state())
+        print(f'v: {self.agent.speed()}, d: {self.agent.direction()}')
+        print(self.r.state())
 
 
-Environment().mainloop()
+env = Environment()
+
+while env.running:
+    env.loop_once()

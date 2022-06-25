@@ -53,10 +53,7 @@ cdef class collision:
                     if val != 0:
                         dx += (l1e[0] - l1s[0]) * (1 - val)
                         dy += (l1e[1] - l1s[1]) * (1 - val)
-                        (<point2d>b1.collision_point[i]).set_x((l1e[0] - l1s[0]) * val)
-                        (<point2d>b1.collision_point[i]).set_y((l1e[1] - l1s[1]) * val)
+                        if b1.type == FREE:
+                            b1.USR_resolve_collision_point((l1e[0] - l1s[0]) * val, (l1e[1] - l1s[1]) * val)
             if dx != 0 or dy != 0:
                 b1.USR_resolve_collision(b2, (dx, dy))
-            else:
-                for i in range(b1.shape.vertex_count):
-                    (<point2d>b1.collision_point[i]).set_xy((0, 0))

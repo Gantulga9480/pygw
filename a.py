@@ -7,7 +7,6 @@ from Game.physics import (object_body,
                           DynamicPolygonBody,
                           Ray)
 from Game.physics import Engine
-from Game.math import LSI
 import pygame as pg
 import numpy as np
 
@@ -20,12 +19,17 @@ class Sensor:
             self.rays.append(Ray(id, plane, radius))
             self.rays[-1].shape.vertices[0].rotate(np.pi/2 + 2*np.pi/vertex_count * i)
 
+    def reset(self):
+        for ray in self.rays:
+            ray.reset()
+
 
 class Test(Game):
 
     def __init__(self) -> None:
         super().__init__(width=1920, height=1080, flags=pg.FULLSCREEN | pg.HWSURFACE)
         self.plane = CartesianPlane(self.window, (self.width, self.height))
+
         self.r = Sensor(0, self.plane.createPlane(), 6, 100)
 
         self.d = DynamicPolygonBody(0, self.plane.createPlane(200, 200), (30, 30, 30), 5)
@@ -33,11 +37,14 @@ class Test(Game):
         for r in self.r.rays:
             self.d.attach(r, True)
 
-        self.s = StaticPolygonBody(1, self.plane.createPlane(), (100, 100, 100, 100))
+        self.s = StaticPolygonBody(1, self.plane.createPlane(), (30, 30, 30, 30))
+
+        self.s1 = StaticPolygonBody(1, self.plane.createPlane(200, 0), (30, 30, 30, 30))
 
         b = []
         b.append(self.d)
         b.append(self.s)
+        b.append(self.s1)
         b.extend(self.r.rays)
 
         self.e = Engine(self.plane, np.array(b, dtype=object_body))
@@ -60,10 +67,8 @@ class Test(Game):
             self.d.rotate(-0.1)
 
     def USR_render(self):
+        self.r.reset()
         self.e.update()
-        # self.r.step()
-        # self.r.show((255, 0, 0))
-        # self.s.show((0, 0, 0))
 
 
 Test()

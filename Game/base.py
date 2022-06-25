@@ -43,15 +43,12 @@ class Game:
             self.USR_loop()
             self.__highLevelRender()
 
-    def USR_loopStart(self):
-        """ User should override this method """
-        ...
+    def loop_once(self):
+        self.__highLevelEventHandler()
+        self.USR_loop()
+        self.__highLevelRender()
 
     def USR_loop(self):
-        """ User should override this method """
-        ...
-
-    def USR_loopEnd(self):
         """ User should override this method """
         ...
 

@@ -42,4 +42,4 @@ cdef class Engine:
                             if (self.bodies[i].radius + self.bodies[j].radius) >= ((<object_body>self.bodies[i]).shape.plane.parent_vector.distance_to((<object_body>self.bodies[j]).shape.plane.parent_vector)):
                                 self.collider.check(<object_body>self.bodies[i], <object_body>self.bodies[j])
             # Throw body on to screen
-            (<object_body>self.bodies[i]).show((0, 0, 0))
+            (<object_body>self.bodies[i]).show()

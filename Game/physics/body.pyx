@@ -3,7 +3,7 @@ from Game.graphic.cartesian cimport CartesianPlane, Vector2d
 from Game.graphic.shapes cimport Polygon, Rectangle, Triangle, Line
 from Game.math.core cimport pi, point2d
 from pygame.draw import aalines, aaline, circle
-from libc.math cimport floor
+from libc.math cimport floor, sqrt
 import numpy as np
 
 
@@ -26,7 +26,9 @@ cdef class object_body:
     def __init__(self, int id, int type, int vertex_count):
         self.id = id
         self.type = type
-        self.collision_point = np.array([point2d(0, 0) for _ in range(vertex_count)], dtype=point2d)
+
+    def show(self, show_vertex=False):
+        self.shape.show(show_vertex)
 
     cpdef void attach(self, object_body o, bint follow_dir):
         if not o.is_attached:
@@ -48,12 +50,16 @@ cdef class object_body:
             if d != 0:
                 self.shape.rotate(d)
                 self.velocity.rotate(d)
-        self.USR_step()
+        else:
+            self.USR_step()
 
     cpdef void USR_step(self):
         pass
 
     cpdef void USR_resolve_collision(self, object_body o, (double, double) dxy):
+        pass
+
+    cpdef void USR_resolve_collision_point(self, double dx, double dy):
         pass
 
     cpdef void rotate(self, double angle):
@@ -81,26 +87,20 @@ cdef class object_body:
                     (<Vector2d>self.shape.vertices[i]).scale(factor)
                 self.radius *= factor
 
-    @cython.wraparound(False)
-    @cython.boundscheck(False)
-    @cython.initializedcheck(False)
-    def show(self, color=(0, 0, 0), bint show_vertex=False):
-        cdef int i
-        cdef list heads = []
-        if show_vertex:
-            for i in range(self.shape.vertex_count):
-                (<Vector2d>self.shape.vertices[i]).show(color)
-                heads.append((<Vector2d>self.shape.vertices[i]).headXY.get_xy())
-        else:
-            for i in range(self.shape.vertex_count):
-                heads.append((<Vector2d>self.shape.vertices[i]).get_HEAD())
-        aalines(self.shape.window, color, True, heads)
-
     cpdef (double, double) position(self):
         return self.shape.plane.parent_vector.get_head()
 
+    @cython.cdivision(True)
+    cpdef double direction(self):
+        cdef double d = self.velocity.dir()
+        if d < 0:
+            return (2*pi + d) / pi * 180.0
+        else:
+            return d / pi * 180.0
+
     cpdef double speed(self):
-        return floor((self.velocity.mag() - 1.0) * 10.0) / 10.0
+        cdef double s = floor((self.velocity.mag() - 1.0) * 100.0) / 100.0
+        return s if s >= 0 else 0.0
 
 @cython.optimize.unpack_method_calls(False)
 cdef class FreeBody(object_body):
@@ -138,10 +138,6 @@ cdef class FreeBody(object_body):
         if not self.is_following_dir:
             self.shape.rotate(angle)
             self.velocity.rotate(angle)
-
-    def show(self, color=(0, 0, 0), bint show_vertex=False):
-        super().show(color, show_vertex)
-        self.velocity.show(color)
 
 @cython.optimize.unpack_method_calls(False)
 cdef class StaticBody(object_body):
@@ -210,26 +206,36 @@ cdef class DynamicBody(object_body):
             self.shape.rotate(angle)
             self.velocity.rotate(angle)
 
-    def show(self, color=(0, 0, 0), bint show_vertex=False):
-        super().show(color, show_vertex)
-        self.velocity.show(color)
+    def show(self, show_vertex=False):
+        self.shape.show(show_vertex)
+        self.velocity.show((0, 0, 255))
 
 @cython.optimize.unpack_method_calls(False)
 cdef class Ray(FreeBody):
 
     def __cinit__(self, *args, **kwargs):
-        ...
+        self.x = 0
+        self.y = 0
 
     def __init__(self, int id, CartesianPlane plane, double length):
         super().__init__(id, plane, 1)
         self.radius = length
         self.shape = Line(plane, length)
 
-    @cython.wraparound(False)
-    @cython.boundscheck(False)
-    @cython.initializedcheck(False)
-    cpdef void USR_resolve_collision(self, object_body o, (double, double) dxy):
-        circle(self.shape.window, (255, 0, 0), self.shape.plane.to_XY((<point2d>self.collision_point[0]).get_xy()), 4)
+    cpdef void reset(self):
+        if self.x != 0 or self.y != 0:
+            circle(self.shape.window, (255, 0, 0), self.shape.plane.to_XY((self.x, self.y)), 3)
+            self.x = 0
+            self.y = 0
+
+    cpdef void USR_resolve_collision_point(self, double dx, double dy):
+        if (self.x != 0 or self.y != 0):
+            if ((self.x * self.x + self.y * self.y) > (dx * dx + dy * dy)):
+                self.x = dx
+                self.y = dy
+        else:
+            self.x = dx
+            self.y = dy
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
@@ -237,11 +243,8 @@ cdef class Ray(FreeBody):
     cpdef void scale(self, double factor):
         (<Vector2d>self.vertices[0]).scale(factor)
 
-    @cython.wraparound(False)
-    @cython.boundscheck(False)
-    @cython.initializedcheck(False)
-    def show(self, color=(0, 0, 0), bint show_vertex=False):
-        self.shape.show(color)
+    def show(self, show_vertex=False):
+        self.shape.show()
 
 @cython.optimize.unpack_method_calls(False)
 cdef class DynamicPolygonBody(DynamicBody):

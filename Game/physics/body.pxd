@@ -13,7 +13,6 @@ cdef class object_body:
     cdef public double friction_factor
     cdef public Shape shape
     cdef public Vector2d velocity
-    cdef readonly point2d[:] collision_point
     cdef bint is_attached
     cdef bint is_following_dir
     cdef object_body parent_body
@@ -22,11 +21,13 @@ cdef class object_body:
     cpdef void rotate(self, double angle)
     cpdef void scale(self, double factor)
     cpdef (double, double) position(self)
+    cpdef double direction(self)
     cpdef double speed(self)
     cpdef void attach(self, object_body o, bint follow_dir)
     cpdef void detach(self, object_body o)
     cpdef void USR_step(self)
     cpdef void USR_resolve_collision(self, object_body o, (double, double) dxy)
+    cpdef void USR_resolve_collision_point(self, double dx, double dy)
 
 cdef class FreeBody(object_body):
     cpdef void Accelerate(self, double factor)
@@ -60,4 +61,6 @@ cdef class FreePolygonBody(FreeBody):
     pass
 
 cdef class Ray(FreeBody):
-    pass
+    cdef readonly double x
+    cdef readonly double y
+    cpdef void reset(self)

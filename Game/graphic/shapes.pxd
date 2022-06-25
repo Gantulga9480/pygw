@@ -7,6 +7,7 @@ cdef class Shape:
     cdef readonly CartesianPlane plane
     cdef readonly int vertex_count
     cdef readonly Vector2d[:] vertices
+    cdef public color
 
     cpdef void rotate(self, double angle)
     cpdef void scale(self, double factor)
