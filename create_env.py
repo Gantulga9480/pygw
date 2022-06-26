@@ -29,11 +29,13 @@ class Test(Game):
         for i in range(28):
             vec = self.plane.createVector(-width/2, y)
             self.frames.append(
-                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
+                StaticRectangleBody(1,
+                                    CartesianPlane(self.window, (40, 40), vec),
                                     (40, 40)))
             vec = self.plane.createVector(width/2, y)
             self.frames.append(
-                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
+                StaticRectangleBody(1,
+                                    CartesianPlane(self.window, (40, 40), vec),
                                     (40, 40)))
             y -= 40
 
@@ -41,11 +43,13 @@ class Test(Game):
         for i in range(47):
             vec = self.plane.createVector(x, height / 2)
             self.frames.append(
-                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
+                StaticRectangleBody(1,
+                                    CartesianPlane(self.window, (40, 40), vec),
                                     (40, 40)))
             vec = self.plane.createVector(x, -height / 2)
             self.frames.append(
-                StaticRectangleBody(1, CartesianPlane(self.window, (40, 40), vec),
+                StaticRectangleBody(1,
+                                    CartesianPlane(self.window, (40, 40), vec),
                                     (40, 40)))
             x += 40
 
@@ -100,7 +104,7 @@ class Test(Game):
                 a = []
                 for body in self.bodies:
                     c = dict()
-                    c['type'] = body[0].body_type
+                    c['type'] = body[0].type
                     c['size'] = body[1]
                     c['shape'] = body[2]
                     c['dir'] = body[3]
@@ -117,7 +121,7 @@ class Test(Game):
         self.current_vec.y = self.plane.to_y(self.mouse_y)
 
     def USR_render(self):
-        if self.current_shape.body_type == 1:
+        if self.current_shape.type == 1:
             self.current_shape.show((0, 0, 255))
         else:
             self.current_shape.show((255, 0, 0))
@@ -131,15 +135,15 @@ class Test(Game):
         self.current_vec = self.plane.createVector(0, 0)
         size = tuple([self.shape_size for _ in range(self.shape_vertex)])
         if self.type == 1:
-            self.current_shape = DynamicPolygonBody(0,
-                                                    CartesianPlane(self.window, (40, 40),
-                                                                   self.current_vec),
-                                                    size)
+            self.current_shape = DynamicPolygonBody(
+                0, CartesianPlane(
+                    self.window, (40, 40), self.current_vec),
+                size)
         else:
-            self.current_shape = StaticPolygonBody(0,
-                                                   CartesianPlane(self.window, (40, 40),
-                                                                  self.current_vec),
-                                                   size)
+            self.current_shape = StaticPolygonBody(
+                0, CartesianPlane(
+                    self.window, (40, 40), self.current_vec),
+                size)
         self.current_shape.rotate(self.shape_dir)
 
 

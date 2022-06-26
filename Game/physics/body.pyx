@@ -223,10 +223,8 @@ cdef class Ray(FreeBody):
         self.shape = Line(plane, length)
 
     cpdef void reset(self):
-        if self.x != 0 or self.y != 0:
-            circle(self.shape.window, (255, 0, 0), self.shape.plane.to_XY((self.x, self.y)), 3)
-            self.x = 0
-            self.y = 0
+        self.x = 0
+        self.y = 0
 
     cpdef void USR_resolve_collision_point(self, double dx, double dy):
         if (self.x != 0 or self.y != 0):
@@ -245,6 +243,8 @@ cdef class Ray(FreeBody):
 
     def show(self, show_vertex=False):
         self.shape.show()
+        if self.x != 0 or self.y != 0:
+            circle(self.shape.window, (255, 0, 0), self.shape.plane.to_XY((self.x, self.y)), 3)
 
 @cython.optimize.unpack_method_calls(False)
 cdef class DynamicPolygonBody(DynamicBody):
