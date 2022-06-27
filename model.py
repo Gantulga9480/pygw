@@ -13,10 +13,10 @@ class DQN:
 
     LEARNING_RATE = 0.0003
     DISCOUNT_RATE = 0.9
-    BATCH_SIZE = 128
-    EPOCHS = 5
-    EPSILON_DECAY = 0.99995
-    MIN_EPSILON = 0.01
+    BATCH_SIZE = 256
+    EPOCHS = 10
+    EPSILON_DECAY = 0.99999
+    MIN_EPSILON = 0.1
 
     def __init__(self) -> None:
 
@@ -33,14 +33,26 @@ class DQN:
 
         self.main_model = self.create_model()
         self.target_model = self.create_model()
-        self.target_model.set_weights(self.main_model.get_weights())
+        self.update_target()
 
         self.epsilon = 1
 
     def create_model(self) -> Sequential:
         model = Sequential()
         model.add(Input(shape=(11,)))
-        model.add(Dense(121, activation='relu'))
+        model.add(Dense(20, activation='relu',
+                        kernel_initializer='random_uniform'))
+        model.add(Dropout(0.5))
+        model.add(Dense(40, activation='relu',
+                        kernel_initializer='random_uniform'))
+        model.add(Dense(30, activation='relu',
+                        kernel_initializer='random_uniform'))
+        model.add(Dropout(0.5))
+        model.add(Dense(20, activation='relu',
+                        kernel_initializer='random_uniform'))
+        model.add(Dense(10, activation='relu',
+                        kernel_initializer='random_uniform'))
+        model.add(Dropout(0.2))
         model.add(Dense(4, activation='linear'))
         model.compile(loss="mse",
                       optimizer=Adam(learning_rate=self.LEARNING_RATE),
@@ -58,7 +70,7 @@ class DQN:
             path += '.h5'
         try:
             self.main_model = load_model(path)
-            self.target_model.set_weights(self.main_model.get_weights())
+            self.update_target()
         except IOError:
             print('Model file not found!')
             exit()

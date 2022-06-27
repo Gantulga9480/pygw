@@ -153,7 +153,6 @@ class Environment(Game):
         if self.step_count % 100 == 0:
             self.reward_hist.append(self.reward_sum / 100)
             self.reward_sum = 0
-
         return r, self.get_state()
 
     def reset(self):
