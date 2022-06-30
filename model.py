@@ -11,14 +11,14 @@ import random
 
 class DQN:
 
-    LEARNING_RATE = 0.0003
+    LEARNING_RATE = 0.001
     DISCOUNT_RATE = 0.9
-    BATCH_SIZE = 256
-    EPOCHS = 10
-    EPSILON_DECAY = 0.99999
-    MIN_EPSILON = 0.1
+    BATCH_SIZE = 128
+    EPOCHS = 5
+    EPSILON_DECAY = 0.99995
+    MIN_EPSILON = 0.01
 
-    def __init__(self) -> None:
+    def __init__(self, path: str = None) -> None:
 
         gpus = tf.config.list_physical_devices('GPU')
         if gpus:
@@ -31,28 +31,20 @@ class DQN:
                 # Memory growth must be set before GPUs have been initialized
                 print(e)
 
-        self.main_model = self.create_model()
-        self.target_model = self.create_model()
-        self.update_target()
-
         self.epsilon = 1
+
+        if path is not None:
+            self.load(path)
+        else:
+            self.main_model = self.create_model()
+            self.target_model = self.create_model()
+        self.update_target()
 
     def create_model(self) -> Sequential:
         model = Sequential()
         model.add(Input(shape=(11,)))
-        model.add(Dense(20, activation='relu',
-                        kernel_initializer='random_uniform'))
-        model.add(Dropout(0.5))
-        model.add(Dense(40, activation='relu',
-                        kernel_initializer='random_uniform'))
-        model.add(Dense(30, activation='relu',
-                        kernel_initializer='random_uniform'))
-        model.add(Dropout(0.5))
-        model.add(Dense(20, activation='relu',
-                        kernel_initializer='random_uniform'))
-        model.add(Dense(10, activation='relu',
-                        kernel_initializer='random_uniform'))
-        model.add(Dropout(0.2))
+        model.add(Dense(44, activation='relu', kernel_initializer='random_uniform'))
+        model.add(Dense(22, activation='relu', kernel_initializer='random_uniform'))
         model.add(Dense(4, activation='linear'))
         model.compile(loss="mse",
                       optimizer=Adam(learning_rate=self.LEARNING_RATE),
@@ -70,7 +62,7 @@ class DQN:
             path += '.h5'
         try:
             self.main_model = load_model(path)
-            self.update_target()
+            self.target_model = load_model(path)
         except IOError:
             print('Model file not found!')
             exit()
@@ -113,7 +105,7 @@ class DQN:
                             epochs=self.EPOCHS,
                             batch_size=self.BATCH_SIZE,
                             shuffle=False,
-                            verbose=2)
+                            verbose=0)
 
 
 class ReplayBuffer:
@@ -121,14 +113,21 @@ class ReplayBuffer:
     def __init__(self, max_size, min_size) -> None:
         self.max_size = max_size
         self.min_size = min_size
-        self.buffer = deque(maxlen=max_size)
+        self.buffer_new = deque(maxlen=max_size)
+        self.buffer_old = deque(maxlen=max_size)
 
     @property
     def trainable(self):
         return self.buffer.__len__() > self.min_size
 
     def push(self, data):
-        self.buffer.append(data)
+        if self.buffer_new.__len__() == self.max_size:
+            self.buffer_old.append(self.buffer_new.popleft())
+        self.buffer_new.append(data)
 
-    def sample(self, sample_size):
-        return random.sample(self.buffer, sample_size)
+    def sample(self, sample_size, factor):
+        n_size = round(sample_size * factor)
+        o_size = sample_size - n_size
+        sn = random.sample(self.buffer_new, n_size)
+        so = random.sample(self.buffer_old, o_size)
+        return sn.extend(so)
