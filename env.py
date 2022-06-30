@@ -18,6 +18,10 @@ RIGHT = 1
 BREAK = 2
 LEFT = 3
 
+MAX_SPEED = 7
+SENSOR_RADIUS = 200
+SENSOR_COUNT = 10
+
 
 class Sensor:
 
@@ -58,11 +62,6 @@ class Environment(Game):
                  flags: int = pg.FULLSCREEN | pg.HWSURFACE,
                  render: bool = True) -> None:
         super().__init__(title, width, height, fps, flags, render)
-
-        self.step_count = 0
-        self.reward_sum = 0
-        self.reward_hist = []
-
         self.plane = CartesianPlane(self.window, (width, height),
                                     unit_length=1)
         self.bodies: list[object_body] = []
@@ -110,19 +109,19 @@ class Environment(Game):
             if body['type'] == 1:
                 self.agent_vec = vec
                 self.agent_initial_pos = (body['x'], body['y'])
-                p = DynamicPolygonBody(1,
-                                       CartesianPlane(self.window,
-                                                      (40, 40), vec), size, 10)
+                p = DynamicPolygonBody(
+                    1, CartesianPlane(self.window, (40, 40), vec),
+                    size, MAX_SPEED)
                 p.shape.color = (255, 0, 255)
             else:
-                p = StaticPolygonBody(0,
-                                      CartesianPlane(self.window,
-                                                     (40, 40), vec), size)
+                p = StaticPolygonBody(
+                    0, CartesianPlane(self.window, (40, 40), vec), size)
             p.rotate(body['dir'])
             self.bodies.append(p)
 
         self.agent: DynamicPolygonBody = self.bodies[-1]
-        self.sensor = Sensor(1, self.plane.createPlane(), 10, 200)
+        self.sensor = Sensor(1, self.plane.createPlane(),
+                             SENSOR_COUNT, SENSOR_RADIUS)
         a = FreePolygonBody(1, self.plane.createPlane(), (17, 5, 5))
         a.shape.color = (0, 0, 255)
         self.agent.attach(a, True)
@@ -141,47 +140,45 @@ class Environment(Game):
         elif action == BREAK:
             self.agent.Accelerate(-0.15)
         elif action == LEFT:
-            self.agent.rotate(0.05)
+            self.agent.rotate(0.06)
         elif action == RIGHT:
-            self.agent.rotate(-0.05)
+            self.agent.rotate(-0.06)
         else:
             raise ValueError('Unknown action')
         self.loop_once()
-        r = self.agent.speed()
-        self.step_count += 1
-        self.reward_sum += r
-        if self.step_count % 100 == 0:
-            self.reward_hist.append(self.reward_sum / 100)
-            self.reward_sum = 0
-        return r, self.get_state()
+        return self.get_reward(), self.get_state()
 
     def reset(self):
         self.over = False
+        unit_vec = self.agent.velocity.unit(vector=False)
         self.agent_vec.head = self.agent_initial_pos
-        self.agent.velocity = self.agent.shape.plane.createVector(1, 0, 10, 1)
-        self.agent.rotate(np.pi/2)
+        self.agent.velocity = self.agent.shape.plane.createVector(unit_vec[0],
+                                                                  unit_vec[1],
+                                                                  MAX_SPEED, 1)
         self.loop_once()
         return self.get_state()
+
+    def get_reward(self):
+        st = self.sensor.state()
+        s = self.agent.speed()
+        r = s / (MAX_SPEED/2) if s >= 0.1 else -1
+        r += (st[0] - SENSOR_RADIUS) / SENSOR_RADIUS if st[0] < SENSOR_RADIUS else 1
+        r += (st[1] - SENSOR_RADIUS/2) / SENSOR_RADIUS/2
+        r += (st[-1] - SENSOR_RADIUS/2) / SENSOR_RADIUS/2
+        return r
 
     def get_state(self):
         state = self.sensor.state()
         state.append(self.agent.speed())
         return state
 
-    def save(self, path):
-        if not path.endswith('.txt'):
-            path += '.txt'
-        with open(path, 'w') as f:
-            for val in self.reward_hist:
-                f.write(str(val)+'\n')
-
     def USR_eventHandler(self, event):
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_q:
                 self.over = True
                 self.running = False
-            elif event.key == pg.K_r:
-                self.reset()
+            # elif event.key == pg.K_r:
+            #     self.reset()
 
     # def USR_loop(self):
     #     if self.keys[pg.K_UP]:
@@ -203,3 +200,4 @@ if __name__ == '__main__':
 
     while env.running:
         env.loop_once()
+        print(env.sensor.state())
