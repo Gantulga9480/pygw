@@ -39,12 +39,12 @@ class Game:
         self.__highLevelSetup()
         while self.running:
             self.__highLevelEventHandler()
-            self.USR_loop()
+            self.loop()
             self.__highLevelRender()
 
     def loop_once(self) -> None:
         self.__highLevelEventHandler()
-        self.USR_loop()
+        self.loop()
         self.__highLevelRender()
 
     def loop(self) -> None:
@@ -54,7 +54,7 @@ class Game:
     def __highLevelSetup(self):
         self.set_title(self.title)
         self.set_window()
-        self.USR_setup()
+        self.setup()
 
     def setup(self) -> None:
         """ User should override this method """
@@ -66,7 +66,7 @@ class Game:
                 self.running = False
                 break
             else:
-                self.USR_eventHandler(event)
+                self.onEvent(event)
         self.mouse_x, self.mouse_y = pg.mouse.get_pos()
         self.keys = pg.key.get_pressed()
 
@@ -77,7 +77,7 @@ class Game:
     def __highLevelRender(self):
         if self.rendering and self.running:
             self.window.fill(self.backgroundColor)
-            self.USR_render()
+            self.onRender()
             pg.display.flip()
             self.clock.tick(self.fps)
 
