@@ -1,11 +1,10 @@
 import pygame as pg    # noqa
-from .color import *   # noqa
 
 
 class Game:
 
     def __init__(self,
-                 title: str = 'PyGameDemo',
+                 title: str = 'PyGameWindow',
                  width: int = 640,
                  height: int = 480,
                  fps: int = 60,
@@ -19,7 +18,7 @@ class Game:
         self.fps: int = fps
         self.flags: int = flags
         self.title: str = title
-        self.backgroundColor: pg.Color = WHITE
+        self.backgroundColor: pg.Color = pg.Color(255, 255, 255)
         self.running: bool = True
         self.rendering: bool = render
         self.clock = pg.time.Clock()
@@ -31,32 +30,33 @@ class Game:
 
         # Render
         self.sprites: list[pg.Rect] = []
-        self.window = self.get_window(self.width, self.height, self.flags)
+        self.window = None
 
     def __del__(self):
         pg.quit()
 
-    def mainloop(self):
+    def loop_forever(self) -> None:
         self.__highLevelSetup()
         while self.running:
             self.__highLevelEventHandler()
             self.USR_loop()
             self.__highLevelRender()
 
-    def loop_once(self):
+    def loop_once(self) -> None:
         self.__highLevelEventHandler()
         self.USR_loop()
         self.__highLevelRender()
 
-    def USR_loop(self):
+    def loop(self) -> None:
         """ User should override this method """
         ...
 
     def __highLevelSetup(self):
         self.set_title(self.title)
+        self.set_window()
         self.USR_setup()
 
-    def USR_setup(self):
+    def setup(self) -> None:
         """ User should override this method """
         ...
 
@@ -70,7 +70,7 @@ class Game:
         self.mouse_x, self.mouse_y = pg.mouse.get_pos()
         self.keys = pg.key.get_pressed()
 
-    def USR_eventHandler(self, event):
+    def onEvent(self, event) -> None:
         """ User should override this method """
         ...
 
@@ -81,15 +81,24 @@ class Game:
             pg.display.flip()
             self.clock.tick(self.fps)
 
-    def USR_render(self):
+    def onRender(self) -> None:
         """ User should override this method """
         ...
 
-    @staticmethod
-    def set_title(title: str):
-        pg.display.set_caption(title)
+    def set_window(self, window: pg.Surface = None) -> None:
+        """ Avoid calling outside of PyGameBase instance """
+        if window:
+            assert isinstance(window, pg.Surface)
+            self.window = window
+        else:
+            if not self.window:
+                self.window = pg.display.set_mode((self.width,
+                                                   self.height), self.flags)
+
+    def get_window(self) -> pg.Surface:
+        if pg.display.get_init():
+            return pg.display.get_surface()
 
     @staticmethod
-    def get_window(width: int, height: int, flags: int):
-        """ Avoid calling outside of PyGameBase instance """
-        return pg.display.set_mode((width, height), flags)
+    def set_title(title: str) -> None:
+        pg.display.set_caption(title)
