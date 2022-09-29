@@ -10,7 +10,8 @@ class Game:
                  fps: int = 60,
                  flags: int = 0,
                  render: bool = True) -> None:
-        pg.init()
+        if not pg.get_init():
+            pg.init()
 
         # Main window
         self.width: int = width
@@ -48,7 +49,7 @@ class Game:
         self.loop()
         self.__highLevelRender()
 
-    def loop(self) -> None:
+    def onLoop(self) -> None:
         """ User should override this method """
         ...
 
@@ -93,12 +94,14 @@ class Game:
             self.window = window
         else:
             if not self.window:
-                self.window = pg.display.set_mode((self.width,
-                                                   self.height), self.flags)
+                self.window = pg.display.get_surface()
+                if self.window is None:
+                    self.window = pg.display.set_mode((self.width,
+                                                       self.height),
+                                                      self.flags)
 
     def get_window(self) -> pg.Surface:
-        if pg.display.get_init():
-            return pg.display.get_surface()
+        return pg.display.get_surface()
 
     @staticmethod
     def set_title(title: str) -> None:
