@@ -32,11 +32,12 @@ class Game:
         self.sprites: list[pg.Rect] = []
         self.window = None
 
+        self.__highLevelSetup()
+
     def __del__(self):
         pg.quit()
 
     def loop_forever(self) -> None:
-        self.__highLevelSetup()
         while self.running:
             self.__highLevelEventHandler()
             self.loop()
