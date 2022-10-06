@@ -33,30 +33,29 @@ class Game:
         self.sprites: list[pg.Rect] = []
         self.window = self.get_window(self.width, self.height, self.flags)
 
+        self.__highLevelSetup()
+
     def __del__(self):
         pg.quit()
 
     def mainloop(self):
-        self.__highLevelSetup()
         while self.running:
-            self.__highLevelEventHandler()
-            self.USR_loop()
-            self.__highLevelRender()
+            self.loop_once()
 
     def loop_once(self):
         self.__highLevelEventHandler()
-        self.USR_loop()
+        self.loop()
         self.__highLevelRender()
 
-    def USR_loop(self):
+    def loop(self):
         """ User should override this method """
         ...
 
     def __highLevelSetup(self):
         self.set_title(self.title)
-        self.USR_setup()
+        self.setup()
 
-    def USR_setup(self):
+    def setup(self):
         """ User should override this method """
         ...
 
@@ -66,22 +65,23 @@ class Game:
                 self.running = False
                 break
             else:
-                self.USR_eventHandler(event)
+                self.onEvent(event)
         self.mouse_x, self.mouse_y = pg.mouse.get_pos()
         self.keys = pg.key.get_pressed()
 
-    def USR_eventHandler(self, event):
+    def onEvent(self, event):
         """ User should override this method """
         ...
 
     def __highLevelRender(self):
         if self.rendering and self.running:
-            self.window.fill(self.backgroundColor)
-            self.USR_render()
+            self.onRender()
+            if self.sprites.__len__() > 0:
+                pg.display.update(self.sprites)
             pg.display.flip()
             self.clock.tick(self.fps)
 
-    def USR_render(self):
+    def onRender(self):
         """ User should override this method """
         ...
 
