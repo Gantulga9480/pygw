@@ -27,13 +27,13 @@ class Game:
         self.__render()
         return self.running
 
-    def __event_handler(self):
+    def __event_handler(self) -> None:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.running = False
             self.windows[self.current_window].onEvent(event)
 
-    def __render(self):
+    def __render(self) -> None:
         self.windows[self.current_window].render()
 
     def switch(self, window_index: int) -> None:

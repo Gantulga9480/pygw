@@ -19,11 +19,11 @@ class Window(Scene):
                 t=str(type(game.window_flags)).split(' ')[1].split("'")[1]
             )
         self.game = game
-        self.fps = game.fps
+        self.fps: int = game.fps
         self.name: str = name
-        self.draw_bounding_boxes = False
+        self.draw_bounding_boxes: bool = False
 
-    def set(self):
+    def set(self) -> None:
         self.surface = pg.display.get_surface()
         if self.surface is None:
             self.surface = \
@@ -39,5 +39,5 @@ class Window(Scene):
             if scene.state.get():
                 scene.render(self.draw_bounding_boxes)
                 self.surface.blit(scene.surface, scene.position)
-        pg.display.update()
+        pg.display.flip()
         self.game.clock.tick(self.fps)

@@ -22,7 +22,7 @@ class Scene:
     # - Transparent background support
 
     def __init__(self,
-                 parent,
+                 parent: 'Scene',
                  size: tuple,
                  position: tuple) -> None:
         if parent is not None:
@@ -41,8 +41,8 @@ class Scene:
 
         # self.parent is None in 'Base Scene'
         self.parent: Scene = parent
-        self.size = size
-        self.position = position
+        self.size: list = list(size)
+        self.position: list = list(position)
 
         # If parent is None 'Base Scene' surface will be given by Window class
         self.surface: pg.Surface = None
