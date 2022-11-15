@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="Game",
-    version="1.0-s",
+    version="2.0-s",
     author="Gantulga G",
     author_email="limited.tulgaa@gmail.com>",
     description="Pygame base class for ease of use",
