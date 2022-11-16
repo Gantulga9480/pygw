@@ -44,16 +44,16 @@ class Game:
     def loop_forever(self) -> None:
         while self.running:
             self.__highLevelEventHandler()
-            self.onLoop()
+            self.loop()
             self.__highLevelRender()
 
     def loop_once(self) -> bool:
         self.__highLevelEventHandler()
-        self.onLoop()
+        self.loop()
         self.__highLevelRender()
         return self.running
 
-    def onLoop(self) -> None:
+    def loop(self) -> None:
         """ User should override this method """
         ...
 
