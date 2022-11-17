@@ -25,7 +25,6 @@ class Game:
         # User sprite list - TODO
         self.sprites: list[pg.Rect] = []
         # User custom render callbacks list - TODO
-        self.__render_callbacks = []
         self.window = None
 
         self.__setup()
@@ -74,11 +73,7 @@ class Game:
 
     def __render(self):
         if self.rendering and self.running:
-            self.window.fill(self.backgroundColor)
             self.onRender()
-            # TODO
-            for cb in self.__render_callbacks:
-                cb()
             pg.display.flip()
             self.clock.tick(self.fps)
 
@@ -100,9 +95,6 @@ class Game:
 
     def get_window(self) -> pg.Surface:
         return pg.display.get_surface()
-
-    def register_render_callback(self, func):
-        self.__render_callbacks.append(func)
 
     @staticmethod
     def set_title(title: str) -> None:
