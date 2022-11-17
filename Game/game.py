@@ -27,12 +27,11 @@ class Game:
         # User custom render callbacks list - TODO
         self.window = None
 
-        self.__setup()
-
     def __del__(self):
         pg.quit()
 
     def loop_forever(self) -> None:
+        self.__setup()
         while self.running:
             self.__eventHandler()
             self.loop()
