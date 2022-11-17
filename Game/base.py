@@ -3,25 +3,17 @@ import pygame as pg    # noqa
 
 class Game:
 
-    def __init__(self,
-                 title: str = 'PyGameWindow',
-                 width: int = 640,
-                 height: int = 480,
-                 fps: int = 60,
-                 flags: int = 0,
-                 render: bool = True) -> None:
+    def __init__(self) -> None:
         if not pg.get_init():
             pg.init()
 
         # Main window
-        self.width: int = width
-        self.height: int = height
-        self.fps: int = fps
-        self.flags: int = flags
-        self.title: str = title
-        self.backgroundColor: pg.Color = pg.Color(255, 255, 255)
+        self.title: str = 'PyGameWindow'
+        self.size: tuple = (640, 480)
+        self.window_flags: int = 0
+        self.fps: int = 60
         self.running: bool = True
-        self.rendering: bool = render
+        self.rendering: bool = True
         self.clock = pg.time.Clock()
 
         # Event
