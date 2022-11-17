@@ -81,17 +81,13 @@ class Game:
         """ User should override this method """
         ...
 
-    def set_window(self, window: pg.Surface = None) -> None:
+    def set_window(self) -> None:
         """ Avoid calling outside of PyGameBase instance """
-        if window:
-            assert isinstance(window, pg.Surface)
-            self.window = window
-        else:
-            if not self.window:
-                self.window = pg.display.get_surface()
-                if self.window is None:
-                    self.window = pg.display.set_mode(self.size,
-                                                      self.window_flags)
+        if not self.window:
+            self.window = pg.display.get_surface()
+            if self.window is None:
+                self.window = pg.display.set_mode(self.size,
+                                                  self.window_flags)
 
     def get_window(self) -> pg.Surface:
         return pg.display.get_surface()
