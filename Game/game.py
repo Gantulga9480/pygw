@@ -28,28 +28,28 @@ class Game:
         self.__render_callbacks = []
         self.window = None
 
-        self.__highLevelSetup()
+        self.__setup()
 
     def __del__(self):
         pg.quit()
 
     def loop_forever(self) -> None:
         while self.running:
-            self.__highLevelEventHandler()
+            self.__eventHandler()
             self.loop()
-            self.__highLevelRender()
+            self.__render()
 
     def loop_once(self) -> bool:
-        self.__highLevelEventHandler()
+        self.__eventHandler()
         self.loop()
-        self.__highLevelRender()
+        self.__render()
         return self.running
 
     def loop(self) -> None:
         """ User should override this method """
         ...
 
-    def __highLevelSetup(self):
+    def __setup(self):
         self.set_title(self.title)
         self.set_window()
         self.setup()
@@ -58,7 +58,7 @@ class Game:
         """ User should override this method """
         ...
 
-    def __highLevelEventHandler(self):
+    def __eventHandler(self):
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.running = False
@@ -72,7 +72,7 @@ class Game:
         """ User should override this method """
         ...
 
-    def __highLevelRender(self):
+    def __render(self):
         if self.rendering and self.running:
             self.window.fill(self.backgroundColor)
             self.onRender()
@@ -95,9 +95,8 @@ class Game:
             if not self.window:
                 self.window = pg.display.get_surface()
                 if self.window is None:
-                    self.window = pg.display.set_mode((self.width,
-                                                       self.height),
-                                                      self.flags)
+                    self.window = pg.display.set_mode(self.size,
+                                                      self.window_flags)
 
     def get_window(self) -> pg.Surface:
         return pg.display.get_surface()
