@@ -50,7 +50,7 @@ class Scene:
             self.surface = pg.Surface(self.size)
 
         self.child_scenes: list[Scene] = []
-        self.state: State = None
+        self.state: State = State(True)
 
     def onUpdate(self) -> None:
         ...
@@ -58,17 +58,14 @@ class Scene:
     def child(self, child_index) -> 'Scene':
         return self.child_scenes[child_index]
 
-    def add_child(self,
-                  scene: 'Scene',
-                  size: tuple,
-                  positon: tuple,
-                  state=State(True)) -> None:
-        ch_scene: Scene = scene(self, size, positon)
-        ch_scene.state = state
-        self.child_scenes.append(ch_scene)
+    def add_child(self, scene: 'Scene') -> None:
+        self.child_scenes.append(scene)
 
     def remove_child(self, child_index) -> None:
-        self.child_scenes.pop(child_index)
+        try:
+            self.child_scenes.pop(child_index)
+        except IndexError:
+            print("[error] - Can't remove child scene, index out of range!")
 
     def render(self, draw_bb=False) -> None:
         self.onUpdate()
