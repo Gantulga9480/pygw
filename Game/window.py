@@ -4,7 +4,7 @@ from .scene import Scene
 
 class Window(Scene):
 
-    def __init__(self, game, name: str = 'Pygame') -> None:
+    def __init__(self, game, title: str = 'Pygame') -> None:
         super().__init__(None, game.size, (0, 0))
         assert isinstance(game.size, (tuple, list)), \
             "param 'size' tuple or list expected, got {t}".format(
@@ -14,13 +14,13 @@ class Window(Scene):
             "param 'flags' int expected, got {t}".format(
                 t=str(type(game.window_flags)).split(' ')[1].split("'")[1]
             )
-        assert isinstance(name, str), \
-            "param 'name' str expected, got {t}".format(
+        assert isinstance(title, str), \
+            "param 'title' str expected, got {t}".format(
                 t=str(type(game.window_flags)).split(' ')[1].split("'")[1]
             )
         self.game = game
         self.fps: int = game.fps
-        self.name: str = name
+        self.title: str = title
         self.draw_bounding_boxes: bool = False
 
     def set(self) -> None:
@@ -28,7 +28,7 @@ class Window(Scene):
         if self.surface is None:
             self.surface = \
                 pg.display.set_mode(self.size, self.game.window_flags)
-        pg.display.set_caption(self.name)
+        pg.display.set_caption(self.title)
 
     def onEvent(self, event: pg.event.Event) -> None:
         ...
