@@ -61,7 +61,7 @@ class Scene:
     def add_child(self, scene: 'Scene') -> None:
         self.child_scenes.append(scene)
 
-    def remove_child(self, child_index) -> None:
+    def pop_child(self, child_index) -> None:
         try:
             self.child_scenes.pop(child_index)
         except IndexError:
