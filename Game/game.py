@@ -1,23 +1,35 @@
 import pygame as pg
+from .window import Window
 
 
 class Game:
 
     def __init__(self) -> None:
-        pg.init()
-        self.name: str = 'Pygame'
+        if not pg.get_init():
+            pg.init()
         self.size: tuple = (640, 480)
         self.window_flags: int = 0
         self.fps = 60
         self.running: bool = True
-        self.windows = []
         self.current_window: int = 0
         self.clock = pg.time.Clock()
+        self.window: Window = None
+        self.__windows: list[Window] = []
 
     def __del__(self):
         pg.quit()
 
+    def __setup(self):
+        self.add_window()
+        if self.switch(0):
+            self.setup()
+
+    def setup(self) -> None:
+        """ User should override this method """
+        ...
+
     def loop_forever(self):
+        self.__setup()
         while self.running:
             self.__event_handler()
             self.__render()
@@ -31,12 +43,19 @@ class Game:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.running = False
-            self.windows[self.current_window].onEvent(event)
+            self.window.onEvent(event)
 
     def __render(self) -> None:
-        self.windows[self.current_window].render()
+        self.window.render()
 
-    def switch(self, window_index: int) -> None:
-        if window_index < self.windows.__len__():
+    def add_window(self, title: str = 'Pygame'):
+        win = Window(self, title)
+        self.__windows.append(win)
+
+    def switch(self, window_index: int) -> bool:
+        if window_index < self.__windows.__len__():
             self.current_window = window_index
-            self.windows[self.current_window].set()
+            self.__windows[self.current_window].set()
+            self.window = self.__windows[self.current_window]
+            return True
+        return False
