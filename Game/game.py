@@ -11,7 +11,7 @@ class Game:
         self.window_flags: int = 0
         self.fps = 60
         self.running: bool = True
-        self.current_window: int = 0
+        self.__current_window: int = 0
         self.clock = pg.time.Clock()
         self.window: Window = None
         self.__windows: list[Window] = []
@@ -49,13 +49,14 @@ class Game:
         self.window.render()
 
     def add_window(self, title: str = 'Pygame'):
-        win = Window(self, title)
-        self.__windows.append(win)
+        """Before calling this function, window size,
+           flags and fps have to be initialized"""
+        self.__windows.append(Window(self, title))
 
     def switch(self, window_index: int) -> bool:
         if window_index < self.__windows.__len__():
-            self.current_window = window_index
-            self.__windows[self.current_window].set()
-            self.window = self.__windows[self.current_window]
+            self.__current_window = window_index
+            self.__windows[self.__current_window].set()
+            self.window = self.__windows[self.__current_window]
             return True
         return False
