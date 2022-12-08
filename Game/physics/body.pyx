@@ -23,7 +23,7 @@ cdef class object_body:
         self.friction_factor = 0.3
         self.parent_body = None
 
-    def __init__(self, int id, int type, int vertex_count):
+    def __init__(self, int id, int type):
         self.id = id
         self.type = type
 
@@ -107,10 +107,10 @@ cdef class FreeBody(object_body):
     def __cinit__(self, *args, **kwargs):
         pass
 
-    def __init__(self, int id, CartesianPlane plane, int vertex_count):
+    def __init__(self, int id, CartesianPlane plane):
         if plane.parent_vector is None:
             raise AttributeError("A body can't be made from a base plane, Use child plane instead!")
-        super().__init__(id, FREE, vertex_count)
+        super().__init__(id, FREE)
         self.velocity = Vector2d(plane, 1, 0, 0, 1)
         self.velocity.rotate(pi/2)
 
@@ -144,10 +144,10 @@ cdef class StaticBody(object_body):
     def __cinit__(self, *args, **kwargs):
         pass
 
-    def __init__(self, int id, CartesianPlane plane, int vertex_count):
+    def __init__(self, int id, CartesianPlane plane):
         if plane.parent_vector is None:
             raise AttributeError("A body can't be made from a base plane, Use child plane instead!")
-        super().__init__(id, STATIC, vertex_count)
+        super().__init__(id, STATIC)
         self.velocity = Vector2d(plane, 1, 0, 1, 1)
         self.velocity.rotate(pi/2)
 
@@ -161,10 +161,10 @@ cdef class DynamicBody(object_body):
     def __cinit__(self, *args, **kwargs):
         pass
 
-    def __init__(self, int id, CartesianPlane plane, int vertex_count, double max_speed=1):
+    def __init__(self, int id, CartesianPlane plane, double max_speed=1):
         if plane.parent_vector is None:
             raise AttributeError("A body can't be made from a base plane, Use child plane instead!")
-        super().__init__(id, DYNAMIC, vertex_count)
+        super().__init__(id, DYNAMIC)
         self.max_speed = max_speed
         self.velocity = Vector2d(plane, 1, 0, max_speed, 1)
         self.velocity.rotate(pi/2)
@@ -218,7 +218,7 @@ cdef class Ray(FreeBody):
         self.y = 0
 
     def __init__(self, int id, CartesianPlane plane, double length):
-        super().__init__(id, plane, 1)
+        super().__init__(id, plane)
         self.radius = length
         self.shape = Line(plane, length)
 
@@ -252,7 +252,7 @@ cdef class DynamicPolygonBody(DynamicBody):
         pass
 
     def __init__(self, int id, CartesianPlane plane, tuple size, int max_speed=1):
-        super().__init__(id, plane, size.__len__(), max_speed)
+        super().__init__(id, plane, max_speed)
         self.radius = max(size)
         self.shape = Polygon(plane, size)
 
@@ -262,7 +262,7 @@ cdef class DynamicRectangleBody(DynamicBody):
         pass
 
     def __init__(self, int id, CartesianPlane plane, tuple size, int max_speed=1):
-        super().__init__(id, plane, 4, max_speed)
+        super().__init__(id, plane, max_speed)
         self.radius = max(size)
         self.shape = Rectangle(plane, size)
 
@@ -272,7 +272,7 @@ cdef class DynamicTriangleBody(DynamicBody):
         pass
 
     def __init__(self, int id, CartesianPlane plane, tuple size, int max_speed=1):
-        super().__init__(id, plane, 3, max_speed)
+        super().__init__(id, plane, max_speed)
         self.radius = max(size)
         self.shape = Triangle(plane, size)
 
@@ -282,7 +282,7 @@ cdef class StaticPolygonBody(StaticBody):
         pass
 
     def __init__(self, int id, CartesianPlane plane, tuple size):
-        super().__init__(id, plane, size.__len__())
+        super().__init__(id, plane)
         self.radius = max(size)
         self.shape = Polygon(plane, size)
 
@@ -292,7 +292,7 @@ cdef class StaticRectangleBody(StaticBody):
         pass
 
     def __init__(self, int id, CartesianPlane plane, tuple size):
-        super().__init__(id, plane, 4)
+        super().__init__(id, plane)
         self.radius = max(size)
         self.shape = Rectangle(plane, size)
 
@@ -302,7 +302,7 @@ cdef class StaticTriangleBody(StaticBody):
         pass
 
     def __init__(self, int id, CartesianPlane plane, tuple size):
-        super().__init__(id, plane, 3)
+        super().__init__(id, plane)
         self.radius = max(size)
         self.shape = Triangle(plane, size)
 
@@ -312,6 +312,6 @@ cdef class FreePolygonBody(FreeBody):
         pass
 
     def __init__(self, int id, CartesianPlane plane, tuple size):
-        super().__init__(id, plane, size.__len__())
+        super().__init__(id, plane)
         self.radius = max(size)
         self.shape = Polygon(plane, size)
