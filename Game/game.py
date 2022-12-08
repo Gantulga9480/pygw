@@ -1,27 +1,19 @@
 import pygame as pg    # noqa
-from .color import *   # noqa
 
 
 class Game:
 
-    def __init__(self,
-                 title: str = 'PyGameDemo',
-                 width: int = 640,
-                 height: int = 480,
-                 fps: int = 60,
-                 flags: int = 0,
-                 render: bool = True) -> None:
-        pg.init()
+    def __init__(self) -> None:
+        if not pg.get_init():
+            pg.init()
 
         # Main window
-        self.width: int = width
-        self.height: int = height
-        self.fps: int = fps
-        self.flags: int = flags
-        self.title: str = title
-        self.backgroundColor: pg.Color = WHITE
+        self.title: str = 'PyGameDemo'
+        self.size: tuple = (640, 480)
+        self.fps: int = 60
+        self.window_flags: int = 0
         self.running: bool = True
-        self.rendering: bool = render
+        self.rendering: bool = True
         self.clock = pg.time.Clock()
 
         # Event
@@ -31,35 +23,37 @@ class Game:
 
         # Render
         self.sprites: list[pg.Rect] = []
-        self.window = self.get_window(self.width, self.height, self.flags)
-
-        self.__highLevelSetup()
+        self.window = None
 
     def __del__(self):
         pg.quit()
 
-    def mainloop(self):
+    def loop_forever(self):
+        self.__setup()
         while self.running:
-            self.loop_once()
+            self.__eventHandler()
+            self.loop()
+            self.__render()
 
     def loop_once(self):
-        self.__highLevelEventHandler()
+        self.__eventHandler()
         self.loop()
-        self.__highLevelRender()
+        self.__render()
 
     def loop(self):
         """ User should override this method """
         ...
 
-    def __highLevelSetup(self):
+    def __setup(self):
         self.set_title(self.title)
+        self.set_window()
         self.setup()
 
     def setup(self):
         """ User should override this method """
         ...
 
-    def __highLevelEventHandler(self):
+    def __eventHandler(self):
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.running = False
@@ -73,7 +67,7 @@ class Game:
         """ User should override this method """
         ...
 
-    def __highLevelRender(self):
+    def __render(self):
         if self.rendering and self.running:
             self.onRender()
             if self.sprites.__len__() > 0:
@@ -85,11 +79,18 @@ class Game:
         """ User should override this method """
         ...
 
+    def set_window(self) -> None:
+        """ Avoid calling outside of PyGameBase instance """
+        if not self.window:
+            self.window = pg.display.get_surface()
+            if self.window is None:
+                self.window = pg.display.set_mode(self.size,
+                                                  self.window_flags)
+
+    @staticmethod
+    def get_window():
+        return pg.display.get_surface()
+
     @staticmethod
     def set_title(title: str):
         pg.display.set_caption(title)
-
-    @staticmethod
-    def get_window(width: int, height: int, flags: int):
-        """ Avoid calling outside of PyGameBase instance """
-        return pg.display.set_mode((width, height), flags)
