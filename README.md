@@ -1,7 +1,7 @@
 # **Simple Base class for implementing pygame application.**
 
-# Install
-    pip install git+https://github.com/Gantulga9480/Game.git#egg=Game
+## To build Game module
+    python cython_setup.py build_ext --inplace
 
 # Change Log
 

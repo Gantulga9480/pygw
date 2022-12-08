@@ -10,7 +10,7 @@ cdef int STATIC, DYNAMIC, FREE
 cdef class object_body:
     cdef public int type, id
     cdef public double radius
-    cdef public double friction_factor
+    cdef public double friction_coef
     cdef public double drag_coef
     cdef public Shape shape
     cdef public Vector2d velocity
@@ -37,7 +37,6 @@ cdef class StaticBody(object_body):
     pass
 
 cdef class DynamicBody(object_body):
-    cdef double max_speed
     cpdef void accelerate(self, double factor)
 
 cdef class DynamicPolygonBody(DynamicBody):

@@ -41,7 +41,7 @@ cdef class Shape:
             for i in range(self.vertex_count):
                 (<Vector2d>self.vertices[i]).scale(factor)
         elif factor < 1:
-            if _min * factor >= self.vertices[0].min_length:
+            if _min * factor >= self.vertices[0].min:
                 for i in range(self.vertex_count):
                     (<Vector2d>self.vertices[i]).scale(factor)
 
