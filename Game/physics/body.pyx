@@ -128,7 +128,7 @@ cdef class FreeBody(object_body):
         else:
             self.velocity.set_head(self.velocity.unit_vector(1))
 
-    cpdef void Accelerate(self, double factor):
+    cpdef void accelerate(self, double factor):
         if factor == 0:
             self.velocity.add(0.1)
         else:
@@ -195,7 +195,7 @@ cdef class DynamicBody(object_body):
             self.velocity.set_head(self.velocity.unit_vector(1))
 
     @cython.cdivision(True)
-    cpdef void Accelerate(self, double factor):
+    cpdef void accelerate(self, double factor):
         if factor == 0:
             self.velocity.add(self.max_speed/60)
         else:

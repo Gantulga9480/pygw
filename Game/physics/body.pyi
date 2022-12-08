@@ -1,10 +1,5 @@
 from Game.graphic.cartesian import CartesianPlane, Vector2d
 from Game.graphic.shapes import Shape
-from Game.math import point2d
-from Game.color import BLACK
-from pygame.color import Color
-from typing import Union
-import numpy as np
 
 
 class object_body:
@@ -31,6 +26,7 @@ class object_body:
 
 class FreeBody(object_body):
     def __init__(self, id: int, plane: CartesianPlane, vertex_count: int) -> None: ...
+    def accelerate(self, factor: float) -> None: ...
 
 
 class StaticBody(object_body):
@@ -39,7 +35,7 @@ class StaticBody(object_body):
 
 class DynamicBody(object_body):
     def __init__(self, id: int, plane: CartesianPlane, vertex_count: int, max_speed: float = 1) -> None: ...
-    def Accelerate(self, factor: float) -> None: ...
+    def accelerate(self, factor: float) -> None: ...
 
 
 class DynamicPolygonBody(DynamicBody):
@@ -51,7 +47,7 @@ class DynamicRectangleBody(DynamicBody):
 
 
 class DynamicTriangleBody(DynamicBody):
-    def __init__(self, id: int, plane: CartesianPlane, sizes: list, max_speed: float = 1) -> None: ...
+    def __init__(self, id: int, plane: CartesianPlane, size: tuple, max_speed: float = 1) -> None: ...
 
 
 class StaticPolygonBody(StaticBody):
@@ -63,7 +59,7 @@ class StaticRectangleBody(StaticBody):
 
 
 class StaticTriangleBody(StaticBody):
-    def __init__(self, id: int, plane: CartesianPlane, sizes: list) -> None: ...
+    def __init__(self, id: int, plane: CartesianPlane, size: tuple) -> None: ...
 
 
 class FreePolygonBody(FreeBody):
