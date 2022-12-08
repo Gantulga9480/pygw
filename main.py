@@ -1,7 +1,12 @@
 from Game import Game
 from Game import core
 from Game.graphic import CartesianPlane
-from Game.physics import DynamicTriangleBody, StaticTriangleBody
+from Game.physics import (DynamicTriangleBody,
+                          StaticTriangleBody,
+                          EnginePolygon,
+                          FreePolygonBody,
+                          object_body)
+import numpy as np
 
 
 class Test(Game):
@@ -16,9 +21,10 @@ class Test(Game):
         self.b1_plane = self.plane.createPlane()
         self.b2_plane = self.plane.createPlane(300, 300)
         self.b1 = DynamicTriangleBody(0, self.b1_plane, (30, 30, 30), 10)
-        self.b2 = DynamicTriangleBody(1, self.b2_plane, (30, 30, 30), 10)
+        self.b2 = FreePolygonBody(1, self.b2_plane, (30, 30, 30))
 
         self.b1.attach(self.b2, False)
+        self.engine = EnginePolygon(self.plane, np.array([self.b1, self.b2], dtype=object_body))
 
     def onEvent(self, event):
         if event.type == core.KEYUP:
@@ -49,8 +55,7 @@ class Test(Game):
         if self.keys[core.K_s]:
             self.b2.accelerate(-1)
 
-        self.b1.step()
-        self.b2.step()
+        self.engine.step()
 
     def onRender(self):
         self.window.fill((255, 255, 255))

@@ -2,19 +2,14 @@ import cython
 from Game.graphic.cartesian cimport CartesianPlane
 from Game.physics.body cimport object_body, STATIC, FREE
 from Game.physics.collision cimport collision
-import numpy as np
-from pygame.draw import aalines
-from random import random
 
 @cython.optimize.unpack_method_calls(False)
-cdef class Engine:
+cdef class EnginePolygon:
 
     cdef object_body[:] bodies
-    cdef CartesianPlane plane
     cdef collision collider
 
     def __init__(self, CartesianPlane plane, object_body[:] bodies):
-        self.plane = plane
         self.bodies = bodies
         self.collider = collision(plane)
 
@@ -22,7 +17,7 @@ cdef class Engine:
     @cython.boundscheck(False)
     @cython.nonecheck(False)
     @cython.initializedcheck(False)
-    def update(self):
+    def step(self):
         cdef int n = self.bodies.shape[0]
         cdef int i, j
         cdef (double, double) dxy
@@ -34,7 +29,7 @@ cdef class Engine:
             for j in range(n):
                 # Will not check bodies against itself
                 if i != j:
-                    # Will not check STATIC body and not gonna check against FREE body
+                    # Will not check STATIC body and against FREE body
                     if self.bodies[i].type != STATIC and self.bodies[j].type != FREE:
                         # Bodies that have same id will be skipped
                         if self.bodies[i].id != self.bodies[j].id:

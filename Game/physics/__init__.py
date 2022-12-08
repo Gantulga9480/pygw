@@ -9,4 +9,4 @@ from Game.physics.body import (object_body,
                                FreePolygonBody,
                                Ray)
 from Game.physics.collision import collision
-from Game.physics.engine import Engine
+from Game.physics.engine import EnginePolygon
