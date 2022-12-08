@@ -11,6 +11,7 @@ cdef class object_body:
     cdef public int type, id
     cdef public double radius
     cdef public double friction_factor
+    cdef public double drag_coef
     cdef public Shape shape
     cdef public Vector2d velocity
     cdef bint is_attached

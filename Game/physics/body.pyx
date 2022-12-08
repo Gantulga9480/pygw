@@ -21,6 +21,7 @@ cdef class object_body:
         self.id = 0
         self.radius = 0
         self.friction_factor = 0.3
+        self.drag_coef = 0.03
         self.parent_body = None
 
     def __init__(self, int id, int type):
@@ -190,7 +191,8 @@ cdef class DynamicBody(object_body):
                 _xy = self.velocity.unit_vector(1)
                 self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.get_x() + xy[0] - _xy[0],
                                                          self.shape.plane.parent_vector.get_y() + xy[1] - _xy[1]))
-            self.velocity.add(-self.max_speed/120)
+            # Drag is applied even if it's attached to another body
+            self.velocity.add(-v_len * self.drag_coef)
         else:
             self.velocity.set_head(self.velocity.unit_vector(1))
 
