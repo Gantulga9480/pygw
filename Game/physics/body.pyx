@@ -6,11 +6,9 @@ from pygame.draw import aalines, aaline, circle
 from libc.math cimport floor, sqrt
 import numpy as np
 
-
 STATIC = 0
 DYNAMIC = 1
 FREE = 2
-
 
 @cython.optimize.unpack_method_calls(False)
 cdef class object_body:
@@ -28,8 +26,10 @@ cdef class object_body:
         self.id = id
         self.type = type
 
-    def show(self, show_vertex=False):
-        self.shape.show(show_vertex)
+    def show(self, vertex=False, velocity=False):
+        self.shape.show(vertex)
+        if velocity:
+            self.velocity.show((255, 0, 0))
 
     cpdef void attach(self, object_body o, bint follow_dir):
         if not o.is_attached:
@@ -66,6 +66,7 @@ cdef class object_body:
     cpdef void rotate(self, double angle):
         if not self.is_following_dir:
             self.shape.rotate(angle)
+            self.velocity.rotate(angle)
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
@@ -101,7 +102,7 @@ cdef class object_body:
 
     cpdef double speed(self):
         cdef double s = floor((self.velocity.mag() - 1.0) * 100.0) / 100.0
-        return s if s >= 0 else 0.0
+        return s if s > 0 else 0.0
 
 @cython.optimize.unpack_method_calls(False)
 cdef class FreeBody(object_body):
@@ -137,11 +138,6 @@ cdef class FreeBody(object_body):
         if factor:
             self.velocity.add(factor)
 
-    cpdef void rotate(self, double angle):
-        if not self.is_following_dir:
-            self.shape.rotate(angle)
-            self.velocity.rotate(angle)
-
 @cython.optimize.unpack_method_calls(False)
 cdef class StaticBody(object_body):
     def __cinit__(self, *args, **kwargs):
@@ -153,7 +149,6 @@ cdef class StaticBody(object_body):
         super().__init__(id, STATIC)
         self.velocity = Vector2d(plane, 1, 0, 1, 1)
         self.velocity.rotate(pi/2)
-
 
 @cython.optimize.unpack_method_calls(False)
 cdef class DynamicBody(object_body):
@@ -201,15 +196,6 @@ cdef class DynamicBody(object_body):
         if factor:
             self.velocity.add(factor)
 
-    cpdef void rotate(self, double angle):
-        if not self.is_following_dir:
-            self.shape.rotate(angle)
-            self.velocity.rotate(angle)
-
-    def show(self, show_vertex=False):
-        self.shape.show(show_vertex)
-        self.velocity.show((0, 0, 255))
-
 @cython.optimize.unpack_method_calls(False)
 cdef class Ray(FreeBody):
 
@@ -241,7 +227,7 @@ cdef class Ray(FreeBody):
     cpdef void scale(self, double factor):
         (<Vector2d>self.vertices[0]).scale(factor)
 
-    def show(self, show_vertex=False):
+    def show(self, vertex=False, velocity=False):
         self.shape.show()
         if self.x != 0 or self.y != 0:
             circle(self.shape.window, (255, 0, 0), self.shape.plane.to_XY((self.x, self.y)), 3)
