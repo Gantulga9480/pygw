@@ -63,10 +63,10 @@ cdef class CartesianPlane:
             self.parent_vector.update()
         # draw x axis
         line(self.window, (255, 0, 0), self.center.get_xy(),
-             (self.center.x.num, self.center.y.num-20), 2)
+             (self.center.x.num, self.center.y.num-10), 2)
         # draw y axis
         line(self.window, (0, 255, 0), self.center.get_xy(),
-             (self.center.x.num+20, self.center.y.num), 2)
+             (self.center.x.num+10, self.center.y.num), 2)
 
     cpdef Vector2d get_parent_vector(self):
         return self.parent_vector
