@@ -31,7 +31,7 @@ cdef class collision:
         cdef (double, double) l2e
         for k in range(2):
             if k == 1:
-                if body2.type == FREE:
+                if body1.type == FREE:
                     break
                 else:
                     b1 = body2
