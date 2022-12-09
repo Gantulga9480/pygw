@@ -15,12 +15,13 @@ class Test(Game):
         super().__init__()
         self.size = (1920, 1080)
         self.window_flags = core.FULLSCREEN | core.HWSURFACE
+        self.fps = 30
 
     def setup(self):
-        self.plane = CartesianPlane(self.window, self.size)
+        self.plane = CartesianPlane(self.window, self.size, frame_rate=self.fps)
         self.b1_plane = self.plane.createPlane()
         self.b2_plane = self.plane.createPlane(300, 300)
-        self.b1 = DynamicTriangleBody(0, self.b1_plane, (30, 30, 30), 10)
+        self.b1 = DynamicTriangleBody(0, self.b1_plane, (30, 30, 30), 1)
         self.b2 = FreePolygonBody(1, self.b2_plane, (30, 30, 30))
 
         # self.b1.attach(self.b2, False)
@@ -38,29 +39,32 @@ class Test(Game):
             self.b1.attach(self.b2, False)
 
         if self.keys[core.K_LEFT]:
-            self.b1.rotate(0.1)
+            self.b1.rotate(1)
         if self.keys[core.K_RIGHT]:
-            self.b1.rotate(-0.1)
+            self.b1.rotate(-1)
         if self.keys[core.K_UP]:
-            self.b1.accelerate(0.3)
+            self.b1.accelerate(1)
         if self.keys[core.K_DOWN]:
-            self.b1.accelerate(-0.3)
+            self.b1.accelerate(-1)
 
         if self.keys[core.K_a]:
-            self.b2.rotate(0.1)
+            self.b2.rotate(1)
         if self.keys[core.K_d]:
-            self.b2.rotate(-0.1)
+            self.b2.rotate(-1)
         if self.keys[core.K_w]:
-            self.b2.accelerate(0.3)
+            self.b2.accelerate(1)
         if self.keys[core.K_s]:
-            self.b2.accelerate(-0.3)
+            self.b2.accelerate(-1)
 
         self.engine.step()
+        print(self.b1.speed())
 
     def onRender(self):
         self.window.fill((255, 255, 255))
-        self.b1.show(True)
-        self.b2.show(True)
+        # self.plane.show()
+        # self.b1_plane.show()
+        self.b1.show(velocity=True)
+        self.b2.show()
 
 
 Test().loop_forever()

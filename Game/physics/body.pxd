@@ -31,13 +31,13 @@ cdef class object_body:
     cpdef void USR_resolve_collision_point(self, double dx, double dy)
 
 cdef class FreeBody(object_body):
-    cpdef void accelerate(self, double factor)
+    cpdef void accelerate(self, double speed)
 
 cdef class StaticBody(object_body):
     pass
 
 cdef class DynamicBody(object_body):
-    cpdef void accelerate(self, double factor)
+    cpdef void accelerate(self, double speed)
 
 cdef class DynamicPolygonBody(DynamicBody):
     pass

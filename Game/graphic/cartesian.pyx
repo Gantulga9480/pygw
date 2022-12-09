@@ -11,12 +11,13 @@ cdef class CartesianPlane:
     def __cinit__(self, *args, **kwargs):
         ...
 
-    def __init__(self, window, (double, double) window_size, Vector2d parent_vector=None, double unit_length=1):
+    def __init__(self, window, (double, double) window_size, Vector2d parent_vector=None, double frame_rate=60, double unit_length=1):
         if unit_length <= 0:
             raise ValueError("Wrong unit length")
         self.window = window
         self.window_size = window_size
         self.parent_vector = parent_vector
+        self.frame_rate = frame_rate
         self.unit_length = (unit_length if self.parent_vector is None
                             else self.parent_vector.plane.unit_length)
         self.center = (self.parent_vector.headXY if self.parent_vector
@@ -54,7 +55,7 @@ cdef class CartesianPlane:
         return vec
 
     def createPlane(self, x=0, y=0):
-        return CartesianPlane(self.window, self.window_size, Vector2d(self, x, y))
+        return CartesianPlane(self.window, self.window_size, Vector2d(self, x, y), self.frame_rate)
 
     @cython.optimize.unpack_method_calls(False)
     def show(self):

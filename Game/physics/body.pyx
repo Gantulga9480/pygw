@@ -63,10 +63,13 @@ cdef class object_body:
     cpdef void USR_resolve_collision_point(self, double dx, double dy):
         pass
 
+    @cython.cdivision(True)
     cpdef void rotate(self, double angle):
+        cdef double w
         if not self.is_following_dir:
-            self.shape.rotate(angle)
-            self.velocity.rotate(angle)
+            w = angle/self.shape.plane.frame_rate
+            self.shape.rotate(w)
+            self.velocity.rotate(w)
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
@@ -101,7 +104,7 @@ cdef class object_body:
             return d / pi * 180.0
 
     cpdef double speed(self):
-        cdef double s = floor((self.velocity.mag() - 1.0) * 100.0) / 100.0
+        cdef double s = floor((self.velocity.mag() - 1.0) * 1000.0) / 1000.0
         return s if s > 0 else 0.0
 
 @cython.optimize.unpack_method_calls(False)
@@ -117,9 +120,8 @@ cdef class FreeBody(object_body):
         self.velocity = Vector2d(plane, 1, 0, max_speed, 1)
         self.velocity.rotate(pi/2)
 
-    @cython.cdivision(True)
     cpdef void USR_step(self):
-        cdef double v_len = floor(self.velocity.mag() * 100.0) / 100.0
+        cdef double v_len = floor(self.velocity.mag() * 1000.0) / 1000.0
         cdef (double, double) xy
         cdef (double, double) _xy
         if v_len > 1:
@@ -134,9 +136,10 @@ cdef class FreeBody(object_body):
         else:
             self.velocity.set_head(self.velocity.unit_vector(1))
 
-    cpdef void accelerate(self, double factor):
-        if factor:
-            self.velocity.add(factor)
+    @cython.cdivision(True)
+    cpdef void accelerate(self, double speed):
+        if speed:
+            self.velocity.add(speed/self.shape.plane.frame_rate)
 
 @cython.optimize.unpack_method_calls(False)
 cdef class StaticBody(object_body):
@@ -174,9 +177,8 @@ cdef class DynamicBody(object_body):
             self.velocity.scale(self.friction_coef)
             self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.head.x.num + -dxy[0], self.shape.plane.parent_vector.head.y.num + -dxy[1]))
 
-    @cython.cdivision(True)
     cpdef void USR_step(self):
-        cdef double v_len = floor(self.velocity.mag() * 100.0) / 100.0
+        cdef double v_len = floor(self.velocity.mag() * 1000.0) / 1000.0
         cdef (double, double) xy
         cdef (double, double) _xy
         if v_len > 1:
@@ -192,9 +194,9 @@ cdef class DynamicBody(object_body):
             self.velocity.set_head(self.velocity.unit_vector(1))
 
     @cython.cdivision(True)
-    cpdef void accelerate(self, double factor):
-        if factor:
-            self.velocity.add(factor)
+    cpdef void accelerate(self, double speed):
+        if speed:
+            self.velocity.add(speed/self.shape.plane.frame_rate)
 
 @cython.optimize.unpack_method_calls(False)
 cdef class Ray(FreeBody):
