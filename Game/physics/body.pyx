@@ -42,7 +42,7 @@ cdef class object_body:
         if o.is_attached and o.parent_body is self:
             o.is_attached = False
             o.is_following_dir = False
-            self.shape.plane.parent_vector.set_head_ref(point2d(self.shape.plane.parent_vector.get_x(), self.shape.plane.parent_vector.get_y()))
+            o.shape.plane.parent_vector.set_head_ref(point2d(self.shape.plane.parent_vector.get_x(), self.shape.plane.parent_vector.get_y()))
 
     cpdef void step(self):
         cdef double d
