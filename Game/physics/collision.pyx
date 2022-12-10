@@ -1,6 +1,6 @@
 import cython
 from Game.graphic.cartesian cimport CartesianPlane, Vector2d
-from Game.physics.body cimport object_body, FREE
+from Game.physics.body cimport Body, FREE
 from Game.math.util cimport LSI as line_segment_intersect
 from Game.math.core cimport point2d
 
@@ -13,16 +13,16 @@ cdef class collision:
     def __init__(self, CartesianPlane plane) -> None:
         self.plane = plane
 
-    cpdef void check(self, object_body b1, object_body b2):
+    cpdef void check(self, Body b1, Body b2):
         self.diagonal_intersect(b1, b2)
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
     @cython.cdivision(True)
     @cython.initializedcheck(False)
-    cdef void diagonal_intersect(self, object_body body1, object_body body2):
-        cdef object_body b1 = body1
-        cdef object_body b2 = body2
+    cdef void diagonal_intersect(self, Body body1, Body body2):
+        cdef Body b1 = body1
+        cdef Body b2 = body2
         cdef int i, j, k
         cdef double dx = 0, dy = 0, val
         cdef (double, double) l1s

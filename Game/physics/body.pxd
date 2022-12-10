@@ -7,7 +7,7 @@ from Game.math.core cimport point2d
 cdef int STATIC, DYNAMIC, FREE
 
 
-cdef class object_body:
+cdef class Body:
     cdef public int type, id
     cdef public double radius
     cdef public double friction_coef
@@ -16,7 +16,7 @@ cdef class object_body:
     cdef public Vector2d velocity
     cdef bint is_attached
     cdef bint is_following_dir
-    cdef object_body parent_body
+    cdef Body parent_body
 
     cpdef void step(self)
     cpdef void rotate(self, double angle)
@@ -24,19 +24,19 @@ cdef class object_body:
     cpdef (double, double) position(self)
     cpdef double direction(self)
     cpdef double speed(self)
-    cpdef void attach(self, object_body o, bint follow_dir)
-    cpdef void detach(self, object_body o)
-    cpdef void USR_step(self)
-    cpdef void USR_resolve_collision(self, object_body o, (double, double) dxy)
-    cpdef void USR_resolve_collision_point(self, double dx, double dy)
+    cpdef void attach(self, Body o, bint follow_dir)
+    cpdef void detach(self, Body o)
+    cdef void USR_step(self)
+    cdef void USR_resolve_collision(self, Body o, (double, double) dxy)
+    cdef void USR_resolve_collision_point(self, double dx, double dy)
 
-cdef class FreeBody(object_body):
+cdef class FreeBody(Body):
     cpdef void accelerate(self, double speed)
 
-cdef class StaticBody(object_body):
+cdef class StaticBody(Body):
     pass
 
-cdef class DynamicBody(object_body):
+cdef class DynamicBody(Body):
     cpdef void accelerate(self, double speed)
 
 cdef class DynamicPolygonBody(DynamicBody):

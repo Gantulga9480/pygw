@@ -11,7 +11,7 @@ DYNAMIC = 1
 FREE = 2
 
 @cython.optimize.unpack_method_calls(False)
-cdef class object_body:
+cdef class Body:
     def __cinit__(self, *args, **kwargs):
         self.is_attached = False
         self.is_following_dir = False
@@ -31,14 +31,14 @@ cdef class object_body:
         if velocity:
             self.velocity.show((255, 0, 0))
 
-    cpdef void attach(self, object_body o, bint follow_dir):
+    cpdef void attach(self, Body o, bint follow_dir):
         if not o.is_attached:
             o.is_attached = True
             o.is_following_dir = follow_dir
             o.parent_body = self
             o.shape.plane.parent_vector.set_head_ref(self.shape.plane.parent_vector.get_head_ref())
 
-    cpdef void detach(self, object_body o):
+    cpdef void detach(self, Body o):
         if o.is_attached and o.parent_body is self:
             o.is_attached = False
             o.is_following_dir = False
@@ -54,13 +54,13 @@ cdef class object_body:
         else:
             self.USR_step()
 
-    cpdef void USR_step(self):
+    cdef void USR_step(self):
         pass
 
-    cpdef void USR_resolve_collision(self, object_body o, (double, double) dxy):
+    cdef void USR_resolve_collision(self, Body o, (double, double) dxy):
         pass
 
-    cpdef void USR_resolve_collision_point(self, double dx, double dy):
+    cdef void USR_resolve_collision_point(self, double dx, double dy):
         pass
 
     @cython.cdivision(True)
@@ -108,7 +108,7 @@ cdef class object_body:
         return s if s > 0 else 0.0
 
 @cython.optimize.unpack_method_calls(False)
-cdef class FreeBody(object_body):
+cdef class FreeBody(Body):
     def __cinit__(self, *args, **kwargs):
         pass
 
@@ -120,7 +120,7 @@ cdef class FreeBody(object_body):
         self.velocity = Vector2d(plane, 1, 0, max_speed, 1)
         self.velocity.rotate(pi/2)
 
-    cpdef void USR_step(self):
+    cdef void USR_step(self):
         cdef double v_len = floor(self.velocity.mag() * 1000.0) / 1000.0
         cdef (double, double) xy
         cdef (double, double) _xy
@@ -142,7 +142,7 @@ cdef class FreeBody(object_body):
             self.velocity.add(speed/self.shape.plane.frame_rate)
 
 @cython.optimize.unpack_method_calls(False)
-cdef class StaticBody(object_body):
+cdef class StaticBody(Body):
     def __cinit__(self, *args, **kwargs):
         pass
 
@@ -154,7 +154,7 @@ cdef class StaticBody(object_body):
         self.velocity.rotate(pi/2)
 
 @cython.optimize.unpack_method_calls(False)
-cdef class DynamicBody(object_body):
+cdef class DynamicBody(Body):
     def __cinit__(self, *args, **kwargs):
         pass
 
@@ -167,7 +167,7 @@ cdef class DynamicBody(object_body):
         self.velocity = Vector2d(plane, 1, 0, max_speed, 1)
         self.velocity.rotate(pi/2)
 
-    cpdef void USR_resolve_collision(self, object_body o, (double, double) dxy):
+    cdef void USR_resolve_collision(self, Body o, (double, double) dxy):
         if o.type == DYNAMIC:
             self.velocity.scale(self.friction_coef)
             o.velocity.scale(self.friction_coef)
@@ -177,7 +177,7 @@ cdef class DynamicBody(object_body):
             self.velocity.scale(self.friction_coef)
             self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.head.x.num + -dxy[0], self.shape.plane.parent_vector.head.y.num + -dxy[1]))
 
-    cpdef void USR_step(self):
+    cdef void USR_step(self):
         cdef double v_len = floor(self.velocity.mag() * 1000.0) / 1000.0
         cdef (double, double) xy
         cdef (double, double) _xy
@@ -214,7 +214,7 @@ cdef class Ray(FreeBody):
         self.x = 0
         self.y = 0
 
-    cpdef void USR_resolve_collision_point(self, double dx, double dy):
+    cdef void USR_resolve_collision_point(self, double dx, double dy):
         if (self.x != 0 or self.y != 0):
             if ((self.x * self.x + self.y * self.y) > (dx * dx + dy * dy)):
                 self.x = dx
@@ -241,7 +241,7 @@ cdef class DynamicPolygonBody(DynamicBody):
     def __cinit__(self, *args, **kwargs):
         pass
 
-    def __init__(self, int id, CartesianPlane plane, tuple size, int max_speed=1, double drag_coef=0.03, double friction_coef=0.3):
+    def __init__(self, int id, CartesianPlane plane, tuple size, double max_speed=1, double drag_coef=0.03, double friction_coef=0.3):
         super().__init__(id, plane, max_speed, drag_coef, friction_coef)
         self.radius = max(size)
         self.shape = Polygon(plane, size)
@@ -251,7 +251,7 @@ cdef class DynamicRectangleBody(DynamicBody):
     def __cinit__(self, *args, **kwargs):
         pass
 
-    def __init__(self, int id, CartesianPlane plane, tuple size, int max_speed=1, double drag_coef=0.03, double friction_coef=0.3):
+    def __init__(self, int id, CartesianPlane plane, tuple size, double max_speed=1, double drag_coef=0.03, double friction_coef=0.3):
         super().__init__(id, plane, max_speed, drag_coef, friction_coef)
         self.radius = max(size)
         self.shape = Rectangle(plane, size)
@@ -261,7 +261,7 @@ cdef class DynamicTriangleBody(DynamicBody):
     def __cinit__(self, *args, **kwargs):
         pass
 
-    def __init__(self, int id, CartesianPlane plane, tuple size, int max_speed=1, double drag_coef=0.03, double friction_coef=0.3):
+    def __init__(self, int id, CartesianPlane plane, tuple size, double max_speed=1, double drag_coef=0.03, double friction_coef=0.3):
         super().__init__(id, plane, max_speed, drag_coef, friction_coef)
         self.radius = max(size)
         self.shape = Triangle(plane, size)

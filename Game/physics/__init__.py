@@ -1,4 +1,4 @@
-from Game.physics.body import (object_body,
+from Game.physics.body import (Body,
                                DynamicBody, StaticBody, FreeBody,
                                DynamicPolygonBody,
                                DynamicRectangleBody,

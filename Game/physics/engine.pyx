@@ -1,15 +1,15 @@
 import cython
 from Game.graphic.cartesian cimport CartesianPlane
-from Game.physics.body cimport object_body, STATIC, FREE
+from Game.physics.body cimport Body, STATIC, FREE
 from Game.physics.collision cimport collision
 
 @cython.optimize.unpack_method_calls(False)
 cdef class EnginePolygon:
 
-    cdef object_body[:] bodies
+    cdef Body[:] bodies
     cdef collision collider
 
-    def __init__(self, CartesianPlane plane, object_body[:] bodies):
+    def __init__(self, CartesianPlane plane, Body[:] bodies):
         self.bodies = bodies
         self.collider = collision(plane)
 
@@ -24,7 +24,7 @@ cdef class EnginePolygon:
         # Check for every body ...
         for i in range(n):
             # Take one gentle step in environment
-            (<object_body>self.bodies[i]).step()
+            (<Body>self.bodies[i]).step()
             # ... Against every other body
             for j in range(n):
                 # Will not check bodies against itself
@@ -34,7 +34,7 @@ cdef class EnginePolygon:
                         # Bodies that have same id will be skipped
                         if self.bodies[i].id != self.bodies[j].id:
                             # radius1 + radius2 >= distance between body2 and body1 means we have some work to do
-                            if (self.bodies[i].radius + self.bodies[j].radius) >= ((<object_body>self.bodies[i]).shape.plane.parent_vector.distance_to((<object_body>self.bodies[j]).shape.plane.parent_vector)):
-                                self.collider.check(<object_body>self.bodies[i], <object_body>self.bodies[j])
+                            if (self.bodies[i].radius + self.bodies[j].radius) >= ((<Body>self.bodies[i]).shape.plane.parent_vector.distance_to((<Body>self.bodies[j]).shape.plane.parent_vector)):
+                                self.collider.check(<Body>self.bodies[i], <Body>self.bodies[j])
             # Throw body on to screen
-            (<object_body>self.bodies[i]).show()
+            (<Body>self.bodies[i]).show()
