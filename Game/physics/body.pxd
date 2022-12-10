@@ -8,14 +8,14 @@ cdef int STATIC, DYNAMIC, FREE
 
 
 cdef class Body:
-    cdef public int type, id
-    cdef public double radius
-    cdef public double friction_coef
-    cdef public double drag_coef
-    cdef public Shape shape
-    cdef public Vector2d velocity
-    cdef bint is_attached
-    cdef bint is_following_dir
+    cdef readonly int type, id
+    cdef readonly double radius
+    cdef readonly double friction_coef
+    cdef readonly double drag_coef
+    cdef readonly Shape shape
+    cdef readonly Vector2d velocity
+    cdef readonly bint is_attached
+    cdef readonly bint is_following_dir
     cdef Body parent_body
 
     cpdef void step(self)

@@ -3,7 +3,6 @@ from pygame import Surface
 
 
 class Shape:
-    window: Surface
     plane: CartesianPlane
     vertex_count: int
     color: tuple
