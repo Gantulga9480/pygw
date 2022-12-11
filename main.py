@@ -53,8 +53,6 @@ class Test(Game):
         if self.keys[core.K_f]:
             self.power += 0.1
 
-        self.engine.step()
-
         d = self.p1.shape.plane.get_parent_vector().distance_to(self.ball.shape.plane.get_parent_vector())
         if (d <= (self.p1.radius + self.ball.radius)):
             if self.ball_kicked:
@@ -67,8 +65,7 @@ class Test(Game):
 
     def onRender(self):
         self.window.fill((255, 255, 255))
-        self.p1.show(velocity=True)
-        self.ball.show()
+        self.engine.step()
 
 
 Test().loop_forever()
