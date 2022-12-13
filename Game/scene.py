@@ -1,21 +1,6 @@
 import pygame as pg
 
 
-class State:
-
-    def __init__(self, state: bool = False) -> None:
-        self.__var = state
-
-    def get(self) -> bool:
-        return self.__var
-
-    def set(self, state: bool) -> None:
-        self.__var = state
-
-    def toggle(self) -> None:
-        self.__var = not self.__var
-
-
 class Scene:
 
     # TODO
@@ -45,12 +30,12 @@ class Scene:
         self.position: list = list(position)
 
         # If parent is None 'Base Scene' surface will be given by Window class
-        self.surface: pg.Surface = None
+        self.window: pg.Surface = None
         if self.parent is not None:
-            self.surface = pg.Surface(self.size)
+            self.window = pg.Surface(self.size)
 
         self.child_scenes: list[Scene] = []
-        self.state: State = State(True)
+        self.state: bool = True
 
     def onUpdate(self) -> None:
         ...
@@ -72,12 +57,12 @@ class Scene:
         if draw_bb:
             self.__draw_bounding_box()
         for scene in self.child_scenes:
-            if scene.state.get():
+            if scene.state:
                 scene.render(draw_bb)
-                self.surface.blit(scene.surface, scene.position)
+                self.window.blit(scene.window, scene.position)
 
     def __draw_bounding_box(self) -> None:
-        pg.draw.lines(self.surface, (255, 0, 0), True,
+        pg.draw.lines(self.window, (255, 0, 0), True,
                       [(0, 0),
                        (0, self.size[1]-1),
                        (self.size[0]-1, self.size[1]-1),
