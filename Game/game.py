@@ -57,6 +57,8 @@ class Game:
         return self.running
 
     def __event_handler(self) -> None:
+        self.mouse_x, self.mouse_y = pg.mouse.get_pos()
+        self.keys = pg.key.get_pressed()
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.running = False
