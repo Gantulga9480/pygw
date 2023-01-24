@@ -35,7 +35,7 @@ class Scene:
             self.window = pg.Surface(self.size)
 
         self.child_scenes: list[Scene] = []
-        self.state: bool = True
+        self.visible: bool = True
 
     def onUpdate(self) -> None:
         ...
@@ -57,7 +57,7 @@ class Scene:
         if draw_bb:
             self.__draw_bounding_box()
         for scene in self.child_scenes:
-            if scene.state:
+            if scene.visible:
                 scene.render(draw_bb)
                 self.window.blit(scene.window, scene.position)
 
