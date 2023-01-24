@@ -89,4 +89,5 @@ class Game:
             self.__current_window = window_index
             self.__windows[self.__current_window].set()
             self.window = self.__windows[self.__current_window]
-        raise IndexError()
+        else:
+            raise IndexError()
