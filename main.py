@@ -23,7 +23,18 @@ class Win(Window):
 
     def __init__(self, game, title: str = 'Pygame') -> None:
         super().__init__(game, title)
-        self.add_child(SC(self.window, (300, 300), (100, 100)))
+        self.set()
+        self.add_child(SC(self, (300, 300), (100, 100)))
+
+    def onUpdate(self) -> None:
+        self.window.fill((0, 0, 0))
+
+
+class Win1(Window):
+
+    def __init__(self, game, title: str = 'Pygame') -> None:
+        super().__init__(game, title)
+        self.add_child(SC(self, (300, 300), (500, 100)))
 
     def onUpdate(self) -> None:
         self.window.fill((0, 0, 0))
@@ -40,10 +51,11 @@ class Test(Game):
         self.add_window(Win(self, 'test-main'))  # create custom window
         self.switch(0)  # set main window, window at position 0 will always be main window
 
-        self.window1 = Win(self, 'test-second')
+        self.window1 = Win1(self, 'test-second')
         self.add_window(self.window1)
-        self.window.draw_bounding_boxes = True
-        self.window1.draw_bounding_boxes = True
+
+        self.window.enableBB()
+        self.window1.enableBB()
 
     def onEvent(self, event) -> None:
         if event.type == core.KEYUP:
