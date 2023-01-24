@@ -19,6 +19,16 @@ class SC1(Scene):
         self.window.fill((255, 0, 255))
 
 
+class Win(Window):
+
+    def __init__(self, game, title: str = 'Pygame') -> None:
+        super().__init__(game, title)
+        self.add_child(SC(self.window, (300, 300), (100, 100)))
+
+    def onUpdate(self) -> None:
+        self.window.fill((0, 0, 0))
+
+
 class Test(Game):
 
     def __init__(self) -> None:
@@ -26,16 +36,12 @@ class Test(Game):
         self.size = (1024, 720)
 
     def setup(self) -> None:
-        self.scene = SC(self.window, (300, 300), (100, 100))
-        self.scene1 = SC1(self.window, (300, 300), (500, 100))
-        self.window.add_child(self.scene)
-        self.window.add_child(self.scene1)
+        self.drop_window(0)  # drop default window
+        self.add_window(Win(self, 'test-main'))  # create custom window
+        self.switch(0)  # set main window, window at position 0 will always be main window
 
-        self.window1 = Window(self, 'test')
+        self.window1 = Win(self, 'test-second')
         self.add_window(self.window1)
-        self.window1.add_child(SC(self.window, (200, 200), (100, 100)))
-        self.window1.add_child(SC1(self.window, (200, 200), (500, 100)))
-
         self.window.draw_bounding_boxes = True
         self.window1.draw_bounding_boxes = True
 

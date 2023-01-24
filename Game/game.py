@@ -32,8 +32,8 @@ class Game:
 
     def __setup(self):
         self.add_window(Window(self, self. title))
-        if self.switch(0):
-            self.setup()
+        self.switch(0)
+        self.setup()
 
     def setup(self) -> None:
         """ User should override this method """
@@ -71,14 +71,22 @@ class Game:
             self.window.render()
 
     def add_window(self, window):
-        """Before calling this function, window size,
+        """Before calling this function size,
            flags and fps have to be initialized"""
         self.__windows.append(window)
 
-    def switch(self, window_index: int) -> bool:
-        if window_index < self.__windows.__len__():
+    def drop_window(self, index: int) -> Window:
+        try:
+            win = self.__windows.pop(index)
+            if (index == self.__current_window):
+                self.window = None
+            return win
+        except IndexError:
+            return None
+
+    def switch(self, window_index: int) -> None:
+        if 0 <= window_index < self.__windows.__len__():
             self.__current_window = window_index
             self.__windows[self.__current_window].set()
             self.window = self.__windows[self.__current_window]
-            return True
-        return False
+        raise IndexError()
