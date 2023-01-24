@@ -21,7 +21,7 @@ class Window(Scene):
         self.game = game
         self.fps: int = game.fps
         self.title: str = title
-        self.draw_bounding_boxes: bool = False
+        self.__draw_bounding_boxes: bool = False
 
     def set(self) -> None:
         self.window = pg.display.get_surface()
@@ -36,8 +36,14 @@ class Window(Scene):
     def render(self, draw_bb=False) -> None:
         self.onUpdate()
         for scene in self.child_scenes:
-            if scene.state:
-                scene.render(self.draw_bounding_boxes)
+            if scene.visible:
+                scene.render(self.__draw_bounding_boxes)
                 self.window.blit(scene.window, scene.position)
         pg.display.flip()
         self.game.clock.tick(self.fps)
+
+    def enableBB(self):
+        self.__draw_bounding_boxes = True
+
+    def disableBB(self):
+        self.__draw_bounding_boxes = False
