@@ -1,10 +1,10 @@
 *.pyc
 *.pyd
+*.so
 .vscode
 *.c
 *.h
 build
 *.html
 __pycache__
-test.py
 model

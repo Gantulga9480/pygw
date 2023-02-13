@@ -93,7 +93,7 @@ cdef class Body:
                 self.radius *= factor
 
     cpdef (double, double) position(self):
-        return self.shape.plane.parent_vector.get_head()
+        return self.shape.plane.get_CENTER()
 
     @cython.cdivision(True)
     cpdef double direction(self):
