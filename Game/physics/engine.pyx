@@ -18,7 +18,7 @@ cdef class EnginePolygon:
     @cython.nonecheck(False)
     @cython.initializedcheck(False)
     def step(self):
-        cdef int n = self.bodies.shape[0]
+        cdef int n = <int>self.bodies.shape[0]
         cdef int i, j
         cdef (double, double) dxy
         # Check for every body ...
@@ -36,5 +36,3 @@ cdef class EnginePolygon:
                             # radius1 + radius2 >= distance between body2 and body1 means we have some work to do
                             if (self.bodies[i].radius + self.bodies[j].radius) >= ((<Body>self.bodies[i]).shape.plane.parent_vector.dist((<Body>self.bodies[j]).shape.plane.parent_vector)):
                                 self.collider.check(<Body>self.bodies[i], <Body>self.bodies[j])
-            # Throw body on to screen
-            (<Body>self.bodies[i]).show()
