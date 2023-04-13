@@ -26,8 +26,8 @@ cdef class Body:
         self.id = id
         self.type = type
 
-    def show(self, vertex=False, velocity=False):
-        self.shape.show(vertex)
+    def show(self, vertex=False, velocity=False, width=1):
+        self.shape.show(vertex, width)
         if velocity:
             self.velocity.show((255, 0, 0))
 
@@ -120,6 +120,7 @@ cdef class FreeBody(Body):
         self.velocity = Vector2d(plane, 1, 0, max_speed, 1)
         self.velocity.rotate(pi/2)
 
+    @cython.cdivision(True)
     cdef void USR_step(self):
         cdef double v_len = floor(self.velocity.mag() * 1000.0) / 1000.0
         cdef (double, double) xy
@@ -128,18 +129,17 @@ cdef class FreeBody(Body):
             if not self.is_attached:
                 xy = self.velocity.get_head()
                 _xy = self.velocity.unit_vector(1)
-                self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.get_x() + xy[0] - _xy[0],
-                                                         self.shape.plane.parent_vector.get_y() + xy[1] - _xy[1]))
+                self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.get_x() + (xy[0] - _xy[0]) / self.shape.plane.frame_rate,
+                                                         self.shape.plane.parent_vector.get_y() + (xy[1] - _xy[1]) / self.shape.plane.frame_rate))
             # Drag is applied even if it's attached to another body
             if self.drag_coef:
-                self.velocity.add(-(v_len-1) * self.drag_coef)
+                self.velocity.add((1-v_len) * self.drag_coef)
         else:
             self.velocity.set_head(self.velocity.unit_vector(1))
 
     @cython.cdivision(True)
     cpdef void accelerate(self, double speed):
-        if speed:
-            self.velocity.add(speed/self.shape.plane.frame_rate)
+        self.velocity.add(speed / self.shape.plane.frame_rate)
 
 @cython.optimize.unpack_method_calls(False)
 cdef class StaticBody(Body):
@@ -177,6 +177,7 @@ cdef class DynamicBody(Body):
             self.velocity.scale(self.friction_coef)
             self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.head.x.num + -dxy[0], self.shape.plane.parent_vector.head.y.num + -dxy[1]))
 
+    @cython.cdivision(True)
     cdef void USR_step(self):
         cdef double v_len = floor(self.velocity.mag() * 1000.0) / 1000.0
         cdef (double, double) xy
@@ -185,18 +186,17 @@ cdef class DynamicBody(Body):
             if not self.is_attached:
                 xy = self.velocity.get_head()
                 _xy = self.velocity.unit_vector(1)
-                self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.get_x() + xy[0] - _xy[0],
-                                                         self.shape.plane.parent_vector.get_y() + xy[1] - _xy[1]))
+                self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.get_x() + (xy[0] - _xy[0]) / self.shape.plane.frame_rate,
+                                                         self.shape.plane.parent_vector.get_y() + (xy[1] - _xy[1]) / self.shape.plane.frame_rate))
             # Drag is applied even if it's attached to another body
             if self.drag_coef:
-                self.velocity.add(-(v_len-1) * self.drag_coef)
+                self.velocity.add((1-v_len) * self.drag_coef)
         else:
             self.velocity.set_head(self.velocity.unit_vector(1))
 
     @cython.cdivision(True)
     cpdef void accelerate(self, double speed):
-        if speed:
-            self.velocity.add(speed/self.shape.plane.frame_rate)
+        self.velocity.add(speed / self.shape.plane.frame_rate)
 
 @cython.optimize.unpack_method_calls(False)
 cdef class Ray(FreeBody):
@@ -229,10 +229,10 @@ cdef class Ray(FreeBody):
     cpdef void scale(self, double factor):
         (<Vector2d>self.vertices[0]).scale(factor)
 
-    def show(self, vertex=False, velocity=False):
-        self.shape.show()
+    def show(self, vertex=False, velocity=False, width=1):
+        self.shape.show(False, width)
         if self.x != 0 or self.y != 0:
-            circle(self.shape.window, (255, 0, 0), self.shape.plane.to_XY((self.x, self.y)), 3)
+            circle(self.shape.plane.window, (255, 0, 0), self.shape.plane.to_XY((self.x, self.y)), 3)
         self.x = 0
         self.y = 0
 
