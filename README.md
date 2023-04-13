@@ -1,1 +1,1 @@
-# **MORE Simple Base class for implementing pygame application.**
+# **MORE SIMPLE Base class for implementing pygame application.**
