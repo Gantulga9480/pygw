@@ -1,12 +1,14 @@
 # **MORE ADVANCED Base class for implementing pygame application.**
 
 ## Description
-    Write description here
+Write description here
 
-## To build Game module
+## How to use
+
+### To build Game module
     python cython_setup.py build_ext --inplace
 
-# Change Log
+## Change Log
 
-## v2a (version 2.0 Advanced)
-    Development started
+### v2a (version 2.0 Advanced)
+Development started
