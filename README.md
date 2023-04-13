@@ -1,4 +1,7 @@
-# **Simple Base class for implementing pygame application.**
+# **MORE ADVANCED Base class for implementing pygame application.**
+
+## Description
+    Write description here
 
 ## To build Game module
     python cython_setup.py build_ext --inplace
