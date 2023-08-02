@@ -57,13 +57,20 @@ cdef class Shape:
                 heads.append((<Vector2d>self.vertices[i]).headXY.get_xy())
         else:
             for i in range(self.vertex_count):
-                heads.append((<Vector2d>self.vertices[i]).get_HEAD())
+                heads.append((<Vector2d>self.vertices[i]).headXY.get_xy())
         if width == 1:
             aalines(self.plane.window, self.color, True, heads)
         elif width > 1:
             polygon(self.plane.window, self.color, heads, width)
         else:
             polygon(self.plane.window, self.color, heads)
+
+    def sync(self):
+        self.update()
+
+    cdef void update(self):
+        for i in range(self.vertex_count):
+            (<Vector2d>self.vertices[i]).update()
 
 @cython.optimize.unpack_method_calls(False)
 cdef class Line(Shape):
@@ -76,6 +83,8 @@ cdef class Line(Shape):
 
         self.vertex_count = 1
         self.vertices = np.array([Vector2d(self.plane, length, 0, 0, 1)], dtype=Vector2d)
+
+        self.update()
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
@@ -96,7 +105,6 @@ cdef class Line(Shape):
     @cython.nonecheck(False)
     @cython.initializedcheck(False)
     def show(self, show_vertex=False, width=1):
-        (<Vector2d>self.vertices[0]).update()
         if width == 1:
             aaline(self.plane.window, self.color, self.plane.center.get_xy(), (<Vector2d>self.vertices[0]).headXY.get_xy())
         else:
@@ -128,6 +136,8 @@ cdef class Rectangle(Shape):
 
         self.vertices = np.array(vers, dtype=Vector2d)
 
+        self.update()
+
 @cython.optimize.unpack_method_calls(False)
 cdef class Triangle(Shape):
 
@@ -148,6 +158,8 @@ cdef class Triangle(Shape):
 
         self.vertices = np.array(vers, dtype=Vector2d)
 
+        self.update()
+
 @cython.optimize.unpack_method_calls(False)
 cdef class Polygon(Shape):
 
@@ -167,3 +179,5 @@ cdef class Polygon(Shape):
             vers[-1].rotate(pi/2 + 2*pi/self.vertex_count * i)
 
         self.vertices = np.array(vers, dtype=Vector2d)
+
+        self.update()
