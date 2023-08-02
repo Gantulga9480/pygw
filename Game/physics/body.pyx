@@ -53,6 +53,7 @@ cdef class Body:
                 self.velocity.rotate(d)
         else:
             self.USR_step()
+        self.shape.update()
 
     cdef void USR_step(self):
         pass
@@ -93,7 +94,7 @@ cdef class Body:
                 self.radius *= factor
 
     cpdef (double, double) position(self):
-        return self.shape.plane.get_CENTER()
+        return self.shape.plane.parent_vector.get_head()
 
     @cython.cdivision(True)
     cpdef double direction(self):
