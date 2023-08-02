@@ -14,6 +14,7 @@ class RotatingTriangle(Game):
 
     def loop(self):
         self.shape.rotate(self.angular_velocity / self.fps)
+        self.shape.sync()
 
     def onEvent(self, event):
         if event.type == core.KEYUP:
