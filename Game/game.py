@@ -41,7 +41,7 @@ class Game:
         pg.quit()
 
     def __setup(self):
-        self.add_window(Window(self, self. title))
+        self.add_window(Window(self, self.title))
         self.switch(0)
         self.setup()
 
