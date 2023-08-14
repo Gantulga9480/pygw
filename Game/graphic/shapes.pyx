@@ -106,9 +106,9 @@ cdef class Line(Shape):
     @cython.initializedcheck(False)
     def show(self, show_vertex=False, width=1):
         if width == 1:
-            aaline(self.plane.window, self.color, self.plane.center.get_xy(), (<Vector2d>self.vertices[0]).HEAD.get_xy())
+            aaline(self.plane.window, self.color, self.plane.origin.get_xy(), (<Vector2d>self.vertices[0]).HEAD.get_xy())
         else:
-            line(self.plane.window, self.color, self.plane.center.get_xy(), (<Vector2d>self.vertices[0]).HEAD.get_xy())
+            line(self.plane.window, self.color, self.plane.origin.get_xy(), (<Vector2d>self.vertices[0]).HEAD.get_xy())
 
 @cython.optimize.unpack_method_calls(False)
 cdef class Rectangle(Shape):

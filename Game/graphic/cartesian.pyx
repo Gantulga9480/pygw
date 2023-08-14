@@ -20,7 +20,7 @@ cdef class CartesianPlane:
         self.frame_rate = frame_rate
         self.unit_length = (unit_length if self.parent_vector is None
                             else self.parent_vector.plane.unit_length)
-        self.center = (self.parent_vector.HEAD if self.parent_vector
+        self.origin = (self.parent_vector.HEAD if self.parent_vector
                        else point2d(floor(self.window_size[0] / 2), floor(self.window_size[1] / 2)))
         self.set_limit()
 
@@ -28,19 +28,19 @@ cdef class CartesianPlane:
     def X(self):
         if self.parent_vector:
             self.parent_vector.update()
-        return self.center.x.num
+        return self.origin.x.num
 
     @property
     def Y(self):
         if self.parent_vector:
             self.parent_vector.update()
-        return self.center.y.num
+        return self.origin.y.num
 
     @property
-    def CENTER(self):
+    def ORIGIN(self):
         if self.parent_vector:
             self.parent_vector.update()
-        return (self.center.x.num, self.center.y.num)
+        return (self.origin.x.num, self.origin.y.num)
 
     @property
     def SIZE(self):
@@ -60,11 +60,11 @@ cdef class CartesianPlane:
     @cython.optimize.unpack_method_calls(False)
     def show(self):
         # draw x axis
-        line(self.window, (255, 0, 0), self.center.get_xy(),
-             (self.center.x.num, self.center.y.num-10), 2)
+        line(self.window, (255, 0, 0), self.origin.get_xy(),
+             (self.origin.x.num, self.origin.y.num-10), 2)
         # draw y axis
-        line(self.window, (0, 255, 0), self.center.get_xy(),
-             (self.center.x.num+10, self.center.y.num), 2)
+        line(self.window, (0, 255, 0), self.origin.get_xy(),
+             (self.origin.x.num+10, self.origin.y.num), 2)
 
     cpdef Vector2d get_parent_vector(self):
         return self.parent_vector
@@ -72,64 +72,64 @@ cdef class CartesianPlane:
     cpdef point2d get_center_point(self):
         if self.parent_vector:
             self.parent_vector.update()
-        return self.center
+        return self.origin
 
     cpdef double to_X(self, double x):
         if self.parent_vector:
             self.parent_vector.update()
-        return self.center.x.num + x * self.unit_length
+        return self.origin.x.num + x * self.unit_length
 
     cpdef double to_Y(self, double y):
         if self.parent_vector:
             self.parent_vector.update()
-        return self.center.y.num - y * self.unit_length
+        return self.origin.y.num - y * self.unit_length
 
     cpdef (double, double) to_XY(self, (double, double) xy):
         if self.parent_vector:
             self.parent_vector.update()
-        return (self.center.x.num + xy[0] * self.unit_length, self.center.y.num - xy[1] * self.unit_length)
+        return (self.origin.x.num + xy[0] * self.unit_length, self.origin.y.num - xy[1] * self.unit_length)
 
     @cython.cdivision(True)
     cpdef double to_x(self, double X):
         if self.parent_vector:
             self.parent_vector.update()
-        return (X - self.center.x.num) / self.unit_length
+        return (X - self.origin.x.num) / self.unit_length
 
     @cython.cdivision(True)
     cpdef double to_y(self, double Y):
         if self.parent_vector:
             self.parent_vector.update()
-        return (self.center.y.num - Y) / self.unit_length
+        return (self.origin.y.num - Y) / self.unit_length
 
     @cython.cdivision(True)
     cpdef (double, double) to_xy(self, (double, double) XY):
         if self.parent_vector:
             self.parent_vector.update()
-        return ((XY[0] - self.center.x.num) / self.unit_length, (self.center.y.num - XY[1]) / self.unit_length)
+        return ((XY[0] - self.origin.x.num) / self.unit_length, (self.origin.y.num - XY[1]) / self.unit_length)
 
     cdef double get_X(self):
         if self.parent_vector:
             self.parent_vector.update()
-        return self.center.x.num
+        return self.origin.x.num
 
     cdef double get_Y(self):
         if self.parent_vector:
             self.parent_vector.update()
-        return self.center.y.num
+        return self.origin.y.num
 
     cdef (double, double) get_CENTER(self):
         if self.parent_vector:
             self.parent_vector.update()
-        return (self.center.x.num, self.center.y.num)
+        return (self.origin.x.num, self.origin.y.num)
 
     @cython.cdivision(True)
     cdef void set_limit(self):
         if self.parent_vector:
             self.parent_vector.update()
-        self.x_min = floor((self.center.x.num - self.window_size[0]) / self.unit_length)
-        self.x_max = floor((self.window_size[0] - self.center.x.num) / self.unit_length)
-        self.y_min = floor((self.center.y.num - self.window_size[1]) / self.unit_length)
-        self.y_max = floor((self.window_size[1] - self.center.y.num) / self.unit_length)
+        self.x_min = floor((self.origin.x.num - self.window_size[0]) / self.unit_length)
+        self.x_max = floor((self.window_size[0] - self.origin.x.num) / self.unit_length)
+        self.y_min = floor((self.origin.y.num - self.window_size[1]) / self.unit_length)
+        self.y_max = floor((self.window_size[1] - self.origin.y.num) / self.unit_length)
 
 
 @cython.optimize.unpack_method_calls(False)
@@ -165,12 +165,12 @@ cdef class Vector2d(vector2d):
     @property
     def TAIL(self):
         self.update()
-        return (self.plane.center.x.num, self.plane.center.y.num)
+        return (self.plane.origin.x.num, self.plane.origin.y.num)
 
     @cython.nonecheck(False)
     @cython.optimize.unpack_method_calls(False)
     def show(self, color=(0, 0, 0)):
-        aaline(self.plane.window, color, self.plane.center.get_xy(), self.HEAD.get_xy())
+        aaline(self.plane.window, color, self.plane.origin.get_xy(), self.HEAD.get_xy())
 
     def unit(self, double scale=1, bint vector=True):
         cdef (double, double) xy = self.unit_vector(scale)
@@ -212,4 +212,4 @@ cdef class Vector2d(vector2d):
 
     cdef (double, double) get_TAIL(self):
         self.update()
-        return (self.plane.center.x.num, self.plane.center.y.num)
+        return (self.plane.origin.x.num, self.plane.origin.y.num)

@@ -3,7 +3,7 @@ from Game.math.core cimport point2d, vector2d
 
 cdef class CartesianPlane:
     cdef Vector2d parent_vector
-    cdef point2d center
+    cdef point2d origin
     cdef readonly object window
     cdef readonly (double, double) window_size
     cdef readonly double x_min, y_min, x_max, y_max, unit_length, frame_rate

@@ -38,7 +38,7 @@ cdef class collision:
                     b2 = body1
             dx = 0
             dy = 0
-            l1s = self.plane.to_xy(b1.shape.plane.center.get_xy())
+            l1s = self.plane.to_xy(b1.shape.plane.origin.get_xy())
             for i in range(b1.shape.vertex_count):
                 # check for every vertex of first shape against ...
                 l1e = self.plane.to_xy((<Vector2d>b1.shape.vertices[i]).HEAD.get_xy())
