@@ -20,7 +20,7 @@ cdef class CartesianPlane:
         self.frame_rate = frame_rate
         self.unit_length = (unit_length if self.parent_vector is None
                             else self.parent_vector.plane.unit_length)
-        self.center = (self.parent_vector.headXY if self.parent_vector
+        self.center = (self.parent_vector.HEAD if self.parent_vector
                        else point2d(floor(self.window_size[0] / 2), floor(self.window_size[1] / 2)))
         self.set_limit()
 
@@ -141,7 +141,7 @@ cdef class Vector2d(vector2d):
     def __init__(self, CartesianPlane plane, double x=1, double y=0, double max=0, double min=0):
         super().__init__(x, y, max, min)
         self.plane = plane
-        self.headXY = point2d(0, 0)
+        self.HEAD = point2d(0, 0)
         self.update()
 
     def __repr__(self):
@@ -150,17 +150,17 @@ cdef class Vector2d(vector2d):
     @property
     def X(self):
         self.update()
-        return self.headXY.x.num
+        return self.HEAD.x.num
 
     @property
     def Y(self):
         self.update()
-        return self.headXY.y.num
+        return self.HEAD.y.num
 
     @property
     def HEAD(self):
         self.update()
-        return self.headXY.get_xy()
+        return (self.HEAD.x.num, self.HEAD.y.num)
 
     @property
     def TAIL(self):
@@ -170,7 +170,7 @@ cdef class Vector2d(vector2d):
     @cython.nonecheck(False)
     @cython.optimize.unpack_method_calls(False)
     def show(self, color=(0, 0, 0)):
-        aaline(self.plane.window, color, self.plane.center.get_xy(), self.headXY.get_xy())
+        aaline(self.plane.window, color, self.plane.center.get_xy(), self.HEAD.get_xy())
 
     def unit(self, double scale=1, bint vector=True):
         cdef (double, double) xy = self.unit_vector(scale)
@@ -196,19 +196,19 @@ cdef class Vector2d(vector2d):
             self.head.y.num = (r2 * 2 - 1) * self.plane.y_max
 
     cpdef void update(self):
-        self.headXY.set_xy(self.plane.to_XY(self.head.get_xy()))
+        self.HEAD.set_xy(self.plane.to_XY(self.head.get_xy()))
 
     cdef double get_X(self):
         self.update()
-        return self.headXY.x.num
+        return self.HEAD.x.num
 
     cdef double get_Y(self):
         self.update()
-        return self.headXY.y.num
+        return self.HEAD.y.num
 
     cdef (double, double) get_HEAD(self):
         self.update()
-        return self.headXY.get_xy()
+        return self.HEAD.get_xy()
 
     cdef (double, double) get_TAIL(self):
         self.update()

@@ -25,7 +25,7 @@ cdef class CartesianPlane:
 cdef class Vector2d(vector2d):
 
     cdef readonly CartesianPlane plane
-    cdef point2d headXY
+    cdef point2d HEAD
 
     cpdef void random(self)
     cpdef void update(self)

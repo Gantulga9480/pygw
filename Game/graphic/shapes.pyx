@@ -54,10 +54,10 @@ cdef class Shape:
         if show_vertex:
             for i in range(self.vertex_count):
                 (<Vector2d>self.vertices[i]).show(self.color)
-                heads.append((<Vector2d>self.vertices[i]).headXY.get_xy())
+                heads.append((<Vector2d>self.vertices[i]).HEAD.get_xy())
         else:
             for i in range(self.vertex_count):
-                heads.append((<Vector2d>self.vertices[i]).headXY.get_xy())
+                heads.append((<Vector2d>self.vertices[i]).HEAD.get_xy())
         if width == 1:
             aalines(self.plane.window, self.color, True, heads)
         elif width > 1:
@@ -66,9 +66,9 @@ cdef class Shape:
             polygon(self.plane.window, self.color, heads)
 
     def sync(self):
-        self.update()
+        self.sync_shape()
 
-    cdef void update(self):
+    cdef void sync_shape(self):
         for i in range(self.vertex_count):
             (<Vector2d>self.vertices[i]).update()
 
@@ -84,7 +84,7 @@ cdef class Line(Shape):
         self.vertex_count = 1
         self.vertices = np.array([Vector2d(self.plane, length, 0, 0, 1)], dtype=Vector2d)
 
-        self.update()
+        self.sync_shape()
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
@@ -106,9 +106,9 @@ cdef class Line(Shape):
     @cython.initializedcheck(False)
     def show(self, show_vertex=False, width=1):
         if width == 1:
-            aaline(self.plane.window, self.color, self.plane.center.get_xy(), (<Vector2d>self.vertices[0]).headXY.get_xy())
+            aaline(self.plane.window, self.color, self.plane.center.get_xy(), (<Vector2d>self.vertices[0]).HEAD.get_xy())
         else:
-            line(self.plane.window, self.color, self.plane.center.get_xy(), (<Vector2d>self.vertices[0]).headXY.get_xy())
+            line(self.plane.window, self.color, self.plane.center.get_xy(), (<Vector2d>self.vertices[0]).HEAD.get_xy())
 
 @cython.optimize.unpack_method_calls(False)
 cdef class Rectangle(Shape):
@@ -136,7 +136,7 @@ cdef class Rectangle(Shape):
 
         self.vertices = np.array(vers, dtype=Vector2d)
 
-        self.update()
+        self.sync_shape()
 
 @cython.optimize.unpack_method_calls(False)
 cdef class Triangle(Shape):
@@ -158,7 +158,7 @@ cdef class Triangle(Shape):
 
         self.vertices = np.array(vers, dtype=Vector2d)
 
-        self.update()
+        self.sync_shape()
 
 @cython.optimize.unpack_method_calls(False)
 cdef class Polygon(Shape):
@@ -180,4 +180,4 @@ cdef class Polygon(Shape):
 
         self.vertices = np.array(vers, dtype=Vector2d)
 
-        self.update()
+        self.sync_shape()
