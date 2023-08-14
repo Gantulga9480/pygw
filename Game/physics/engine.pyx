@@ -32,8 +32,8 @@ cdef class EnginePolygon:
             for j in range(n):
                 # Will not check bodies against itself
                 # Will not check against FREE body
-                # Bodies that have same id will be skipped
-                if i == j or self.bodies[j].type == FREE or self.bodies[i].id == self.bodies[j].id:
+                # Bodies that have same ID will be skipped
+                if i == j or self.bodies[j].type == FREE or self.bodies[i].ID == self.bodies[j].ID:
                     continue
                 # radius1 + radius2 >= distance between body2 and body1 means we have some work to do
                 if (self.bodies[i].radius + self.bodies[j].radius) >= ((<Body>self.bodies[i]).shape.plane.parent_vector.dist((<Body>self.bodies[j]).shape.plane.parent_vector)):

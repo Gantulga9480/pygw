@@ -8,7 +8,7 @@ cdef int STATIC, DYNAMIC, FREE
 
 
 cdef class Body:
-    cdef readonly int type, id
+    cdef readonly int type, ID
     cdef readonly double radius
     cdef readonly double friction_coef
     cdef readonly double drag_coef
@@ -26,9 +26,9 @@ cdef class Body:
     cpdef double speed(self)
     cpdef void attach(self, Body o, bint follow_dir)
     cpdef void detach(self, Body o)
-    cdef void USR_step(self)
-    cdef void USR_resolve_collision(self, Body o, (double, double) dxy)
-    cdef void USR_resolve_collision_point(self, double dx, double dy)
+    cdef void onStep(self)
+    cdef void onCollision(self, Body o, (double, double) dxy)
+    cdef void onCollisionPoint(self, double dx, double dy)
 
 cdef class FreeBody(Body):
     cpdef void accelerate(self, double speed)
