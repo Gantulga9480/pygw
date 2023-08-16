@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="Game",
-    version="1.1.1",
+    version="2.0.0-beta",
     author="Gantulga G",
     author_email="limited.tulgaa@gmail.com>",
     description="Pygame base class for ease of use",
@@ -14,5 +14,5 @@ setuptools.setup(
     url="https://github.com/Gantulga9480/Game",
     packages=setuptools.find_packages(),
     license='MIT',
-    install_requires=['pygame'],
+    install_requires=['pygame', 'Cython', 'numpy'],
 )
