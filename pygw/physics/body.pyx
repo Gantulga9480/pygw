@@ -1,10 +1,10 @@
 import cython
-from Game.graphic.cartesian cimport CartesianPlane, Vector2d
-from Game.graphic.shapes cimport Polygon, Rectangle, Triangle, Line
-from Game.math.core cimport pi, point2d
+import numpy as np
 from pygame.draw import aalines, aaline, circle
 from libc.math cimport floor, sqrt
-import numpy as np
+from ..graphic.cartesian cimport CartesianPlane, Vector2d
+from ..graphic.shapes cimport Polygon, Rectangle, Triangle, Line
+from ..math.core cimport pi, point2d
 
 STATIC = 0
 DYNAMIC = 1

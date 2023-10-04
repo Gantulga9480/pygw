@@ -5,6 +5,8 @@
 *.c
 *.h
 build
+dist
+*.egg-info
 *.html
 __pycache__
 model

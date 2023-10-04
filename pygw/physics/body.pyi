@@ -1,5 +1,5 @@
-from Game.graphic.cartesian import CartesianPlane, Vector2d
-from Game.graphic.shapes import Shape
+from ..graphic.cartesian import CartesianPlane, Vector2d
+from ..graphic.shapes import Shape
 
 
 class Body:

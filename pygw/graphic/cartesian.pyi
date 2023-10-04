@@ -1,5 +1,5 @@
 from typing import Any, Union
-from Game.math.core import vector2d, point2d
+from ..math.core import vector2d, point2d
 from pygame.color import Color
 from pygame import Surface
 

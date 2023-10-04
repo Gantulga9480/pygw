@@ -1,4 +1,4 @@
-from Game.graphic.cartesian cimport CartesianPlane, Vector2d
+from .cartesian cimport CartesianPlane, Vector2d
 
 
 cdef class Shape:

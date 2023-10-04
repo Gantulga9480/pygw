@@ -1,7 +1,7 @@
 import cython
-from Game.graphic.cartesian cimport CartesianPlane
-from Game.physics.body cimport Body, STATIC, FREE
-from Game.physics.collision cimport collision
+from ..graphic.cartesian cimport CartesianPlane
+from .body cimport Body, STATIC, FREE
+from .collision cimport collision
 
 @cython.optimize.unpack_method_calls(False)
 cdef class EnginePolygon:

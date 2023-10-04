@@ -1,8 +1,8 @@
 import cython
-from pygame.draw import line, aaline
-from Game.math.core cimport scalar, point2d, vector2d
-from libc.math cimport floor, sqrt
 from random import random
+from pygame.draw import line, aaline
+from libc.math cimport floor, sqrt
+from ..math.core cimport scalar, point2d, vector2d
 
 
 @cython.optimize.unpack_method_calls(False)

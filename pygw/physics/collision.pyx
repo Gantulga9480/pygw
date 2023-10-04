@@ -1,8 +1,8 @@
 import cython
-from Game.graphic.cartesian cimport CartesianPlane, Vector2d
-from Game.physics.body cimport Body, FREE
-from Game.physics.utils cimport LSI as line_segment_intersect
-from Game.math.core cimport point2d
+from ..graphic.cartesian cimport CartesianPlane, Vector2d
+from ..math.core cimport point2d
+from .body cimport Body, FREE
+from .utils cimport LSI as line_segment_intersect
 
 @cython.optimize.unpack_method_calls(False)
 cdef class collision:

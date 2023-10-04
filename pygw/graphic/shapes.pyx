@@ -1,9 +1,9 @@
 import cython
-from Game.graphic.cartesian cimport CartesianPlane, Vector2d
-from Game.math.core cimport pi
-from libc.math cimport sqrt, atan2
 import numpy as np
 from pygame.draw import aalines, aaline, polygon, line
+from libc.math cimport sqrt, atan2
+from ..math.core cimport pi
+from .cartesian cimport CartesianPlane, Vector2d
 
 @cython.optimize.unpack_method_calls(False)
 cdef class Shape:
@@ -169,7 +169,7 @@ cdef class Polygon(Shape):
     def __init__(self, CartesianPlane plane, tuple shape):
         super(Polygon, self).__init__(plane)
 
-        self.vertex_count = shape.__len__()
+        self.vertex_count = len(shape)
 
         cdef list vers = []
         cdef int i

@@ -1,4 +1,4 @@
-from Game.math.core cimport point2d, vector2d
+from ..math.core cimport point2d, vector2d
 
 
 cdef class CartesianPlane:

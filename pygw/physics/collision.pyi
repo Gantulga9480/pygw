@@ -1,5 +1,5 @@
-from Game.graphic.cartesian import CartesianPlane
-from Game.physics.body import Body
+from ..graphic.cartesian import CartesianPlane
+from .body import Body
 
 
 class collision:

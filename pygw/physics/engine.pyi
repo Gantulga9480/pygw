@@ -1,4 +1,4 @@
-from Game.graphic.cartesian import CartesianPlane
+from ..graphic.cartesian import CartesianPlane
 
 
 class EnginePolygon:

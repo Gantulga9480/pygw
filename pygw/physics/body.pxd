@@ -1,7 +1,7 @@
 import cython
-from Game.graphic.cartesian cimport CartesianPlane, Vector2d
-from Game.graphic.shapes cimport Shape
-from Game.math.core cimport point2d
+from ..graphic.cartesian cimport CartesianPlane, Vector2d
+from ..graphic.shapes cimport Shape
+from ..math.core cimport point2d
 
 
 cdef int STATIC, DYNAMIC, FREE

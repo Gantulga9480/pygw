@@ -1,5 +1,5 @@
-from Game.graphic.cartesian cimport CartesianPlane
-from Game.physics.body cimport Body
+from ..graphic.cartesian cimport CartesianPlane
+from .body cimport Body
 
 
 cdef class collision:

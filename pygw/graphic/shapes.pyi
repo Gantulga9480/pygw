@@ -1,4 +1,4 @@
-from Game.graphic.cartesian import CartesianPlane, Vector2d
+from .cartesian import CartesianPlane, Vector2d
 
 
 class Shape:
