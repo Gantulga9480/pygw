@@ -53,7 +53,7 @@ cdef class Body:
                 self.velocity.rotate(d)
         else:
             self.onStep()
-        self.shape.update()
+        self.shape.sync()
 
     cdef void onStep(self):
         pass
@@ -184,14 +184,14 @@ cdef class DynamicBody(Body):
         cdef (double, double) xy
         cdef (double, double) _xy
         if v_len > 1:
+            # Drag is applied even if it's attached to another body
+            if self.drag_coef:
+                self.velocity.add((1-v_len) * self.drag_coef)
             if not self.is_attached:
                 xy = self.velocity.get_head()
                 _xy = self.velocity.unit_vector(1)
                 self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.get_x() + (xy[0] - _xy[0]) / self.shape.plane.frame_rate,
                                                          self.shape.plane.parent_vector.get_y() + (xy[1] - _xy[1]) / self.shape.plane.frame_rate))
-            # Drag is applied even if it's attached to another body
-            if self.drag_coef:
-                self.velocity.add((1-v_len) * self.drag_coef)
         else:
             self.velocity.set_head(self.velocity.unit_vector(1))
 
