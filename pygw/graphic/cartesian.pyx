@@ -55,7 +55,7 @@ cdef class CartesianPlane:
         return vec
 
     def createPlane(self, x=0, y=0):
-        return CartesianPlane(self.window, self.window_size, Vector2d(self, x, y), self.frame_rate)
+        return CartesianPlane(self.window, self.window_size, Vector2d(self, x, y), self.frame_rate, self.unit_length)
 
     @cython.optimize.unpack_method_calls(False)
     def show(self):
