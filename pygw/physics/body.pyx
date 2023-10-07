@@ -139,8 +139,8 @@ cdef class FreeBody(Body):
             self.velocity.set_head(self.velocity.unit_vector(1))
 
     @cython.cdivision(True)
-    cpdef void accelerate(self, double speed):
-        self.velocity.add(speed / self.shape.plane.frame_rate)
+    cpdef void accelerate(self, double value):
+        self.velocity.add(value)
 
 @cython.optimize.unpack_method_calls(False)
 cdef class StaticBody(Body):
@@ -196,8 +196,8 @@ cdef class DynamicBody(Body):
             self.velocity.set_head(self.velocity.unit_vector(1))
 
     @cython.cdivision(True)
-    cpdef void accelerate(self, double speed):
-        self.velocity.add(speed / self.shape.plane.frame_rate)
+    cpdef void accelerate(self, double value):
+        self.velocity.add(value)
 
 @cython.optimize.unpack_method_calls(False)
 cdef class Ray(FreeBody):

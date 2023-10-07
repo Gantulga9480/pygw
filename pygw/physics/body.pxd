@@ -31,13 +31,13 @@ cdef class Body:
     cdef void onCollisionPoint(self, double dx, double dy)
 
 cdef class FreeBody(Body):
-    cpdef void accelerate(self, double speed)
+    cpdef void accelerate(self, double value)
 
 cdef class StaticBody(Body):
     pass
 
 cdef class DynamicBody(Body):
-    cpdef void accelerate(self, double speed)
+    cpdef void accelerate(self, double value)
 
 cdef class DynamicPolygonBody(DynamicBody):
     pass
