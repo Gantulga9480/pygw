@@ -1,6 +1,7 @@
-from Game import Game, core
-from Game.graphic import CartesianPlane, Triangle
+from pygw import Game
+from pygw.graphic import CartesianPlane, Triangle
 from math import pi
+import pygame as core
 
 
 class RotatingTriangle(Game):
