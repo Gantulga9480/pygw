@@ -108,7 +108,7 @@ cdef class Line(Shape):
         if width == 1:
             aaline(self.plane.window, self.color, self.plane.origin.get_xy(), (<Vector2d>self.vertices[0]).HEAD.get_xy())
         else:
-            line(self.plane.window, self.color, self.plane.origin.get_xy(), (<Vector2d>self.vertices[0]).HEAD.get_xy())
+            line(self.plane.window, self.color, self.plane.origin.get_xy(), (<Vector2d>self.vertices[0]).HEAD.get_xy(), width)
 
 @cython.optimize.unpack_method_calls(False)
 cdef class Rectangle(Shape):
