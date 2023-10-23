@@ -130,8 +130,8 @@ cdef class FreeBody(Body):
             if not self.is_attached:
                 xy = self.velocity.get_head()
                 _xy = self.velocity.unit_vector(1)
-                self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.get_x() + (xy[0] - _xy[0]) / self.shape.plane.frame_rate,
-                                                         self.shape.plane.parent_vector.get_y() + (xy[1] - _xy[1]) / self.shape.plane.frame_rate))
+                self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.get_x() + (xy[0] - _xy[0]) / (self.shape.plane.frame_rate * self.shape.plane.unit_length),
+                                                         self.shape.plane.parent_vector.get_y() + (xy[1] - _xy[1]) / (self.shape.plane.frame_rate * self.shape.plane.unit_length)))
             # Drag is applied even if it's attached to another body
             if self.drag_coef:
                 self.velocity.add((1-v_len) * self.drag_coef)
@@ -190,8 +190,8 @@ cdef class DynamicBody(Body):
             if not self.is_attached:
                 xy = self.velocity.get_head()
                 _xy = self.velocity.unit_vector(1)
-                self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.get_x() + (xy[0] - _xy[0]) / self.shape.plane.frame_rate,
-                                                         self.shape.plane.parent_vector.get_y() + (xy[1] - _xy[1]) / self.shape.plane.frame_rate))
+                self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.get_x() + (xy[0] - _xy[0]) / (self.shape.plane.frame_rate * self.shape.plane.unit_length),
+                                                         self.shape.plane.parent_vector.get_y() + (xy[1] - _xy[1]) / (self.shape.plane.frame_rate * self.shape.plane.unit_length)))
         else:
             self.velocity.set_head(self.velocity.unit_vector(1))
 
