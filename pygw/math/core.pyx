@@ -270,10 +270,9 @@ cdef class vector2d:
                 self.head.y.num = sin(a) * self.min
 
     cpdef void scale(self, double o):
-        cdef double v_len = self.mag()
         if o > 1:
             if self.max:
-                if (v_len * o) < self.max:
+                if (self.mag() * o) < self.max:
                     self.head.x.scale(o)
                     self.head.y.scale(o)
                 else:
@@ -284,7 +283,7 @@ cdef class vector2d:
                 self.head.x.scale(o)
                 self.head.y.scale(o)
         elif 0 <= o < 1:
-            if (v_len * o) > self.min:
+            if (self.mag() * o) > self.min:
                 self.head.x.scale(o)
                 self.head.y.scale(o)
             else:
