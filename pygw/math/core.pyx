@@ -318,11 +318,7 @@ cdef class vector2d:
         return atan2(vector.head.y.num, vector.head.x.num) - self.dir()
 
     cpdef double dot(self, vector2d vector):
-        cdef double x = -self.head.y.num
-        cdef double y = self.head.x.num
-        cdef double _x = -vector.head.y.num
-        cdef double _y = vector.head.x.num
-        return x * _x + y * _y
+        return self.head.x.num * vector.head.x.num + self.head.y.num * vector.head.y.num
 
     cdef void set_x(self, double o):
         cdef double _len = sqrt(o * o + self.head.y.num * self.head.y.num)
