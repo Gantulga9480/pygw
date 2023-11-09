@@ -249,28 +249,23 @@ cdef class vector2d:
         return self.head
 
     cpdef void add(self, double o):
-        cdef double a
+        cdef double a = self.dir()
         if o > 0:
             if self.max:
                 if (self.mag() + o) <= self.max:
-                    a = self.dir()
                     self.head.x.add(o * cos(a))
                     self.head.y.add(o * sin(a))
                 else:
-                    a = self.dir()
                     self.head.x.num = cos(a) * self.max
                     self.head.y.num = sin(a) * self.max
             else:
-                a = self.dir()
                 self.head.x.add(o * cos(a))
                 self.head.y.add(o * sin(a))
         elif o < 0:
             if cabs(o) < (self.mag() - self.min):
-                a = self.dir()
                 self.head.x.add(o * cos(a))
                 self.head.y.add(o * sin(a))
             else:
-                a = self.dir()
                 self.head.x.num = cos(a) * self.min
                 self.head.y.num = sin(a) * self.min
 
