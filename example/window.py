@@ -1,5 +1,5 @@
 import random
-from Game import Game, Scene, Window, core
+from pygw import Game, Scene, Window, core
 
 
 class SC(Scene):

@@ -1,6 +1,6 @@
+import platform
 import pygame as pg
 from .window import Window
-import platform
 
 
 class Game:
@@ -49,20 +49,28 @@ class Game:
         """ User should override this method """
         ...
 
+    def loop(self):
+        """ User should override this method """
+        ...
+
     def onEvent(self, event) -> None:
+        """ User should override this method """
         ...
 
     def onRender(self) -> None:
+        """ User should override this method """
         ...
 
     def loop_forever(self):
         self.__setup()
         while self.running:
             self.__event_handler()
+            self.loop()
             self.__render()
 
     def loop_once(self) -> bool:
         self.__event_handler()
+        self.loop()
         self.__render()
         return self.running
 
@@ -72,6 +80,7 @@ class Game:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.running = False
+                break
             self.onEvent(event)
             self.window.onEvent(event)
 
@@ -81,8 +90,7 @@ class Game:
             self.window.render()
 
     def add_window(self, window):
-        """Before calling this function size,
-           flags and fps have to be initialized"""
+        """ size, fps and flags have to be initialized before calling this function """
         self.__windows.append(window)
 
     def drop_window(self, index: int) -> Window:

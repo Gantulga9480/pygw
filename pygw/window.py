@@ -1,7 +1,6 @@
 import pygame as pg
 from .scene import Scene
 
-
 class Window(Scene):
 
     def __init__(self, game, title: str = 'Pygame') -> None:
@@ -18,8 +17,8 @@ class Window(Scene):
             "param 'title' str expected, got {t}".format(
                 t=str(type(title)).split(' ')[1].split("'")[1]
             )
+
         self.game = game
-        self.fps: int = game.fps
         self.title: str = title
         self.__draw_bounding_boxes: bool = False
 
@@ -33,17 +32,25 @@ class Window(Scene):
     def onEvent(self, event: pg.event.Event) -> None:
         ...
 
-    def render(self, draw_bb=False) -> None:
+    def render(self) -> None:
         self.onUpdate()
         for scene in self.child_scenes:
             if scene.visible:
                 scene.render(self.__draw_bounding_boxes)
                 self.window.blit(scene.window, scene.position)
         pg.display.flip()
-        self.game.clock.tick(self.fps)
+        self.game.clock.tick(self.game.fps)
 
     def enableBB(self):
         self.__draw_bounding_boxes = True
 
     def disableBB(self):
         self.__draw_bounding_boxes = False
+
+    @staticmethod
+    def get_window():
+        return pg.display.get_surface()
+
+    @staticmethod
+    def set_title(title: str):
+        pg.display.set_caption(title)
