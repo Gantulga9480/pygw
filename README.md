@@ -3,12 +3,16 @@
 ## Getting started
 
 ### Install
-    pip install git+https://github.com/Gantulga9480/Game.git#egg=Game
+    pip install git+https://github.com/Gantulga9480/PyGameWizard.git#egg=PyGameWizard
+
+### Building Cython modules
+
+    python cython_setup.py build_ext --inplace
 
 ## License
 
-Distributed under the MIT License. See `LICENSE.txt` for more information.
+Distributed under the MIT License. See `LICENSE` for more information.
 
 ## Contact
 
-Gmail - limited.tulgaa@gmail.com
+mail: limited.tulgaa@gmail.com

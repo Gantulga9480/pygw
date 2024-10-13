@@ -24,15 +24,14 @@ class Scene:
                 t=str(type(position)).split(' ')[1].split("'")[1]
             )
 
-        # self.parent is None in 'Base Scene'
         self.parent: Scene = parent
         self.size: list = list(size)
         self.position: list = list(position)
 
-        # If parent is None 'Base Scene' surface will be given by Window class
-        self.window: pg.Surface = None
+        self.surface: pg.Surface = None
         if self.parent is not None:
-            self.window = pg.Surface(self.size)
+            self.surface = pg.Surface(self.size)
+        # else Scene.surface will be given by Window class
 
         self.child_scenes: list[Scene] = []
         self.visible: bool = True
@@ -59,10 +58,10 @@ class Scene:
         for scene in self.child_scenes:
             if scene.visible:
                 scene.render(draw_bb)
-                self.window.blit(scene.window, scene.position)
+                self.surface.blit(scene.surface, scene.position)
 
     def __draw_bounding_box(self) -> None:
-        pg.draw.lines(self.window, (255, 0, 0), True,
+        pg.draw.lines(self.surface, (255, 0, 0), True,
                       [(0, 0),
                        (0, self.size[1]-1),
                        (self.size[0]-1, self.size[1]-1),

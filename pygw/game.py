@@ -89,7 +89,7 @@ class Game:
             self.onRender()
             self.window.render()
 
-    def add_window(self, window):
+    def add_window(self, window: Window):
         """ size, fps and flags have to be initialized before calling this function """
         self.__windows.append(window)
 
