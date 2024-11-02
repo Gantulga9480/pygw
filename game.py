@@ -61,6 +61,9 @@ class Game:
         """ User should override this method """
         ...
 
+    def custom_setup(self):
+        self.__setup()
+ 
     def loop_forever(self):
         self.__setup()
         while self.running:
