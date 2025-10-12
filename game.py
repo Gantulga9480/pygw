@@ -13,8 +13,8 @@ class Game:
                 # Since we're using only display module for this package, initializing only display will do the trick
                 pg.display.init()
             elif os == "Windows":
-                # Windows not affected by this issue. So it's good to init all modules
-                pg.init()
+                # Windows not affected by this issue.
+                pg.display.init()
             else:
                 print("[Warning] - Unknown platform, pygame not initialized")
 
@@ -33,15 +33,14 @@ class Game:
         self.keys = []
 
         # Render
-        self.window = None
-        self.__current_window: int = 0
         self.__windows: list[Window] = []
+        self.window = Window(self, 0, self.title)
 
     def __del__(self):
         pg.quit()
 
     def __setup(self):
-        self.add_window(Window(self, self.title))
+        self.add_window(self.window)
         self.switch(0)
         self.setup()
 
@@ -77,7 +76,7 @@ class Game:
         self.__render()
         return self.running
 
-    def __event_handler(self) -> None:
+    def __event_handler(self):
         self.mouse_x, self.mouse_y = pg.mouse.get_pos()
         self.keys = pg.key.get_pressed()
         for event in pg.event.get():
@@ -87,7 +86,7 @@ class Game:
             self.onEvent(event)
             self.window.onEvent(event)
 
-    def __render(self) -> None:
+    def __render(self):
         if self.rendering and self.running:
             self.onRender()
             self.window.render()
@@ -96,19 +95,20 @@ class Game:
         """ size, fps and flags have to be initialized before calling this function """
         self.__windows.append(window)
 
-    def drop_window(self, index: int) -> Window:
-        try:
-            win = self.__windows.pop(index)
-            if (index == self.__current_window):
-                self.window = None
-            return win
-        except IndexError:
-            return None
+    def drop_window(self, index: int):
+        if index == self.window.index:
+            self.switch(index - 1)
+        for i, window in enumerate(self.__windows):
+            if window.index == index:
+                win = self.__windows.pop(i)
+                return win
+        return None
 
-    def switch(self, window_index: int) -> None:
-        if 0 <= window_index < self.__windows.__len__():
-            self.__current_window = window_index
-            self.__windows[self.__current_window].set()
-            self.window = self.__windows[self.__current_window]
-        else:
-            raise IndexError()
+    def switch(self, index: int):
+        if index >= 0:
+            for window in self.__windows:
+                if window.index == index:
+                    self.window = window
+                    self.window.set()
+                    return True
+        return False

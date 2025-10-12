@@ -7,60 +7,41 @@ class Scene:
     # - Transparent background support
 
     def __init__(self,
-                 parent: 'Scene',
-                 size: tuple,
-                 position: tuple) -> None:
-        if parent is not None:
-            assert isinstance(parent, (Scene)), \
-                "param 'parent' Game.Scene expected, got {t}".format(
-                    t=str(type(parent)).split(' ')[1].split("'")[1]
-                )
-        assert isinstance(size, (tuple, list)), \
-            "param 'size' tuple or list expected, got {t}".format(
-                t=str(type(size)).split(' ')[1].split("'")[1]
-            )
-        assert isinstance(position, (tuple, list)), \
-            "param 'position' tuple or list expected, got {t}".format(
-                t=str(type(position)).split(' ')[1].split("'")[1]
-            )
+                 parent: 'Scene | None',
+                 size: tuple[int, int],
+                 position: tuple[int, int]):
+        self.parent = parent
+        self.size = list(size)
+        self.position = list(position)
 
-        self.parent: Scene = parent
-        self.size: list = list(size)
-        self.position: list = list(position)
-
-        self.surface: pg.Surface = None
-        if self.parent is not None:
-            self.surface = pg.Surface(self.size)
-        # else Scene.surface will be given by Window class
+        self.surface: pg.Surface = pg.Surface(self.size)
 
         self.child_scenes: list[Scene] = []
-        self.visible: bool = True
+        self.visible = False
+        self.draw_bb = False
 
-    def onUpdate(self) -> None:
-        ...
+    def onUpdate(self):
+        pass
 
-    def child(self, child_index) -> 'Scene':
+    def child(self, child_index: int):
         return self.child_scenes[child_index]
 
-    def add_child(self, scene: 'Scene') -> None:
+    def add_child(self, scene: 'Scene'):
         self.child_scenes.append(scene)
 
-    def pop_child(self, child_index) -> None:
-        try:
-            self.child_scenes.pop(child_index)
-        except IndexError:
-            print("[error] - Can't remove child scene, index out of range!")
+    def pop_child(self, child_index: int):
+        return self.child_scenes.pop(child_index)
 
-    def render(self, draw_bb=False) -> None:
+    def render(self, draw_bb=False):
         self.onUpdate()
-        if draw_bb:
+        if draw_bb or self.draw_bb:
             self.__draw_bounding_box()
         for scene in self.child_scenes:
             if scene.visible:
                 scene.render(draw_bb)
                 self.surface.blit(scene.surface, scene.position)
 
-    def __draw_bounding_box(self) -> None:
+    def __draw_bounding_box(self):
         pg.draw.lines(self.surface, (255, 0, 0), True,
                       [(0, 0),
                        (0, self.size[1]-1),

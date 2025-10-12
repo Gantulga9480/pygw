@@ -11,7 +11,7 @@ class RotatingTriangle(Game):
         self.angular_velocity = pi / 2
 
     def setup(self):
-        self.shape = Triangle(CartesianPlane(self.window, self.size), (70,) * 3)
+        self.shape = Triangle(CartesianPlane(self.window.surface, self.size), (70,) * 3)
 
     def loop(self):
         self.shape.rotate(self.angular_velocity / self.fps)

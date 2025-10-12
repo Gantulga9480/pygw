@@ -1,51 +1,37 @@
 import pygame as pg
 from .scene import Scene
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .game import Game
+
 
 class Window(Scene):
 
-    def __init__(self, game, title: str = 'Pygame') -> None:
+    def __init__(self,
+                 game: 'Game',
+                 index: int = 0,
+                 title: str = 'Pygame'):
         super().__init__(None, game.size, (0, 0))
-        assert isinstance(game.size, (tuple, list)), \
-            "param 'size' tuple or list expected, got {t}".format(
-                t=str(type(game.size)).split(' ')[1].split("'")[1]
-            )
-        assert isinstance(game.window_flags, int), \
-            "param 'flags' int expected, got {t}".format(
-                t=str(type(game.window_flags)).split(' ')[1].split("'")[1]
-            )
-        assert isinstance(title, str), \
-            "param 'title' str expected, got {t}".format(
-                t=str(type(title)).split(' ')[1].split("'")[1]
-            )
-
+        self.index = index
         self.game = game
-        self.title: str = title
-        self.__draw_bounding_boxes: bool = False
+        self.title = title
 
-    def set(self) -> None:
-        self.surface = pg.display.get_surface()
-        if self.surface is None:
-            self.surface = \
-                pg.display.set_mode(self.size, self.game.window_flags)
+    def set(self):
+        self.surface = pg.display.set_mode(self.size, self.game.window_flags)
         pg.display.set_caption(self.title)
 
-    def onEvent(self, event: pg.event.Event) -> None:
-        ...
+    def onEvent(self, event: pg.event.Event):
+        pass
 
-    def render(self) -> None:
+    def render(self, draw_bb=False):
         self.onUpdate()
         for scene in self.child_scenes:
             if scene.visible:
-                scene.render(self.__draw_bounding_boxes)
+                scene.render(draw_bb or self.draw_bb)
                 self.surface.blit(scene.surface, scene.position)
         pg.display.flip()
         self.game.clock.tick(self.game.fps)
-
-    def enableBB(self):
-        self.__draw_bounding_boxes = True
-
-    def disableBB(self):
-        self.__draw_bounding_boxes = False
 
     @staticmethod
     def get_surface():
