@@ -143,3 +143,67 @@ FLASH_DURATION = 0.1
 
 # ---- Sound ----
 SFX_CHANNELS = 4
+
+# ---- Upgrade System ----
+UPGRADE_CARD_W = 200
+UPGRADE_CARD_H = 140
+UPGRADE_CARD_PAD = 16
+UPGRADE_CARD_RADIUS = 8
+
+RARITY_COLORS = {
+    "common": C.C_LIGHT_GRAY,
+    "uncommon": C.C_GREEN,
+    "rare": C.C_PURPLE,
+}
+RARITY_BORDERS = {
+    "common": (100, 100, 120),
+    "uncommon": (80, 180, 100),
+    "rare": (160, 100, 240),
+}
+
+
+def _apply_stat(hero, stats, key, value):
+    hero.upgrade_data[key] = hero.upgrade_data.get(key, 0) + value
+
+
+def _apply_pct(hero, stats, key, value):
+    hero.upgrade_data[key] = hero.upgrade_data.get(key, 0) + value
+
+
+def _apply_weapon(hero, stats, weapon):
+    hero.unlocked_weapons.append(weapon)
+
+
+UPGRADES = [
+    dict(name="Vitality", desc="+10 Max HP", rarity="common", weight=3,
+         apply=lambda h, s: _apply_stat(h, s, "max_hp", 10)),
+    dict(name="Swift Feet", desc="+5% Move Speed", rarity="common", weight=3,
+         apply=lambda h, s: _apply_pct(h, s, "move_speed", 0.05)),
+    dict(name="Sharp Edge", desc="+5% Damage", rarity="common", weight=3,
+         apply=lambda h, s: _apply_pct(h, s, "damage", 0.05)),
+    dict(name="Magnet", desc="+10% Pickup Range", rarity="common", weight=3,
+         apply=lambda h, s: _apply_pct(h, s, "magnet_range", 0.10)),
+    dict(name="Haste", desc="+5% Attack Speed", rarity="common", weight=3,
+         apply=lambda h, s: _apply_pct(h, s, "attack_speed", 0.05)),
+    dict(name="Goliath", desc="+25 Max HP", rarity="uncommon", weight=2,
+         apply=lambda h, s: _apply_stat(h, s, "max_hp", 25)),
+    dict(name="Wind Walker", desc="+10% Move Speed", rarity="uncommon", weight=2,
+         apply=lambda h, s: _apply_pct(h, s, "move_speed", 0.10)),
+    dict(name="Sharpshooter", desc="+10% Damage", rarity="uncommon", weight=2,
+         apply=lambda h, s: _apply_pct(h, s, "damage", 0.10)),
+    dict(name="Colossus Magnet", desc="+25% Pickup Range", rarity="uncommon", weight=2,
+         apply=lambda h, s: _apply_pct(h, s, "magnet_range", 0.25)),
+    dict(name="Poison Master", desc="+1 Poison Stack", rarity="uncommon", weight=2,
+         hero_filter=lambda hk: hk in ("rogue",),
+         apply=lambda h, s: _apply_stat(h, s, "poison_stacks", 1)),
+    dict(name="Endurance", desc="+1s Rally Heal Duration", rarity="uncommon", weight=2,
+         hero_filter=lambda hk: hk in ("warrior",),
+         apply=lambda h, s: _apply_stat(h, s, "rally_duration", 1.0)),
+    dict(name="Iron Resolve", desc="+1s Iron Skin Duration", rarity="uncommon", weight=2,
+         hero_filter=lambda hk: hk in ("warrior",),
+         apply=lambda h, s: _apply_stat(h, s, "iron_skin_duration", 1.0)),
+    dict(name="Throwing Knives", desc="Auto-fire 3 knives in a fan", rarity="rare", weight=1, min_level=5,
+         apply=lambda h, s: _apply_weapon(h, s, "throwing_knives")),
+    dict(name="Shield Bounce", desc="Bounce projectile off enemies", rarity="rare", weight=1, min_level=5,
+         apply=lambda h, s: _apply_weapon(h, s, "shield_bounce")),
+]
