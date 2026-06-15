@@ -12,11 +12,14 @@ class Hero(Entity):
         self.outline = C.C_BLACK
         self._stats = stats
         self.max_hp = stats["hp"]
+        self.hp_current = stats["hp"]
         self.speed = stats["speed"]
         self.facing = 1  # 1 = right, -1 = left
         self.anim_frame = 0
         self.anim_timer = 0.0
         self.invincible = 0.0
+        self.upgrade_data = {}
+        self.unlocked_weapons = []
 
         # Ability definitions
         self.auto_ability = stats["slash"] if "slash" in stats else stats.get("slam")
@@ -88,21 +91,21 @@ class Hero(Entity):
             length = math.hypot(dx, dy)
             dx /= length
             dy /= length
-            self.vx = dx * self.speed
-            self.vy = dy * self.speed
+            self.vx = dx * self.effective_speed
+            self.vy = dy * self.effective_speed
             self.move(dt)
         else:
             self.vx = 0
             self.vy = 0
 
     def try_auto_attack(self, enemies):
-        """Return a projectile dict if auto-attack should fire, else None."""
+        """Return a projectile dict or list if auto-attack should fire, else None."""
         if self.auto_cooldown > 0:
             return None
         target = self._find_nearest_enemy(enemies)
         if target is None:
             return None
-        self.auto_cooldown = self.auto_ability["cooldown"]
+        self.auto_cooldown = self.effective_atk_speed
         return self._create_auto_attack(target)
 
     def try_q_ability(self):
@@ -146,6 +149,31 @@ class Hero(Entity):
         self.max_hp_current = getattr(self, "max_hp_current", self.max_hp)
         return dmg
 
+    def apply_upgrade(self, upgrade_def):
+        upgrade_def["apply"](self, None)
+
+    @property
+    def effective_speed(self):
+        mult = 1.0 + self.upgrade_data.get("move_speed", 0)
+        return self.speed * mult
+
+    @property
+    def effective_dmg(self):
+        base = self.auto_ability.get("dmg", 15)
+        mult = 1.0 + self.upgrade_data.get("damage", 0)
+        return int(base * mult)
+
+    @property
+    def effective_atk_speed(self):
+        base = self.auto_ability.get("cooldown", 1.0)
+        mult = 1.0 + self.upgrade_data.get("attack_speed", 0)
+        return base / mult if mult > 0 else base
+
+    @property
+    def effective_magnet_range(self):
+        mult = 1.0 + self.upgrade_data.get("magnet_range", 0)
+        return C.MAGNET_RANGE * mult
+
     def render(self, surface, camera):
         sx, sy = camera.world_to_screen(self.x, self.y)
         # Draw hero body
@@ -177,17 +205,34 @@ class SpeedRogue(Hero):
         dx = target.cx - self.cx
         dy = target.cy - self.cy
         dist = math.hypot(dx, dy) or 1
-        return dict(
+        base_proj = dict(
             type="slash_proj",
             x=self.cx - 2,
             y=self.cy - 2,
-            vx=(dx / dist) * self.auto_ability["proj_speed"],
-            vy=(dy / dist) * self.auto_ability["proj_speed"],
-            dmg=self.auto_ability["dmg"],
+            dmg=self.effective_dmg,
             size=self.auto_ability["proj_size"],
             color=self.auto_ability["color"],
             poison=self.poison_stacks > 0,
         )
+        if "throwing_knives" in self.unlocked_weapons:
+            knives = []
+            for angle_deg in [-45, 0, 45]:
+                angle = math.radians(angle_deg)
+                cos_a, sin_a = math.cos(angle), math.sin(angle)
+                if self.facing == -1:
+                    cos_a = -cos_a
+                knives.append(dict(
+                    x=self.cx - 2, y=self.cy - 2,
+                    vx=(dx / dist * cos_a - dy / dist * sin_a) * self.auto_ability["proj_speed"],
+                    vy=(dx / dist * sin_a + dy / dist * cos_a) * self.auto_ability["proj_speed"],
+                    **base_proj,
+                ))
+            return knives
+        return [dict(
+            vx=(dx / dist) * self.auto_ability["proj_speed"],
+            vy=(dy / dist) * self.auto_ability["proj_speed"],
+            **base_proj,
+        )]
 
     def _create_q_effect(self):
         dx = self.vx
@@ -213,20 +258,37 @@ class SpeedRogue(Hero):
 
 class TankWarrior(Hero):
     def _create_auto_attack(self, target):
-        return dict(
+        dx = target.cx - self.cx
+        dy = target.cy - self.cy
+        dist = math.hypot(dx, dy) or 1
+        slam = dict(
             type="slam_aoe",
             x=self.cx - self.auto_ability["range"] / 2,
             y=self.cy - self.auto_ability["range"] / 2,
             radius=self.auto_ability["range"] / 2,
-            dmg=self.auto_ability["dmg"],
+            dmg=self.effective_dmg,
             color=self.auto_ability["color"],
         )
+        if "shield_bounce" not in self.unlocked_weapons:
+            return slam
+        return [slam, dict(
+            type="bounce_proj",
+            x=self.cx - 2, y=self.cy - 2,
+            vx=(dx / dist) * self.auto_ability["proj_speed"],
+            vy=(dy / dist) * self.auto_ability["proj_speed"],
+            dmg=int(self.effective_dmg * 0.6),
+            bounces=3,
+            size=10,
+            color=C.C_CYAN,
+        )]
 
     def _create_q_effect(self):
-        self.iron_skin_timer = self.q_ability["duration"]
-        return dict(type="iron_skin", duration=self.q_ability["duration"])
+        duration = self.q_ability["duration"] + self.upgrade_data.get("iron_skin_duration", 0)
+        self.iron_skin_timer = duration
+        return dict(type="iron_skin", duration=duration)
 
     def _create_e_effect(self):
-        self.rally_timer = self.e_ability["duration"]
-        self.rally_total = self.e_ability["duration"]
-        return dict(type="rally", heal=self.e_ability["heal"], duration=self.e_ability["duration"])
+        duration = self.e_ability["duration"] + self.upgrade_data.get("rally_duration", 0)
+        self.rally_timer = duration
+        self.rally_total = duration
+        return dict(type="rally", heal=self.e_ability["heal"], duration=duration)
