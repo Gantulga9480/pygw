@@ -424,7 +424,7 @@ class GameWindow(Window):
         if index < 0 or index >= len(self.selected_upgrade):
             return
         upgrade = self.selected_upgrade[index]
-        self.hero.apply_upgrade(upgrade)
+        self.hero.apply_upgrade(upgrade, self.stats)
         self.stats.record_upgrade()
         play_sfx("select")
         self.upgrade_overlay_active = False

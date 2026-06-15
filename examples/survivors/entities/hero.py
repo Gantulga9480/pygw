@@ -149,8 +149,22 @@ class Hero(Entity):
         self.max_hp_current = getattr(self, "max_hp_current", self.max_hp)
         return dmg
 
-    def apply_upgrade(self, upgrade_def):
-        upgrade_def["apply"](self, None)
+    def apply_upgrade(self, upgrade_def, stats=None):
+        upgrade_def["apply"](self, stats)
+        if upgrade_def["name"] == "Vitality":
+            old_max = self.max_hp
+            self.max_hp += 10
+            if stats:
+                stats.max_hp += 10
+                if stats.hp == old_max:
+                    stats.hp += 10
+        elif upgrade_def["name"] == "Goliath":
+            old_max = self.max_hp
+            self.max_hp += 25
+            if stats:
+                stats.max_hp += 25
+                if stats.hp == old_max:
+                    stats.hp += 25
 
     @property
     def effective_speed(self):

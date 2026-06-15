@@ -40,12 +40,7 @@ class SurvivorsGame(Game):
         # Force display surface creation (must come before mixer init)
         _ = self.display_surface
 
-        # Init sound (must be after display init, which resets mixer to stereo)
-        pg.mixer.quit()
-        pg.mixer.pre_init(22050, -16, 1, 512)
-        pg.mixer.init(22050, -16, 1, 512)
-        from survivors.assets import init_sfx
-        init_sfx()
+        # Sound disabled
 
         # Import scenes lazily (they import game assets that depend on config)
         from survivors.scenes.intro import IntroWindow
