@@ -336,11 +336,6 @@ class GameWindow(Window):
                     pg.draw.rect(overlay_surf, (0, 0, 0, 140),
                                  (0, 0, C.AB_ICON_SIZE, overlay_h), border_radius=0)
                     self.surface.blit(overlay_surf, (x, overlay_y))
-            # Key hint (drawn after overlay so it stays visible)
-            key = ["", "Q", "E"][i]
-            if key:
-                ks = self.game.font_small.render(key, True, C.C_GRAY)
-                self.surface.blit(ks, (x + C.AB_ICON_SIZE + 2, y + 4))
             # Border on top of everything
             pg.draw.rect(self.surface, color, (x, y, C.AB_ICON_SIZE, C.AB_ICON_SIZE), 2, border_radius=4)
 
