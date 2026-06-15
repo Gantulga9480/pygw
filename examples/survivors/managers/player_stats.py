@@ -12,6 +12,8 @@ class PlayerStats:
         self.cooldowns = {k: 0.0 for k in abilities}
         self.kills = 0
         self.active_effects = {}  # ability_name -> remaining_seconds (for buffs like iron_skin)
+        self.total_upgrades = 0
+        self._hero_name = ""
 
     def add_xp(self, amount):
         self.xp += amount
@@ -55,3 +57,6 @@ class PlayerStats:
 
     def start_effect(self, ability, duration):
         self.active_effects[ability] = duration
+
+    def record_upgrade(self):
+        self.total_upgrades += 1
