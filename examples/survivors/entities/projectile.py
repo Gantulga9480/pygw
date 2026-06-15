@@ -52,9 +52,41 @@ class AOEFlash(Entity):
         pg.draw.circle(surface, (*self.color, int(255 * alpha)), (sx + r, sy + r), r, 2)
 
 
+class BounceProjectile(Entity):
+    """Projectile that bounces between enemies."""
+
+    def __init__(self, x, y, vx, vy, dmg, size=10, bounces=3, color=C.C_CYAN):
+        super().__init__(x - size / 2, y - size / 2, size, size, color)
+        self.vx = vx
+        self.vy = vy
+        self.dmg = dmg
+        self.bounces = bounces
+        self.max_bounces = bounces
+        self.life = 3.0
+        self.hit_list = []
+
+    def update(self, dt):
+        super().update(dt)
+        self.move(dt)
+        self.life -= dt
+        if self.life <= 0:
+            self.kill()
+
+    def render(self, surface, camera):
+        sx, sy = camera.world_to_screen(self.cx, self.cy)
+        r = int(self.w / 2)
+        pg.draw.circle(surface, self.color, (sx, sy), r)
+        pg.draw.circle(surface, C.C_BLACK, (sx, sy), r, 1)
+
+
 def create_projectile(proj):
     if proj["type"] == "slam_aoe":
         return AOEFlash(proj["x"], proj["y"], proj["radius"], proj["color"])
+    if proj["type"] == "bounce_proj":
+        return BounceProjectile(proj["x"], proj["y"], proj["vx"], proj["vy"],
+                                proj["dmg"], proj.get("size", 10),
+                                proj.get("bounces", 3),
+                                proj.get("color", C.C_CYAN))
     return Projectile(proj["x"], proj["y"], proj["vx"], proj["vy"],
                       proj["dmg"], proj["size"], proj["color"],
                       poison=proj.get("poison", False))
