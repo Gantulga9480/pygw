@@ -30,6 +30,11 @@ class GameWindow(Window):
         self.particles = []
         self.grid_offset_x = 0
         self.grid_offset_y = 0
+        self.upgrade_overlay_active = False
+        self.selected_upgrade = []
+        self.selected_card = -1
+        self.hovered_card = -1
+        self.overlay_timer = 0.0
 
     def start(self, hero_key):
         self.spawner = Spawner()
@@ -38,6 +43,11 @@ class GameWindow(Window):
         self.gems.clear()
         self.effects.clear()
         self.particles.clear()
+        self.upgrade_overlay_active = False
+        self.selected_upgrade = []
+        self.selected_card = -1
+        self.hovered_card = -1
+        self.overlay_timer = 0.0
 
         stats_def = C.HERO_ROGUE_STATS if hero_key == "rogue" else C.HERO_WARRIOR_STATS
         hero_cls = SpeedRogue if hero_key == "rogue" else TankWarrior
@@ -59,6 +69,10 @@ class GameWindow(Window):
     def onUpdate(self):
         dt = 1.0 / self.game.fps
         self.stats._elapsed += dt
+
+        if self.upgrade_overlay_active:
+            self.overlay_timer += dt
+            return
 
         # Hero update
         self.hero.update(dt, self.game.input, self.camera)
@@ -114,35 +128,53 @@ class GameWindow(Window):
         # Auto-attack
         proj_data = self.hero.try_auto_attack(self.enemies)
         if proj_data:
-            if proj_data["type"] == "slam_aoe":
-                self._apply_aoe(proj_data)
-                self.projectiles.append(create_projectile(proj_data))
-                play_sfx("slam")
-            else:
-                self.projectiles.append(create_projectile(proj_data))
-                play_sfx("attack")
+            proj_list = proj_data if isinstance(proj_data, list) else [proj_data]
+            for p in proj_list:
+                if p["type"] == "slam_aoe":
+                    self._apply_aoe(p)
+                    self.projectiles.append(create_projectile(p))
+                    play_sfx("slam")
+                else:
+                    self.projectiles.append(create_projectile(p))
+                    play_sfx("attack")
 
         # Collision: projectile vs enemy
         for p in self.projectiles:
             if not isinstance(p, pg.sprite.Sprite) and hasattr(p, "dmg"):
                 for e in self.enemies:
                     if p.aabb_overlap(e):
-                        e.take_damage(p.dmg)
-                        p.kill()
-                        self.particles.extend(spawn_hit_sparks(e.cx, e.cy))
-                        self.effects.append(DamageNumber(e.cx, e.cy, p.dmg))
-                        play_sfx("hit")
-                        if hasattr(p, "poison") and p.poison:
-                            self.hero.apply_poison_hit()
-                            extra = self.hero.e_ability["dmg"]
-                            e.take_damage(extra)
-                            self.effects.append(DamageNumber(e.cx - 8, e.cy - 10, extra))
-                        if not e.alive:
-                            self.stats.kills += 1
-                            self.particles.extend(spawn_death_particles(e.cx, e.cy, e.color))
-                            self.gems.append(XPGem(e.cx, e.cy))
-                            play_sfx("enemy_death")
-                        break
+                        if hasattr(p, "bounces") and p.bounces > 0:
+                            e.take_damage(p.dmg)
+                            p.dmg = int(p.dmg * 0.7)
+                            p.bounces -= 1
+                            self.effects.append(DamageNumber(e.cx, e.cy, p.dmg))
+                            self.particles.extend(spawn_hit_sparks(e.cx, e.cy))
+                            play_sfx("hit")
+                            if not e.alive:
+                                self.stats.kills += 1
+                                self.particles.extend(spawn_death_particles(e.cx, e.cy, e.color))
+                                self.gems.append(XPGem(e.cx, e.cy))
+                                play_sfx("enemy_death")
+                            if p.bounces <= 0:
+                                p.kill()
+                            break
+                        else:
+                            e.take_damage(p.dmg)
+                            p.kill()
+                            self.particles.extend(spawn_hit_sparks(e.cx, e.cy))
+                            self.effects.append(DamageNumber(e.cx, e.cy, p.dmg))
+                            play_sfx("hit")
+                            if hasattr(p, "poison") and p.poison:
+                                self.hero.apply_poison_hit()
+                                extra = self.hero.e_ability["dmg"]
+                                e.take_damage(extra)
+                                self.effects.append(DamageNumber(e.cx - 8, e.cy - 10, extra))
+                            if not e.alive:
+                                self.stats.kills += 1
+                                self.particles.extend(spawn_death_particles(e.cx, e.cy, e.color))
+                                self.gems.append(XPGem(e.cx, e.cy))
+                                play_sfx("enemy_death")
+                            break
 
         # Collision: enemy vs hero
         for e in self.enemies:
@@ -158,7 +190,7 @@ class GameWindow(Window):
         for gem in self.gems:
             gem.update(dt)
             dist = math.hypot(self.hero.cx - gem.x, self.hero.cy - gem.y)
-            if dist < C.MAGNET_RANGE:
+            if dist < self.hero.effective_magnet_range:
                 # Move toward hero
                 if dist > 0:
                     speed = 400
@@ -206,6 +238,7 @@ class GameWindow(Window):
         self.effects.append(DamageNumber(self.hero.cx, self.hero.cy - 30, f"LVL {self.stats.level}"))
         self.particles.extend(spawn_death_particles(self.hero.cx, self.hero.cy, C.C_GOLD, 12))
         play_sfx("level_up")
+        self._start_upgrade_overlay()
 
     def onRender(self):
         self.surface.fill(C.C_BG)
@@ -231,6 +264,9 @@ class GameWindow(Window):
                 fx.render(self.surface, self.camera, self.game.font_small)
         # HUD
         self._draw_hud()
+        # Upgrade overlay
+        if self.upgrade_overlay_active:
+            self._draw_upgrade_overlay()
 
     def _draw_grid(self):
         ox = self.grid_offset_x
@@ -258,8 +294,11 @@ class GameWindow(Window):
                      (C.HUD_XP_X, C.HUD_XP_Y, xp_w, C.UI_BAR_HEIGHT), border_radius=3)
 
         # Stats (top right)
+        lvl_text = f"LVL {self.stats.level}"
+        if self.stats.total_upgrades > 0:
+            lvl_text += f" \u2B06{self.stats.total_upgrades}"
         stats_lines = [
-            f"LVL {self.stats.level}",
+            lvl_text,
             f"Kills: {self.stats.kills}",
             self._format_time(self.stats._elapsed),
         ]
@@ -303,5 +342,109 @@ class GameWindow(Window):
         s = int(seconds % 60)
         return f"{m}:{s:02d}"
 
+    def _start_upgrade_overlay(self):
+        self.upgrade_overlay_active = True
+        self.selected_card = -1
+        self.hovered_card = -1
+        self.overlay_timer = 0.0
+        pool = self._get_available_upgrades()
+        count = min(3, len(pool))
+        if count > 0:
+            indices = list(range(len(pool)))
+            random.shuffle(indices)
+            self.selected_upgrade = [pool[i] for i in indices[:count]]
+        else:
+            self.selected_upgrade = []
+        play_sfx("select")
+
+    def _get_available_upgrades(self):
+        hero_key = self.hero.__class__.__name__.lower().replace("rogue", "rogue").replace("warrior", "warrior")
+        hero_short = "rogue" if "rogue" in hero_key else "warrior"
+        available = []
+        for u in C.UPGRADES:
+            if self.stats.level < u.get("min_level", 1):
+                continue
+            if "hero_filter" in u and not u["hero_filter"](hero_short):
+                continue
+            for _ in range(u["weight"]):
+                available.append(u)
+        return available
+
+    def _draw_upgrade_overlay(self):
+        alpha = min(self.overlay_timer * 3, 0.6)
+        dim = pg.Surface((C.SCREEN_W, C.SCREEN_H), pg.SRCALPHA)
+        dim.fill((0, 0, 0, int(255 * alpha)))
+        self.surface.blit(dim, (0, 0))
+
+        title = self.game.font_medium.render("LEVEL UP!", True, C.C_GOLD)
+        tx = (C.SCREEN_W - title.get_width()) // 2
+        self.surface.blit(title, (tx, 40))
+
+        total_w = 3 * C.UPGRADE_CARD_W + 2 * C.UPGRADE_CARD_PAD
+        start_x = (C.SCREEN_W - total_w) // 2
+        card_y = 100
+
+        for i, upgrade in enumerate(self.selected_upgrade):
+            cx = start_x + i * (C.UPGRADE_CARD_W + C.UPGRADE_CARD_PAD)
+            cy = card_y
+            cw = C.UPGRADE_CARD_W
+            ch = C.UPGRADE_CARD_H
+            border_color = C.RARITY_BORDERS.get(upgrade["rarity"], C.C_GRAY)
+            bg_color = (60, 60, 80) if i == self.hovered_card else C.DARK_GRAY
+            pg.draw.rect(self.surface, bg_color, (cx, cy, cw, ch), border_radius=C.UPGRADE_CARD_RADIUS)
+            border_w = 2 if i == self.selected_card else 1
+            pg.draw.rect(self.surface, border_color, (cx, cy, cw, ch), border_w, border_radius=C.UPGRADE_CARD_RADIUS)
+
+            if i == self.selected_card:
+                tick = self.game.font_small.render("\u2713", True, C.C_GREEN)
+                self.surface.blit(tick, (cx + cw - 24, cy + 4))
+
+            rarity_label = upgrade["rarity"].upper()
+            rtag = self.game.font_small.render(rarity_label, True, border_color)
+            self.surface.blit(rtag, (cx + 8, cy + 8))
+
+            name_surf = self.game.font_medium.render(upgrade["name"], True, C.C_WHITE)
+            nx = cx + (cw - name_surf.get_width()) // 2
+            self.surface.blit(name_surf, (nx, cy + 28))
+
+            desc_surf = self.game.font_small.render(upgrade["desc"], True, C.C_LIGHT_GRAY)
+            dx = cx + (cw - desc_surf.get_width()) // 2
+            self.surface.blit(desc_surf, (dx, cy + 60))
+
+            key_hint = self.game.font_small.render(f"[{i + 1}]", True, C.C_GRAY)
+            self.surface.blit(key_hint, (cx + 8, cy + ch - 20))
+
+        hint = self.game.font_small.render("Press 1/2/3 or click to select, Esc to skip", True, C.C_GRAY)
+        hx = (C.SCREEN_W - hint.get_width()) // 2
+        self.surface.blit(hint, (hx, C.SCREEN_H - 40))
+
+    def _pick_upgrade(self, index):
+        if index < 0 or index >= len(self.selected_upgrade):
+            return
+        upgrade = self.selected_upgrade[index]
+        self.hero.apply_upgrade(upgrade)
+        self.stats.record_upgrade()
+        play_sfx("select")
+        self.upgrade_overlay_active = False
+
     def on_event(self, event):
-        pass
+        if self.upgrade_overlay_active:
+            if event.type == core.MOUSEMOTION:
+                mx, my = self.game.input.mouse_pos
+                total_w = 3 * C.UPGRADE_CARD_W + 2 * C.UPGRADE_CARD_PAD
+                start_x = (C.SCREEN_W - total_w) // 2
+                self.hovered_card = -1
+                for i in range(len(self.selected_upgrade)):
+                    cx = start_x + i * (C.UPGRADE_CARD_W + C.UPGRADE_CARD_PAD)
+                    if cx <= mx <= cx + C.UPGRADE_CARD_W and 100 <= my <= 100 + C.UPGRADE_CARD_H:
+                        self.hovered_card = i
+
+            if event.type == core.MOUSEBUTTONDOWN and event.button == 1:
+                if self.hovered_card >= 0:
+                    self._pick_upgrade(self.hovered_card)
+
+            if event.type == core.KEYDOWN:
+                if event.key in (core.K_1, core.K_2, core.K_3):
+                    self._pick_upgrade(event.key - core.K_1)
+                elif event.key == core.K_ESCAPE:
+                    self.upgrade_overlay_active = False
