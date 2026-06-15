@@ -390,7 +390,7 @@ class GameWindow(Window):
             cw = C.UPGRADE_CARD_W
             ch = C.UPGRADE_CARD_H
             border_color = C.RARITY_BORDERS.get(upgrade["rarity"], C.C_GRAY)
-            bg_color = (60, 60, 80) if i == self.hovered_card else C.DARK_GRAY
+            bg_color = (60, 60, 80) if i == self.hovered_card else C.C_DARK_GRAY
             pg.draw.rect(self.surface, bg_color, (cx, cy, cw, ch), border_radius=C.UPGRADE_CARD_RADIUS)
             border_w = 2 if i == self.selected_card else 1
             pg.draw.rect(self.surface, border_color, (cx, cy, cw, ch), border_w, border_radius=C.UPGRADE_CARD_RADIUS)
