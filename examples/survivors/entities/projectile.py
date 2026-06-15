@@ -34,10 +34,16 @@ class Projectile(Entity):
 class AOEFlash(Entity):
     """Brief visual flash for AOE attacks like Ground Slam."""
 
-    def __init__(self, x, y, radius, color):
-        w = int(radius * 2)
-        super().__init__(x - radius, y - radius, w, w, color)
-        self.radius = radius
+    def __init__(self, center_x, center_y, hit_radius, visual_radius=None, color=(255, 255, 255)):
+        if visual_radius is None:
+            visual_radius = hit_radius
+        self.color = color
+        w = int(visual_radius * 2)
+        super().__init__(center_x - visual_radius, center_y - visual_radius, w, w, (0, 0, 0))
+        self.center_x = center_x
+        self.center_y = center_y
+        self.hit_radius = hit_radius
+        self.visual_radius = visual_radius
         self.life = 0.3
 
     def update(self, dt):
@@ -46,10 +52,10 @@ class AOEFlash(Entity):
             self.kill()
 
     def render(self, surface, camera):
-        sx, sy = camera.world_to_screen(self.x, self.y)
+        sx, sy = camera.world_to_screen(self.center_x, self.center_y)
         alpha = self.life / 0.3
-        r = int(self.radius)
-        pg.draw.circle(surface, (*self.color, int(255 * alpha)), (sx + r, sy + r), r, 2)
+        r = int(self.visual_radius)
+        pg.draw.circle(surface, (*self.color, int(255 * alpha)), (sx, sy), r, 2)
 
 
 class BounceProjectile(Entity):
@@ -81,7 +87,12 @@ class BounceProjectile(Entity):
 
 def create_projectile(proj):
     if proj["type"] == "slam_aoe":
-        return AOEFlash(proj["x"], proj["y"], proj["radius"], proj["color"])
+        cx = proj.get("cx") or proj["x"] + proj["radius"]
+        cy = proj.get("cy") or proj["y"] + proj["radius"]
+        hr = proj.get("hit_radius") or proj["radius"]
+        vr = proj.get("visual_radius") or proj["radius"]
+        col = proj.get("color") or (255, 255, 255)
+        return AOEFlash(cx, cy, hr, vr, col)
     if proj["type"] == "bounce_proj":
         return BounceProjectile(proj["x"], proj["y"], proj["vx"], proj["vy"],
                                 proj["dmg"], proj.get("size", 10),

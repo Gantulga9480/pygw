@@ -219,11 +219,11 @@ class GameWindow(Window):
         self.particles = [p for p in self.particles if p.alive]
 
     def _apply_aoe(self, aoe):
-        r = aoe["radius"]
+        hit_radius = aoe.get("hit_radius", aoe.get("radius"))
         hit_any = False
         for e in self.enemies:
-            dist = math.hypot(e.cx - (aoe["x"] + r), e.cy - (aoe["y"] + r))
-            if dist < r:
+            dist = math.hypot(e.cx - aoe["cx"], e.cy - aoe["cy"])
+            if dist < hit_radius:
                 e.take_damage(aoe["dmg"])
                 self.particles.extend(spawn_hit_sparks(e.cx, e.cy))
                 self.effects.append(DamageNumber(e.cx, e.cy, aoe["dmg"]))
@@ -322,17 +322,18 @@ class GameWindow(Window):
             y = C.AB_ICON_Y
             # Background
             pg.draw.rect(self.surface, C.C_DARK_GRAY, (x, y, C.AB_ICON_SIZE, C.AB_ICON_SIZE), border_radius=4)
-            pg.draw.rect(self.surface, color, (x, y, C.AB_ICON_SIZE, C.AB_ICON_SIZE), 2, border_radius=4)
-            # Label
-            s = self.game.font_small.render(label, True, C.C_WHITE)
-            self.surface.blit(s, (x + (C.AB_ICON_SIZE - s.get_width()) // 2,
-                                  y + (C.AB_ICON_SIZE - s.get_height()) // 2 - 4))
-            # Cooldown overlay
+            # Cooldown overlay (before text so text is drawn on top)
             if cd > 0:
                 frac = cd / max_cd
                 pg.draw.rect(self.surface, (0, 0, 0, 180),
                              (x, y + C.AB_ICON_SIZE * (1 - frac),
                               C.AB_ICON_SIZE, int(C.AB_ICON_SIZE * frac)), border_radius=4)
+            # Label (after cooldown overlay so it's visible)
+            s = self.game.font_small.render(label, True, C.C_WHITE)
+            self.surface.blit(s, (x + (C.AB_ICON_SIZE - s.get_width()) // 2,
+                                  y + (C.AB_ICON_SIZE - s.get_height()) // 2 - 4))
+            # Border on top
+            pg.draw.rect(self.surface, color, (x, y, C.AB_ICON_SIZE, C.AB_ICON_SIZE), 2, border_radius=4)
             # Key hint
             key = ["", "Q", "E"][i]
             if key:

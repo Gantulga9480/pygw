@@ -264,9 +264,10 @@ class TankWarrior(Hero):
         slam_range = self.auto_ability["range"]
         slam = dict(
             type="slam_aoe",
-            x=self.cx - slam_range,
-            y=self.cy - slam_range,
-            radius=slam_range,
+            cx=self.cx,
+            cy=self.cy,
+            hit_radius=slam_range,
+            visual_radius=slam_range,
             dmg=self.effective_dmg,
             color=self.auto_ability["color"],
         )
