@@ -7,7 +7,16 @@ from survivors import config as C
 class SFXManager:
     def __init__(self):
         self._sounds = {}
+        freq, bits, ch = pg.mixer.get_init() or (22050, -16, 2)
+        self._channels = ch
         self._generate_all()
+
+    def _make_sound(self, data):
+        """Create sound from int16 numpy array, handling mono/stereo mismatch."""
+        arr = data.astype(np.int16)
+        if self._channels == 2 and arr.ndim == 1:
+            arr = np.column_stack((arr, arr))
+        return pg.sndarray.make_sound(arr)
 
     def _generate_all(self):
         sample_rate = 22050
@@ -43,8 +52,7 @@ class SFXManager:
             except pg.error:
                 pass
 
-    @staticmethod
-    def _tone(duration, freq, wave_type, sr, volume=0.2, decay=0.3):
+    def _tone(self, duration, freq, wave_type, sr, volume=0.2, decay=0.3):
         n = int(duration * sr)
         t = np.linspace(0, duration, n, dtype=np.float32)
         if wave_type == "sine":
@@ -58,10 +66,9 @@ class SFXManager:
         env = np.exp(-t * decay / duration * 4)
         data *= env
         data *= volume
-        return pg.sndarray.make_sound((data * 32767).astype(np.int16))
+        return self._make_sound(data * 32767)
 
-    @staticmethod
-    def _sweep(duration, f_start, f_end, sr, volume=0.2):
+    def _sweep(self, duration, f_start, f_end, sr, volume=0.2):
         n = int(duration * sr)
         t = np.linspace(0, duration, n, dtype=np.float32)
         freqs = np.linspace(f_start, f_end, n)
@@ -72,10 +79,9 @@ class SFXManager:
             phase += freqs[i] / sr
         env = np.exp(-t * 3.0 / duration)
         data *= env * volume
-        return pg.sndarray.make_sound((data * 32767).astype(np.int16))
+        return self._make_sound(data * 32767)
 
-    @staticmethod
-    def _arpeggio(sr, duration, volume=0.1):
+    def _arpeggio(self, sr, duration, volume=0.1):
         notes = [523, 659, 784, 1047]  # C5, E5, G5, C6
         part_dur = duration / len(notes)
         parts = []
@@ -85,15 +91,14 @@ class SFXManager:
             data = np.sin(2 * np.pi * freq * t) * np.exp(-t * 5.0 / part_dur) * volume
             parts.append((data * 32767).astype(np.int16))
         combined = np.concatenate(parts)
-        return pg.sndarray.make_sound(combined)
+        return self._make_sound(combined)
 
-    @staticmethod
-    def _noise(duration, sr, volume=0.1):
+    def _noise(self, duration, sr, volume=0.1):
         n = int(duration * sr)
         data = np.random.randn(n).astype(np.float32) * volume
         env = np.exp(-np.linspace(0, duration, n) * 8.0 / duration)
         data *= env
-        return pg.sndarray.make_sound((data * 8000).astype(np.int16))
+        return self._make_sound(data * 8000)
 
 
 # Singleton
