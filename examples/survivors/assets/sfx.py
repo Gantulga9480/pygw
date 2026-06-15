@@ -33,6 +33,8 @@ class SFXManager:
         self._sounds["heal"] = self._sweep(0.2, 400, 800, sample_rate, 0.12)
         # Boss warning
         self._sounds["boss"] = self._tone(0.3, 100, "sawtooth", sample_rate, 0.2)
+        # Upgrade select — short bright ping
+        self._sounds["select"] = self._tone(0.04, 1400, "sine", sample_rate, 0.08)
 
     def play(self, name):
         if name in self._sounds:
