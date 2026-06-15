@@ -1,0 +1,1 @@
+from .sfx import init_sfx, play  # noqa

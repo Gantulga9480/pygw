@@ -1,5 +1,4 @@
 import cython
-import numpy as np
 from pygame.draw import aalines, aaline, polygon, line
 from libc.math cimport sqrt, atan2
 from ..math.core cimport pi
@@ -14,6 +13,7 @@ cdef class Shape:
 
     def __init__(self, CartesianPlane plane):
         self.plane = plane
+        self.vertices = []
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
@@ -21,8 +21,10 @@ cdef class Shape:
     @cython.initializedcheck(False)
     cpdef void rotate(self, double angle):
         cdef int i
+        cdef Vector2d v
         for i in range(self.vertex_count):
-            (<Vector2d>self.vertices[i]).rotate(angle)
+            v = self.vertices[i]
+            v.rotate(angle)
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
@@ -31,18 +33,24 @@ cdef class Shape:
     cpdef void scale(self, double factor):
         cdef int i
         cdef double v_len
-        cdef double _min = (<Vector2d>self.vertices[0]).mag()
+        cdef Vector2d v0, v
+        v0 = self.vertices[0]
+        cdef double _min = v0.mag()
         for i in range(self.vertex_count):
-            v_len = (<Vector2d>self.vertices[i]).mag()
+            v = self.vertices[i]
+            v_len = v.mag()
             if v_len < _min:
                 _min = v_len
         if factor > 1:
             for i in range(self.vertex_count):
-                (<Vector2d>self.vertices[i]).scale(factor)
+                v = self.vertices[i]
+                v.scale(factor)
         elif factor < 1:
-            if _min * factor >= self.vertices[0].min:
+            v0 = self.vertices[0]
+            if _min * factor >= v0.min:
                 for i in range(self.vertex_count):
-                    (<Vector2d>self.vertices[i]).scale(factor)
+                    v = self.vertices[i]
+                    v.scale(factor)
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
@@ -51,13 +59,16 @@ cdef class Shape:
     def show(self, show_vertex=False, width=1):
         cdef int i
         cdef list heads = []
+        cdef Vector2d v
         if show_vertex:
             for i in range(self.vertex_count):
-                (<Vector2d>self.vertices[i]).show(self.color)
-                heads.append((<Vector2d>self.vertices[i]).HEAD.get_xy())
+                v = self.vertices[i]
+                v.show(self.color)
+                heads.append(v._head.get_xy())
         else:
             for i in range(self.vertex_count):
-                heads.append((<Vector2d>self.vertices[i]).HEAD.get_xy())
+                v = self.vertices[i]
+                heads.append(v._head.get_xy())
         if width == 1:
             aalines(self.plane.window, self.color, True, heads)
         elif width > 1:
@@ -69,8 +80,11 @@ cdef class Shape:
         self.sync_shape()
 
     cdef void sync_shape(self):
+        cdef int i
+        cdef Vector2d v
         for i in range(self.vertex_count):
-            (<Vector2d>self.vertices[i]).update()
+            v = self.vertices[i]
+            v.update()
 
 @cython.optimize.unpack_method_calls(False)
 cdef class Line(Shape):
@@ -82,7 +96,7 @@ cdef class Line(Shape):
         super().__init__(plane)
 
         self.vertex_count = 1
-        self.vertices = np.array([Vector2d(self.plane, length, 0, 0, 1)], dtype=Vector2d)
+        self.vertices = [Vector2d(self.plane, length, 0, 0, 1)]
 
         self.sync_shape()
 
@@ -91,14 +105,14 @@ cdef class Line(Shape):
     @cython.nonecheck(False)
     @cython.initializedcheck(False)
     cpdef void rotate(self, double angle):
-        (<Vector2d>self.vertices[0]).rotate(angle)
+        self.vertices[0].rotate(angle)
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
     @cython.nonecheck(False)
     @cython.initializedcheck(False)
     cpdef void scale(self, double factor):
-        (<Vector2d>self.vertices[0]).scale(factor)
+        self.vertices[0].scale(factor)
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
@@ -106,9 +120,9 @@ cdef class Line(Shape):
     @cython.initializedcheck(False)
     def show(self, show_vertex=False, width=1):
         if width == 1:
-            aaline(self.plane.window, self.color, self.plane.origin.get_xy(), (<Vector2d>self.vertices[0]).HEAD.get_xy())
+            aaline(self.plane.window, self.color, self.plane.origin.get_xy(), self.vertices[0]._head.get_xy())
         else:
-            line(self.plane.window, self.color, self.plane.origin.get_xy(), (<Vector2d>self.vertices[0]).HEAD.get_xy(), width)
+            line(self.plane.window, self.color, self.plane.origin.get_xy(), self.vertices[0]._head.get_xy(), width)
 
 @cython.optimize.unpack_method_calls(False)
 cdef class Rectangle(Shape):
@@ -121,7 +135,7 @@ cdef class Rectangle(Shape):
 
         self.vertex_count = 4
 
-        cdef double length = sqrt((shape[0]//2)**2 + (shape[1]//2)**2)
+        cdef double length = sqrt((shape[0]/2.0)**2 + (shape[1]/2.0)**2)
 
         cdef list vers = []
         cdef int i
@@ -134,7 +148,7 @@ cdef class Rectangle(Shape):
             vers.append(Vector2d(self.plane, length, 0, 0, 1))
             vers[-1].rotate(angle[i])
 
-        self.vertices = np.array(vers, dtype=Vector2d)
+        self.vertices = vers
 
         self.sync_shape()
 
@@ -156,7 +170,7 @@ cdef class Triangle(Shape):
             vers.append(Vector2d(self.plane, shape[i], 0, 0, 1))
             vers[-1].rotate(pi/2 + 2*pi/3 * i)
 
-        self.vertices = np.array(vers, dtype=Vector2d)
+        self.vertices = vers
 
         self.sync_shape()
 
@@ -178,6 +192,6 @@ cdef class Polygon(Shape):
             vers.append(Vector2d(self.plane, shape[i], 0, 0, 1))
             vers[-1].rotate(pi/2 + 2*pi/self.vertex_count * i)
 
-        self.vertices = np.array(vers, dtype=Vector2d)
+        self.vertices = vers
 
         self.sync_shape()

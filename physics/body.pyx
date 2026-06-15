@@ -1,5 +1,4 @@
 import cython
-import numpy as np
 from pygame.draw import aalines, aaline, circle
 from libc.math cimport floor, sqrt
 from ..graphic.cartesian cimport CartesianPlane, Vector2d
@@ -78,19 +77,25 @@ cdef class Body:
     cpdef void scale(self, double factor):
         cdef int i
         cdef double v_len
-        cdef double _min = (<Vector2d>self.shape.vertices[0]).mag()
+        cdef Vector2d v
+        v = self.shape.vertices[0]
+        cdef double _min = v.mag()
         for i in range(self.shape.vertex_count):
-            v_len = (<Vector2d>self.shape.vertices[i]).mag()
+            v = self.shape.vertices[i]
+            v_len = v.mag()
             if v_len < _min:
                 _min = v_len
         if factor > 1:
             for i in range(self.shape.vertex_count):
-                (<Vector2d>self.shape.vertices[i]).scale(factor)
+                v = self.shape.vertices[i]
+                v.scale(factor)
             self.radius *= factor
         elif factor < 1:
-            if _min * factor >= self.shape.vertices[0].min:
+            v = self.shape.vertices[0]
+            if _min * factor >= v.min:
                 for i in range(self.shape.vertex_count):
-                    (<Vector2d>self.shape.vertices[i]).scale(factor)
+                    v = self.shape.vertices[i]
+                    v.scale(factor)
                 self.radius *= factor
 
     cpdef (double, double) position(self):
@@ -132,7 +137,6 @@ cdef class FreeBody(Body):
                 _xy = self.velocity.unit_vector(1)
                 self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.get_x() + (xy[0] - _xy[0]) / (self.shape.plane.frame_rate * self.shape.plane.unit_length),
                                                          self.shape.plane.parent_vector.get_y() + (xy[1] - _xy[1]) / (self.shape.plane.frame_rate * self.shape.plane.unit_length)))
-            # Drag is applied even if it's attached to another body
             if self.drag_coef:
                 self.velocity.add((1-v_len) * self.drag_coef)
         else:
@@ -169,14 +173,18 @@ cdef class DynamicBody(Body):
         self.velocity.rotate(pi/2)
 
     cdef void onCollision(self, Body o, (double, double) dxy):
+        cdef (double, double) self_head, o_head
         if o.type == DYNAMIC:
             self.velocity.scale(self.friction_coef)
             o.velocity.scale(self.friction_coef)
-            self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.head.x.num + -dxy[0]/2, self.shape.plane.parent_vector.head.y.num + -dxy[1]/2))
-            o.shape.plane.parent_vector.set_head((o.shape.plane.parent_vector.head.x.num + dxy[0]/2, o.shape.plane.parent_vector.head.y.num + dxy[1]/2))
+            self_head = self.shape.plane.parent_vector.get_head()
+            o_head = o.shape.plane.parent_vector.get_head()
+            self.shape.plane.parent_vector.set_head((self_head[0] + -dxy[0]/2, self_head[1] + -dxy[1]/2))
+            o.shape.plane.parent_vector.set_head((o_head[0] + dxy[0]/2, o_head[1] + dxy[1]/2))
         elif o.type == STATIC:
             self.velocity.scale(self.friction_coef)
-            self.shape.plane.parent_vector.set_head((self.shape.plane.parent_vector.head.x.num + -dxy[0], self.shape.plane.parent_vector.head.y.num + -dxy[1]))
+            self_head = self.shape.plane.parent_vector.get_head()
+            self.shape.plane.parent_vector.set_head((self_head[0] + -dxy[0], self_head[1] + -dxy[1]))
 
     @cython.cdivision(True)
     cdef void onStep(self):
@@ -184,7 +192,6 @@ cdef class DynamicBody(Body):
         cdef (double, double) xy
         cdef (double, double) _xy
         if v_len > 1:
-            # Drag is applied even if it's attached to another body
             if self.drag_coef:
                 self.velocity.add((1-v_len) * self.drag_coef)
             if not self.is_attached:
@@ -228,7 +235,7 @@ cdef class Ray(FreeBody):
     @cython.boundscheck(False)
     @cython.initializedcheck(False)
     cpdef void scale(self, double factor):
-        (<Vector2d>self.vertices[0]).scale(factor)
+        self.shape.vertices[0].scale(factor)
 
     def show(self, vertex=False, velocity=False, width=1):
         self.shape.show(False, width)

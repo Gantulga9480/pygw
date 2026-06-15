@@ -4,71 +4,78 @@ from pygw import Game, Scene, Window, core
 
 class SC(Scene):
 
-    def __init__(self, parent: 'Scene', size: tuple, position: tuple) -> None:
+    def __init__(self, parent, size, position):
         super().__init__(parent, size, position)
 
-    def onUpdate(self) -> None:
+    def onUpdate(self):
+        pass
+
+    def onRender(self):
         b = random.randint(0, 100)
-        self.window.fill((255, 255, b))
+        if self.surface is not None:
+            self.surface.fill((255, 255, b))
 
 
 class SC1(Scene):
 
-    def __init__(self, parent: 'Scene', size: tuple, position: tuple) -> None:
+    def __init__(self, parent, size, position):
         super().__init__(parent, size, position)
 
-    def onUpdate(self) -> None:
+    def onUpdate(self):
+        pass
+
+    def onRender(self):
         b = random.randint(0, 100)
-        self.window.fill((255, 0, b))
+        if self.surface is not None:
+            self.surface.fill((255, 0, b))
 
 
 class Win(Window):
 
-    def __init__(self, game, title: str = 'Pygame') -> None:
+    def __init__(self, game, title='Pygame'):
         super().__init__(game, title)
-        self.set()
         self.add_child(SC(self, (300, 300), (100, 100)))
 
-    def onUpdate(self) -> None:
+    def onUpdate(self):
         g = random.randint(0, 100)
-        self.window.fill((0, g, 0))
+        if self.surface is not None:
+            self.surface.fill((0, g, 0))
 
 
 class Win1(Window):
 
-    def __init__(self, game, title: str = 'Pygame') -> None:
+    def __init__(self, game, title='Pygame'):
         super().__init__(game, title)
         self.add_child(SC1(self, (300, 300), (500, 100)))
 
-    def onUpdate(self) -> None:
+    def onUpdate(self):
         r = random.randint(0, 100)
-        self.window.fill((r, 0, 0))
+        if self.surface is not None:
+            self.surface.fill((r, 0, 0))
 
 
 class Test(Game):
 
-    def __init__(self) -> None:
+    def __init__(self):
         super().__init__()
         self.size = (1024, 720)
 
-    def setup(self) -> None:
-        custom_main = Win(self, 'test-main')
-        self.drop_window(0)  # drop default window
-        self.add_window(custom_main)  # create custom main window
-        self.switch(0)  # set main window, window at position 0 will always be main window
+    def setup(self):
+        main_win = Win(self, 'test-main')
+        self.add_window(main_win)
+        main_win.enable_bb()
 
-        custom_window = Win1(self, 'test-second')
-        self.add_window(custom_window)
+        second_win = Win1(self, 'test-second')
+        self.add_window(second_win)
+        second_win.enable_bb()
 
-        custom_main.enableBB()
-        custom_window.enableBB()
-
-    def onEvent(self, event) -> None:
-        if event.type == core.KEYUP:
+    def on_event(self, event):
+        if event.type == core.KEYDOWN:
             if event.key == core.K_1:
-                self.switch(0)
+                self.switch_window(0)
             elif event.key == core.K_2:
-                self.switch(1)
+                self.switch_window(1)
 
 
-Test().loop_forever()
+if __name__ == "__main__":
+    Test().loop_forever()

@@ -8,12 +8,13 @@ cdef int STATIC, DYNAMIC, FREE
 
 
 cdef class Body:
-    cdef readonly int type, ID
+    cdef readonly int type
+    cdef readonly int ID
     cdef readonly double radius
     cdef readonly double friction_coef
     cdef readonly double drag_coef
-    cdef readonly Shape shape
-    cdef readonly Vector2d velocity
+    cdef Shape shape
+    cdef Vector2d velocity
     cdef readonly bint is_attached
     cdef readonly bint is_following_dir
     cdef Body parent_body

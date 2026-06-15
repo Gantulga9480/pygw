@@ -1,0 +1,145 @@
+# Survivors config
+
+# Display
+SCREEN_W = 960
+SCREEN_H = 600
+FPS = 60
+
+# Colors
+C_BG = (18, 18, 30)
+C_GRID = (28, 28, 45)
+C_WHITE = (255, 255, 255)
+C_BLACK = (0, 0, 0)
+C_RED = (220, 50, 50)
+C_GREEN = (50, 200, 80)
+C_YELLOW = (240, 220, 50)
+C_PURPLE = (160, 100, 240)
+C_CYAN = (60, 220, 220)
+C_ORANGE = (240, 140, 40)
+C_GOLD = (240, 200, 60)
+C_GRAY = (80, 80, 100)
+C_DARK_GRAY = (40, 40, 55)
+C_LIGHT_GRAY = (160, 160, 180)
+C_HP_BAR_BG = (60, 20, 20)
+C_XP_BAR_BG = (40, 20, 60)
+
+# Hero colors (primary, secondary)
+HERO_ROGUE = ((40, 180, 220), (80, 240, 240))
+HERO_WARRIOR = ((220, 60, 60), (240, 180, 40))
+
+# Enemy colors
+C_ENEMY_ZOMBIE = (80, 180, 60)
+C_ENEMY_RUNNER = (220, 220, 40)
+C_ENEMY_BRUTE = (200, 40, 40)
+C_ENEMY_BOSS = (160, 60, 200)
+
+# UI
+UI_BAR_HEIGHT = 14
+UI_HP_MAX_W = 200
+UI_XP_MAX_W = 320
+UI_FONT_SIZE = 16
+UI_FONT_BIG = 28
+UI_FONT_TINY = 12
+
+# HUD layout
+HUD_HP_X = 16
+HUD_HP_Y = 16
+HUD_XP_X = (SCREEN_W - UI_XP_MAX_W) // 2
+HUD_XP_Y = 16
+HUD_STATS_X = SCREEN_W - 200
+HUD_STATS_Y = 16
+
+# Ability icon layout (bottom center)
+AB_ICON_SIZE = 40
+AB_ICON_PAD = 8
+AB_ICON_Y = SCREEN_H - AB_ICON_SIZE - 16
+
+
+def ab_icon_x(idx):
+    """X position for ability icon at index (0-based, centered at bottom)."""
+    total_w = AB_ICON_SIZE * 3 + AB_ICON_PAD * 2
+    start_x = (SCREEN_W - total_w) // 2
+    return start_x + idx * (AB_ICON_SIZE + AB_ICON_PAD)
+
+
+# Grid
+GRID_SPACING = 48
+
+
+# ---- Enemy Balancing ----
+# Spawn
+SPAWN_BASE_INTERVAL = 2.0
+SPAWN_MIN_INTERVAL = 0.3
+SPAWN_INTERVAL_RAMP_TIME = 300  # seconds to reach min interval
+BOSS_INTERVAL = 120  # seconds between bosses
+
+# Difficulty scaling
+HP_SCALE_PER_MIN = 0.10
+DMG_SCALE_PER_MIN = 0.05
+
+# Enemy templates: (hp, speed_px_s, dmg, color, size, outline)
+ENEMY_ZOMBIE = dict(hp=30, speed=55, dmg=5, color=C_ENEMY_ZOMBIE, size=(16, 20), outline=C_BLACK)
+ENEMY_RUNNER = dict(hp=15, speed=140, dmg=3, color=C_ENEMY_RUNNER, size=(12, 16), outline=C_BLACK)
+ENEMY_BRUTE = dict(hp=100, speed=35, dmg=15, color=C_ENEMY_BRUTE, size=(24, 28), outline=C_BLACK)
+ENEMY_BOSS = dict(hp=500, speed=45, dmg=25, color=C_ENEMY_BOSS, size=(40, 44), outline=C_GOLD)
+
+# Spawn weights (time_in_minutes -> type)
+ENEMY_UNLOCK_RUNNER = 60  # seconds
+ENEMY_UNLOCK_BRUTE = 120  # seconds
+
+
+# ---- Hero Balancing ----
+HERO_ROGUE_STATS = dict(
+    name="Speed Rogue",
+    hp=100,
+    speed=240,
+    size=(14, 18),
+    colors=HERO_ROGUE,
+    # Auto-attack ability
+    slash=dict(dmg=15, cooldown=1.0, range=80, proj_speed=500, proj_size=6, color=C_CYAN),
+    # Q ability
+    dash=dict(dmg=0, cooldown=5.0, range=200, duration=0.15, color=C_CYAN),
+    # E ability
+    poison=dict(dmg=2, cooldown=8.0, duration=3.0, hits=3, color=(80, 220, 100)),
+)
+
+HERO_WARRIOR_STATS = dict(
+    name="Tank Warrior",
+    hp=200,
+    speed=150,
+    size=(18, 22),
+    colors=HERO_WARRIOR,
+    # Auto-attack ability
+    slam=dict(dmg=20, cooldown=1.5, range=100, proj_speed=0, proj_size=0, color=C_ORANGE),
+    # Q ability
+    iron_skin=dict(dmg=0, cooldown=8.0, duration=4.0, reduction=0.5, color=C_GOLD),
+    # E ability
+    rally=dict(dmg=0, cooldown=12.0, duration=3.0, heal=40, color=C_GREEN),
+)
+
+
+# ---- XP / Leveling ----
+XP_BASE = 20
+XP_SCALE = 1.5  # xp_to_next = XP_BASE * XP_SCALE ** (level - 1)
+LEVEL_UP_MAX = 50
+
+# XP gem
+GEM_SIZE = 8
+GEM_COLORS = [(120, 60, 220), (180, 100, 255), (100, 220, 240)]
+GEM_VALUES = [1, 3, 5]
+
+# Magnet range (gems auto-collect within this range)
+MAGNET_RANGE = 120
+
+
+# ---- Effects ----
+DAMAGE_NUMBER_LIFETIME = 1.0
+DAMAGE_NUMBER_RISE_SPEED = 60
+PARTICLE_LIFETIME = 0.6
+PARTICLE_COUNT_DEATH = 8
+PARTICLE_COUNT_HIT = 3
+FLASH_DURATION = 0.1
+
+
+# ---- Sound ----
+SFX_CHANNELS = 4
