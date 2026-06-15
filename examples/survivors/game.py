@@ -37,8 +37,13 @@ class SurvivorsGame(Game):
         self.font_medium = pg.font.SysFont("monospace", C.UI_FONT_SIZE, bold=True)
         self.font_big = pg.font.SysFont("monospace", C.UI_FONT_BIG, bold=True)
 
-        # Init sound
+        # Init sound (pre_init must come before display.set_mode)
+        pg.mixer.pre_init(22050, -16, 1, 512)
+        if pg.mixer.get_init():
+            pg.mixer.quit()
         pg.mixer.init(22050, -16, 1, 512)
+        from survivors.assets import init_sfx
+        init_sfx()
 
         # Force display surface creation
         _ = self.display_surface

@@ -285,7 +285,7 @@ class GameWindow(Window):
                      (C.HUD_HP_X, C.HUD_HP_Y, C.UI_HP_MAX_W, C.UI_BAR_HEIGHT), border_radius=3)
         pg.draw.rect(self.surface, C.C_RED,
                      (C.HUD_HP_X, C.HUD_HP_Y, hp_w, C.UI_BAR_HEIGHT), border_radius=3)
-        hp_text = self.game.font_small.render(f"HP {self.stats.hp}/{self.stats.max_hp}", True, C.C_WHITE)
+        hp_text = self.game.font_small.render(f"HP {int(self.stats.hp)}/{self.stats.max_hp}", True, C.C_WHITE)
         self.surface.blit(hp_text, (C.HUD_HP_X + C.UI_HP_MAX_W + 8, C.HUD_HP_Y + 1))
 
         # XP bar
@@ -322,23 +322,27 @@ class GameWindow(Window):
             y = C.AB_ICON_Y
             # Background
             pg.draw.rect(self.surface, C.C_DARK_GRAY, (x, y, C.AB_ICON_SIZE, C.AB_ICON_SIZE), border_radius=4)
-            # Cooldown overlay (before text so text is drawn on top)
-            if cd > 0:
-                frac = cd / max_cd
-                pg.draw.rect(self.surface, (0, 0, 0, 180),
-                             (x, y + C.AB_ICON_SIZE * (1 - frac),
-                              C.AB_ICON_SIZE, int(C.AB_ICON_SIZE * frac)), border_radius=4)
-            # Label (after cooldown overlay so it's visible)
+            # Label (always visible on top of background)
             s = self.game.font_small.render(label, True, C.C_WHITE)
             self.surface.blit(s, (x + (C.AB_ICON_SIZE - s.get_width()) // 2,
                                   y + (C.AB_ICON_SIZE - s.get_height()) // 2 - 4))
-            # Border on top
-            pg.draw.rect(self.surface, color, (x, y, C.AB_ICON_SIZE, C.AB_ICON_SIZE), 2, border_radius=4)
-            # Key hint
+            # Cooldown overlay (semi-transparent, drawn above label)
+            if cd > 0:
+                frac = cd / max_cd
+                overlay_h = int(C.AB_ICON_SIZE * frac)
+                overlay_y = y + C.AB_ICON_SIZE - overlay_h
+                if overlay_h > 0:
+                    overlay_surf = pg.Surface((C.AB_ICON_SIZE, overlay_h), pg.SRCALPHA)
+                    pg.draw.rect(overlay_surf, (0, 0, 0, 140),
+                                 (0, 0, C.AB_ICON_SIZE, overlay_h), border_radius=0)
+                    self.surface.blit(overlay_surf, (x, overlay_y))
+            # Key hint (drawn after overlay so it stays visible)
             key = ["", "Q", "E"][i]
             if key:
                 ks = self.game.font_small.render(key, True, C.C_GRAY)
                 self.surface.blit(ks, (x + C.AB_ICON_SIZE + 2, y + 4))
+            # Border on top of everything
+            pg.draw.rect(self.surface, color, (x, y, C.AB_ICON_SIZE, C.AB_ICON_SIZE), 2, border_radius=4)
 
     def _format_time(self, seconds):
         m = int(seconds // 60)
