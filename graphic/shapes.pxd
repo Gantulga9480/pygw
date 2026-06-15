@@ -1,11 +1,11 @@
-from .cartesian cimport CartesianPlane, Vector2d
+from ..graphic.cartesian cimport CartesianPlane, Vector2d
 
 
 cdef class Shape:
 
     cdef readonly CartesianPlane plane
     cdef readonly int vertex_count
-    cdef readonly Vector2d[:] vertices
+    cdef list vertices
     cdef public color
 
     cpdef void rotate(self, double angle)

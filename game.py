@@ -1,115 +1,138 @@
+from __future__ import annotations
+
+import os
 import platform
+from typing import TYPE_CHECKING
+
 import pygame as pg
+
+from .input_manager import InputManager
+from .scene_manager import SceneManager
 from .window import Window
+
+if TYPE_CHECKING:
+    from .scene import Scene
 
 
 class Game:
 
     def __init__(self) -> None:
         if not pg.get_init():
-            os = platform.system()
-            if os == "Linux":
-                # On linux pg.quit hangs. Some pygame modules don't work properly on linux
-                # Since we're using only display module for this package, initializing only display will do the trick
+            plat = platform.system()
+            if plat == "Linux":
                 pg.display.init()
-            elif os == "Windows":
-                # Windows not affected by this issue.
-                pg.display.init()
-            else:
-                print("[Warning] - Unknown platform, pygame not initialized")
+                pg.font.init()
+            elif plat == "Windows":
+                pg.init()
 
-        # Main window
         self.title: str = 'PyGameWindow'
-        self.size: tuple = (640, 480)
+        self.size: tuple[int, int] = (640, 480)
         self.window_flags: int = 0
         self.fps: int = 60
         self.running: bool = True
         self.rendering: bool = True
-        self.clock = pg.time.Clock()
+        self.clock: pg.time.Clock = pg.time.Clock()
 
-        # Event
-        self.mouse_x = 0
-        self.mouse_y = 0
-        self.keys = []
+        self.input: InputManager = InputManager()
+        self.scene_manager: SceneManager = SceneManager()
+        self._display_surface: pg.Surface = None
 
-        # Render
-        self.__windows: list[Window] = []
-        self.window = Window(self, 0, self.title)
+    @property
+    def display_surface(self) -> pg.Surface:
+        if self._display_surface is None:
+            self._display_surface = pg.display.set_mode(self.size, self.window_flags)
+            pg.display.set_caption(self.title)
+        return self._display_surface
 
-    def __del__(self):
-        pg.quit()
+    @property
+    def mouse_x(self) -> int:
+        return self.input.mouse_x
 
-    def __setup(self):
-        self.window = Window(self, 0, self.title)
-        self.add_window(self.window)
-        self.switch(0)
-        self.setup()
+    @property
+    def mouse_y(self) -> int:
+        return self.input.mouse_y
+
+    @property
+    def mouse_pos(self) -> tuple[int, int]:
+        return self.input.mouse_pos
+
+    @property
+    def mouse_delta(self) -> tuple[int, int]:
+        return self.input.mouse_delta
 
     def setup(self) -> None:
-        """ User should override this method """
         ...
 
-    def loop(self):
-        """ User should override this method """
+    def loop(self) -> None:
         ...
 
-    def onEvent(self, event) -> None:
-        """ User should override this method """
+    def on_event(self, event: pg.event.Event) -> None:
         ...
 
-    def onRender(self) -> None:
-        """ User should override this method """
+    def on_render(self) -> None:
         ...
 
-    def custom_setup(self):
-        self.__setup()
- 
-    def loop_forever(self):
-        self.__setup()
-        while self.running:
-            self.__event_handler()
-            self.loop()
-            self.__render()
+    def loop_forever(self) -> None:
+        try:
+            self._setup()
+            while self.running:
+                self._tick()
+        finally:
+            pg.quit()
 
     def loop_once(self) -> bool:
-        self.__event_handler()
-        self.loop()
-        self.__render()
+        if not self.scene_manager.active_window:
+            self._setup()
+        self._tick()
         return self.running
 
-    def __event_handler(self):
-        self.mouse_x, self.mouse_y = pg.mouse.get_pos()
-        self.keys = pg.key.get_pressed()
-        for event in pg.event.get():
+    def _setup(self) -> None:
+        self.setup()
+        self._tick()
+
+    def _tick(self) -> None:
+        self.input.update()
+        self._handle_events()
+        self.loop()
+        if self.rendering and self.running:
+            self.on_render()
+            win = self.scene_manager.active_window
+            if win is not None:
+                win.update()
+                win.render()
+                pg.display.flip()
+                self.clock.tick(self.fps)
+
+    def _handle_events(self) -> None:
+        for event in self.input.events:
             if event.type == pg.QUIT:
                 self.running = False
-                break
-            self.onEvent(event)
-            self.window.onEvent(event)
+                return
+            self.on_event(event)
+            win = self.scene_manager.active_window
+            if win is not None:
+                win.on_event(event)
 
-    def __render(self):
-        if self.rendering and self.running:
-            self.onRender()
-            self.window.render()
+    def add_window(self, window: Window) -> None:
+        self.scene_manager.add_window(window)
 
-    def add_window(self, window: Window):
-        """ size, fps and flags have to be initialized before calling this function """
-        self.__windows.append(window)
+    def remove_window(self, index: int) -> Window | None:
+        return self.scene_manager.remove_window(index)
 
-    def drop_window(self, index: int):
-        if index == self.window.index:
-            self.switch(index - 1)
-        for i, window in enumerate(self.__windows):
-            if window.index == index:
-                win = self.__windows.pop(i)
-                return win
-        return None
+    def switch_window(self, index: int) -> Window:
+        return self.scene_manager.switch_to(index)
 
-    def switch(self, index: int):
-        if index >= 0:
-            for window in self.__windows:
-                if window.index == index:
-                    self.window = window
-                    self.window.set()
-                    return True
-        return False
+    def get_window(self, index: int) -> Window | None:
+        return self.scene_manager.get_window(index)
+
+    @property
+    def window(self) -> Window | None:
+        return self.scene_manager.active_window
+
+    @property
+    def active_window(self) -> Window | None:
+        return self.scene_manager.active_window
+
+    @property
+    def window_count(self) -> int:
+        return self.scene_manager.window_count

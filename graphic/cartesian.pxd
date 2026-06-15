@@ -2,7 +2,7 @@ from ..math.core cimport point2d, vector2d
 
 
 cdef class CartesianPlane:
-    cdef Vector2d parent_vector
+    cdef object parent_vector
     cdef point2d origin
     cdef readonly object window
     cdef readonly (double, double) window_size
@@ -25,7 +25,7 @@ cdef class CartesianPlane:
 cdef class Vector2d(vector2d):
 
     cdef readonly CartesianPlane plane
-    cdef point2d HEAD
+    cdef point2d _head
 
     cpdef void random(self)
     cpdef void update(self)

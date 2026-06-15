@@ -3,6 +3,7 @@ cdef double pi
 cdef class scalar:
     cdef public double min, max
     cdef double num
+    cdef bint _clamped
 
     cdef void add(self, double o)
     cdef void scale(self, double o)
@@ -10,7 +11,7 @@ cdef class scalar:
     cdef void set_value(self, double o)
 
 cdef class point2d:
-    cdef scalar x, y
+    cdef scalar _x, _y
 
     cpdef void set_x_ref(self, scalar o)
     cpdef void set_y_ref(self, scalar o)
@@ -24,7 +25,7 @@ cdef class point2d:
     cdef (double, double) get_xy(self)
 
 cdef class vector2d:
-    cdef point2d head
+    cdef point2d _head
     cdef public double max, min
 
     cpdef void add(self, double o)
