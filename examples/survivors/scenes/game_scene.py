@@ -86,6 +86,7 @@ class GameWindow(Window):
                         self.hero.cx, self.hero.cy, C.C_CYAN, 5))
                     play_sfx("dodge")
                 elif qfx["type"] == "iron_skin":
+                    self.stats.active_effects["iron_skin"] = qfx["duration"]
                     play_sfx("shield")
         if self.game.input.was_key_pressed(core.K_e) or self.game.input.was_key_pressed(core.K_k):
             efx = self.hero.try_e_ability()
@@ -95,10 +96,10 @@ class GameWindow(Window):
                 elif efx["type"] == "rally":
                     play_sfx("heal")
 
-        # Rally heal tick
+        # Rally heal tick (per second, scaled by dt)
         if self.hero.rally_timer > 0:
             heal_per_tick = self.hero.e_ability["heal"]
-            self.stats.heal(heal_per_tick)
+            self.stats.heal(heal_per_tick * dt)
             self.hero.rally_timer -= dt
 
         # Camera follow
@@ -178,10 +179,11 @@ class GameWindow(Window):
 
         # Collision: enemy vs hero
         for e in self.enemies:
-            if e.aabb_overlap(self.hero):
+            if e.aabb_overlap(self.hero) and e.attack_cooldown <= 0:
                 dmg = self.stats.take_damage(e.dmg)
                 self.hero.hit()
                 self.effects.append(DamageNumber(self.hero.cx, self.hero.cy - 20, dmg))
+                e.attack_cooldown = e.attack_interval
                 if self.stats.hp <= 0:
                     self.on_game_over()
                     return

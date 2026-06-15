@@ -261,11 +261,12 @@ class TankWarrior(Hero):
         dx = target.cx - self.cx
         dy = target.cy - self.cy
         dist = math.hypot(dx, dy) or 1
+        slam_range = self.auto_ability["range"]
         slam = dict(
             type="slam_aoe",
-            x=self.cx - self.auto_ability["range"] / 2,
-            y=self.cy - self.auto_ability["range"] / 2,
-            radius=self.auto_ability["range"] / 2,
+            x=self.cx - slam_range,
+            y=self.cy - slam_range,
+            radius=slam_range,
             dmg=self.effective_dmg,
             color=self.auto_ability["color"],
         )

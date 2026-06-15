@@ -24,6 +24,8 @@ class Enemy(Entity):
         self.anim_frame = 0
         self.anim_timer = 0.0
         self.hit_flash = 0.0
+        self.attack_cooldown = 0.0
+        self.attack_interval = 0.75
 
     def update(self, dt, hero):
         super().update(dt)
@@ -41,6 +43,8 @@ class Enemy(Entity):
             self.anim_frame = (self.anim_frame + 1) % 2
         if self.hit_flash > 0:
             self.hit_flash -= dt
+        if self.attack_cooldown > 0:
+            self.attack_cooldown -= dt
 
     def take_damage(self, dmg):
         self.hp -= dmg
