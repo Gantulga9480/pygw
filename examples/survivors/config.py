@@ -151,9 +151,9 @@ UPGRADE_CARD_PAD = 16
 UPGRADE_CARD_RADIUS = 8
 
 RARITY_COLORS = {
-    "common": C.C_LIGHT_GRAY,
-    "uncommon": C.C_GREEN,
-    "rare": C.C_PURPLE,
+    "common": (160, 160, 180),
+    "uncommon": (50, 200, 80),
+    "rare": (160, 100, 240),
 }
 RARITY_BORDERS = {
     "common": (100, 100, 120),
