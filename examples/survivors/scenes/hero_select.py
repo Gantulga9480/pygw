@@ -7,6 +7,7 @@ from survivors import config as C
 class HeroSelectWindow(Window):
     def __init__(self, game, on_pick):
         super().__init__(game, "Select Hero")
+        self.on_pick = on_pick
         self.selected = 0
         self.heroes = [
             dict(
