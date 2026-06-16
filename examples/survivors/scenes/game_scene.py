@@ -5,7 +5,8 @@ import pygame as pg
 from pygw import Window, core
 from survivors import config as C
 from survivors.camera import Camera
-from survivors.entities.hero import SpeedRogue, TankWarrior
+from survivors.entities.hero import SpeedRogue, TankWarrior, FrostWitch, ShadowAssassin
+from survivors.entities.clone import ShadowClone
 from survivors.entities.enemy import spawn_enemy
 from survivors.entities.projectile import create_projectile
 from survivors.entities.effect import DamageNumber, spawn_death_particles, spawn_hit_sparks
@@ -43,14 +44,18 @@ class GameWindow(Window):
         self.gems.clear()
         self.effects.clear()
         self.particles.clear()
+        self.clones = []
+        self.blizzard_timer = 0.0
+        self.blizzard_total = 0.0
+        self.blizzard_radius = 0
         self.upgrade_overlay_active = False
         self.selected_upgrade = []
         self.selected_card = -1
         self.hovered_card = -1
         self.overlay_timer = 0.0
 
-        stats_def = C.HERO_ROGUE_STATS if hero_key == "rogue" else C.HERO_WARRIOR_STATS
-        hero_cls = SpeedRogue if hero_key == "rogue" else TankWarrior
+        stats_def = {"rogue": C.HERO_ROGUE_STATS, "warrior": C.HERO_WARRIOR_STATS, "witch": C.HERO_WITCH_STATS, "assassin": C.HERO_ASSASSIN_STATS}[hero_key]
+        hero_cls = {"rogue": SpeedRogue, "warrior": TankWarrior, "witch": FrostWitch, "assassin": ShadowAssassin}[hero_key]
         self.hero = hero_cls(0, 0, stats_def)
         self.hero.max_hp_current = self.hero.max_hp
 
@@ -88,6 +93,26 @@ class GameWindow(Window):
                 elif qfx["type"] == "iron_skin":
                     self.stats.active_effects["iron_skin"] = qfx["duration"]
                     play_sfx("shield")
+                elif qfx["type"] == "blizzard":
+                    self.blizzard_timer = qfx["duration"]
+                    self.blizzard_total = qfx["duration"]
+                    self.blizzard_radius = qfx.get("radius", 120)
+                    play_sfx("slam")
+                elif qfx["type"] == "shadow_step":
+                    target = self.hero._find_nearest_enemy(self.enemies)
+                    if target:
+                        dx = target.cx - self.hero.cx
+                        dy = target.cy - self.hero.cy
+                        dist = math.hypot(dx, dy) or 1
+                        range_val = qfx["target_range"]
+                        self.hero.x += (dx / dist) * range_val
+                        self.hero.y += (dy / dist) * range_val
+                        self.hero.invincible = 0.2
+                        self.hero.x = max(0, self.hero.x)
+                        self.hero.y = max(0, self.hero.y)
+                        self.particles.extend(spawn_death_particles(
+                            self.hero.cx, self.hero.cy, C.C_PURPLE, 8))
+                        play_sfx("dodge")
         if self.game.input.was_key_pressed(core.K_e) or self.game.input.was_key_pressed(core.K_k):
             efx = self.hero.try_e_ability()
             if efx:
@@ -95,12 +120,32 @@ class GameWindow(Window):
                     play_sfx("poison")
                 elif efx["type"] == "rally":
                     play_sfx("heal")
+                elif efx["type"] == "ice_nova":
+                    self.projectiles.append(create_projectile(efx))
+                    play_sfx("attack")
+                elif efx["type"] == "shadow_clone":
+                    for i in range(efx["clone_count"]):
+                        clone_x = self.hero.x + (i - (efx["clone_count"] - 1) / 2) * 40
+                        clone_y = self.hero.y
+                        clone = ShadowClone(clone_x, clone_y, efx["duration"],
+                                           efx["clone_dmg_ratio"], self.hero)
+                        self.clones.append(clone)
+                    play_sfx("shield")
 
-        # Rally heal tick (per second, scaled by dt)
+ # Rally heal tick (per second, scaled by dt)
         if self.hero.rally_timer > 0:
             heal_per_tick = self.hero.e_ability["heal"]
             self.stats.heal(heal_per_tick * dt)
             self.hero.rally_timer -= dt
+        # Blizzard damage tick (per second, scaled by dt)
+        if self.blizzard_timer > 0:
+            for e in self.enemies:
+                dist = math.hypot(e.cx - self.hero.cx, e.cy - self.hero.cy)
+                if dist < self.blizzard_radius:
+                    e.take_damage(self.hero.q_ability["dmg"])
+                    if not e.alive:
+                        self._on_enemy_kill(e)
+            self.blizzard_timer -= dt
 
         # Camera follow
         self.camera.follow(self.hero.cx, self.hero.cy)
@@ -125,6 +170,9 @@ class GameWindow(Window):
         # Update projectiles
         for p in self.projectiles:
             p.update(dt)
+        # Update clones
+        for c in self.clones:
+            c.update(dt)
 
         # Auto-attack
         proj_data = self.hero.try_auto_attack(self.enemies)
@@ -138,8 +186,20 @@ class GameWindow(Window):
                 else:
                     self.projectiles.append(create_projectile(p))
                     play_sfx("attack")
+        # Clone auto-attack
+        for c in self.clones:
+            if c.alive and not c.attack_on_cooldown:
+                target = c._find_nearest_enemy(self.enemies)
+                if target:
+                    c.attack_on_cooldown = 1.0
+                    proj = c._create_auto_attack(target)
+                    if proj:
+                        self.projectiles.append(proj)
+                        play_sfx("attack")
+            else:
+                c.attack_on_cooldown -= dt
 
-         # Collision: projectile vs enemy
+        # Collision: projectile vs enemy
         for p in self.projectiles:
             if not isinstance(p, pg.sprite.Sprite) and hasattr(p, "dmg"):
                 for e in self.enemies:
@@ -163,7 +223,9 @@ class GameWindow(Window):
                             self.effects.append(DamageNumber(e.cx, e.cy, dmg))
                         self.particles.extend(spawn_hit_sparks(e.cx, e.cy))
                         play_sfx("hit")
-                        if hasattr(p, "bounces") and p.bounces > 0:
+                        if hasattr(p, "slow") and p.slow:
+                            e.apply_slow(2.0, 0.6)
+                            self.effects.append(DamageNumber(e.cx, e.cy + 10, "SLOW", color=(140, 200, 255)))
                             p.dmg = int(p.dmg * 0.7)
                             p.bounces -= 1
                             if p.bounces <= 0:
@@ -180,7 +242,7 @@ class GameWindow(Window):
                             heal = self.hero.apply_lifesteal(dmg)
                             if heal > 0:
                                 self.effects.append(DamageNumber(e.cx, e.cy + 10, f"+{heal}", color=C.C_GREEN))
-  if self.hero.effective_siphon_heal > 0:
+                        if self.hero.effective_siphon_heal > 0:
                             siphon_heal = int(self.hero.effective_siphon_heal)
                             self.hero.hp_current = min(self.hero.max_hp, self.hero.hp_current + siphon_heal)
                             self.effects.append(DamageNumber(e.cx + 10, e.cy + 10, f"+{siphon_heal}", color=C.C_GREEN))
@@ -196,7 +258,7 @@ class GameWindow(Window):
                     self.effects.append(DamageNumber(self.hero.cx, self.hero.cy - 20, "DODGE"))
                     e.attack_cooldown = e.attack_interval
                     continue
-    dmg = self.stats.take_damage(e.dmg, armor=self.hero.effective_armor)
+                dmg = self.stats.take_damage(e.dmg, armor=self.hero.effective_armor)
                 self.hero.hit()
                 self.effects.append(DamageNumber(self.hero.cx, self.hero.cy - 20, dmg))
                 # Armor visual feedback
@@ -275,7 +337,7 @@ class GameWindow(Window):
                 if e.hp > 0 and e.max_hp > 0:
                     if e.hp / e.max_hp <= self.hero.effective_executioner_threshold:
                         dmg = int(dmg * self.hero.effective_executioner_mult)
-  if self.hero.effective_siphon_dmg > 0:
+                if self.hero.effective_siphon_dmg > 0:
                     dmg += max(1, int(dmg * self.hero.effective_siphon_dmg))
                 e.take_damage(dmg)
                 self.hero.apply_lifesteal(dmg)
