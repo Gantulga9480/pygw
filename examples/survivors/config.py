@@ -26,6 +26,8 @@ C_XP_BAR_BG = (40, 20, 60)
 # Hero colors (primary, secondary)
 HERO_ROGUE = ((40, 180, 220), (80, 240, 240))
 HERO_WARRIOR = ((220, 60, 60), (240, 180, 40))
+HERO_WITCH = ((160, 100, 240), (200, 160, 255))
+HERO_ASSASSIN = ((60, 60, 80), (180, 60, 200))
 
 # Enemy colors
 C_ENEMY_ZOMBIE = (80, 180, 60)
@@ -115,6 +117,34 @@ HERO_WARRIOR_STATS = dict(
     iron_skin=dict(dmg=0, cooldown=8.0, duration=4.0, reduction=0.5, color=C_GOLD),
     # E ability
     rally=dict(dmg=0, cooldown=12.0, duration=3.0, heal=40, color=C_GREEN),
+)
+
+HERO_WITCH_STATS = dict(
+    name="Frost Witch",
+    hp=120,
+    speed=130,
+    size=(16, 20),
+    colors=HERO_WITCH,
+    # Auto-attack ability
+    frost_bolt=dict(dmg=12, cooldown=1.2, range=200, proj_speed=400, proj_size=8, color=(140, 200, 255)),
+    # Q ability
+    blizzard=dict(dmg=3, cooldown=10.0, duration=3.0, radius=120, color=(140, 200, 255)),
+    # E ability
+    ice_nova=dict(dmg=25, cooldown=6.0, range=100, color=(100, 180, 255)),
+)
+
+HERO_ASSASSIN_STATS = dict(
+    name="Shadow Assassin",
+    hp=90,
+    speed=200,
+    size=(14, 18),
+    colors=HERO_ASSASSIN,
+    # Auto-attack ability
+    shadow_bolt=dict(dmg=18, cooldown=1.0, range=250, proj_speed=350, proj_size=6, color=(140, 80, 180)),
+    # Q ability
+    shadow_step=dict(dmg=30, cooldown=5.0, range=180, color=(80, 40, 140)),
+    # E ability
+    shadow_clone=dict(dmg=0, cooldown=15.0, duration=8.0, clone_dmg=0.7, color=(100, 60, 160)),
 )
 
 
@@ -237,6 +267,40 @@ UPGRADES = [
     dict(name="Slam Fury", desc="-20% Slam Cooldown", rarity="rare", weight=1, min_level=5,
          hero_filter=lambda hk: hk == "warrior",
          apply=lambda h, s: _apply_pct(h, s, "slam_cooldown_reduce", 0.20)),
+
+    # ===== WITCH SPECIFIC =====
+    dict(name="Frost Mastery", desc="+1 Frost Bolt slow stack", rarity="uncommon", weight=2,
+         hero_filter=lambda hk: hk == "witch",
+         apply=lambda h, s: _apply_stat(h, s, "frost_slow_stacks", 1)),
+    dict(name="Cryo Burst", desc="+2 Frost Bolt DOT (freeze tick)", rarity="uncommon", weight=2,
+         hero_filter=lambda hk: hk == "witch",
+         apply=lambda h, s: _apply_stat(h, s, "frost_dot_dmg", 2)),
+    dict(name="Deep Freeze", desc="+1s Blizzard duration", rarity="uncommon", weight=2,
+         hero_filter=lambda hk: hk == "witch",
+         apply=lambda h, s: _apply_stat(h, s, "blizzard_duration", 1.0)),
+    dict(name="Chain Freeze", desc="Ice Nova bounces to nearby enemies", rarity="rare", weight=1, min_level=5,
+         hero_filter=lambda hk: hk == "witch",
+         apply=lambda h, s: _apply_weapon(h, s, "chain_freeze")),
+    dict(name="Absolute Zero", desc="Freeze +1s, enemies take 50% more dmg", rarity="rare", weight=1,
+         hero_filter=lambda hk: hk == "witch",
+         apply=lambda h, s: (_apply_stat(h, s, "freeze_duration", 1.0), _apply_stat(h, s, "frozen_bonus_dmg", 0.5))),
+
+    # ===== ASSASSIN SPECIFIC =====
+    dict(name="Night Stalker", desc="+5% Shadow Bolt homing speed", rarity="uncommon", weight=2,
+         hero_filter=lambda hk: hk == "assassin",
+         apply=lambda h, s: _apply_pct(h, s, "shadow_homing", 0.05)),
+    dict(name="Assassinate", desc="+50% Shadow Step burst damage", rarity="uncommon", weight=2,
+         hero_filter=lambda hk: hk == "assassin",
+         apply=lambda h, s: _apply_pct(h, s, "shadow_step_dmg", 0.50)),
+    dict(name="Double Shadow", desc="+1 clone, or clone damage +100%", rarity="uncommon", weight=2,
+         hero_filter=lambda hk: hk == "assassin",
+         apply=lambda h, s: _apply_stat(h, s, "shadow_clones", 1)),
+    dict(name="Shadow Surge", desc="Shadow Step also teleports to frozen enemies", rarity="rare", weight=1,
+         hero_filter=lambda hk: hk == "assassin",
+         apply=lambda h, s: _apply_stat(h, s, "shadow_surge", 1)),
+ dict(name="Eclipse", desc="Shadow Clone explodes into 5 homing shadow bolts", rarity="rare", weight=1,
+         hero_filter=lambda hk: hk == "assassin",
+         apply=lambda h, s: _apply_weapon(h, s, "eclipse")),
 
     # ===== PASSIVE ABILITIES — universal =====
     dict(name="Critical Strike", desc="15% chance for 2x damage", rarity="uncommon", weight=2,

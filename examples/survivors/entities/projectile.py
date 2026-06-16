@@ -85,6 +85,40 @@ class BounceProjectile(Entity):
         pg.draw.circle(surface, C.C_BLACK, (sx, sy), r, 1)
 
 
+class HomingProjectile(Entity):
+    """Projectile that tracks a target enemy."""
+
+    def __init__(self, proj):
+        size = proj.get("size", 6)
+        super().__init__(proj["x"] - size / 2, proj["y"] - size / 2, size, size, proj["color"])
+        self.target = proj["target"]
+        self.dmg = proj["dmg"]
+        self.homing_speed = proj.get("homing_speed", 350)
+        self.life = 3.0
+        self.poison = proj.get("poison", False)
+        self.slow = proj.get("slow", False)
+        self.slow_stacks = proj.get("slow_stacks", 0)
+
+    def update(self, dt):
+        super().update(dt)
+        if self.target and self.target.alive:
+            dx = self.target.cx - self.cx
+            dy = self.target.cy - self.cy
+            dist = math.hypot(dx, dy) or 1
+            self.vx = (dx / dist) * self.homing_speed
+            self.vy = (dy / dist) * self.homing_speed
+        self.move(dt)
+        self.life -= dt
+        if self.life <= 0:
+            self.kill()
+
+    def render(self, surface, camera):
+        sx, sy = camera.world_to_screen(self.cx, self.cy)
+        r = int(self.w / 2)
+        pg.draw.circle(surface, self.color, (sx, sy), r)
+        pg.draw.circle(surface, C.C_BLACK, (sx, sy), r, 1)
+
+
 def create_projectile(proj):
     if proj["type"] == "slam_aoe":
         cx = proj.get("cx") or proj["x"] + proj["radius"]
@@ -93,6 +127,27 @@ def create_projectile(proj):
         vr = proj.get("visual_radius") or proj["radius"]
         col = proj.get("color") or (255, 255, 255)
         return AOEFlash(cx, cy, hr, vr, col)
+    if proj["type"] == "ice_nova":
+        return AOEFlash(proj.get("cx") or proj["x"], proj.get("cy") or proj["y"],
+                        proj.get("hit_radius", 100), proj.get("visual_radius", 100),
+                        proj.get("color", C.C_CYAN))
+    if proj["type"] == "shadow_step":
+        dmg = proj["dmg"]
+        is_crit = proj.get("crit", False)
+        if is_crit:
+            dmg *= 2
+        return dict(
+            type="slam_aoe",
+            cx=0,
+            cy=0,
+            hit_radius=60,
+            visual_radius=60,
+            dmg=dmg,
+            color=proj.get("color", C.C_PURPLE),
+            crit=is_crit,
+        )
+    if proj.get("target") and proj["type"] in ("shadow_bolt", "frost_bolt"):
+        return HomingProjectile(proj)
     if proj["type"] == "bounce_proj":
         return BounceProjectile(proj["x"], proj["y"], proj["vx"], proj["vy"],
                                 proj["dmg"], proj.get("size", 10),

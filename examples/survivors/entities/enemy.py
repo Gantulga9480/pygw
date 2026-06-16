@@ -26,6 +26,8 @@ class Enemy(Entity):
         self.hit_flash = 0.0
         self.attack_cooldown = 0.0
         self.attack_interval = 0.75
+        self._slow_timer = 0.0
+        self._slow_factor = 1.0
 
     def update(self, dt, hero):
         super().update(dt)
@@ -33,9 +35,12 @@ class Enemy(Entity):
         dx = hero.cx - self.cx
         dy = hero.cy - self.cy
         dist = math.hypot(dx, dy) or 1
-        self.vx = (dx / dist) * self.speed
-        self.vy = (dy / dist) * self.speed
+        speed_mult = self._slow_factor if self._slow_timer > 0 else 1.0
+        self.vx = (dx / dist) * self.speed * speed_mult
+        self.vy = (dy / dist) * self.speed * speed_mult
         self.move(dt)
+        if self._slow_timer > 0:
+            self._slow_timer -= dt
         # Animation
         self.anim_timer += dt
         if self.anim_timer > 0.2:
@@ -51,6 +56,10 @@ class Enemy(Entity):
         self.hit_flash = 0.1
         if self.hp <= 0:
             self.kill()
+
+    def apply_slow(self, duration, factor=0.6):
+        self._slow_timer = max(self._slow_timer, duration)
+        self._slow_factor = min(self._slow_factor, factor)
 
     def render(self, surface, camera):
         sx, sy = camera.world_to_screen(self.x, self.y)

@@ -22,10 +22,11 @@ class Hero(Entity):
         self.upgrade_data = {}
         self.unlocked_weapons = []
 
-        # Ability definitions
-        self.auto_ability = stats["slash"] if "slash" in stats else stats.get("slam")
-        self.q_ability = stats.get("dash") or stats.get("iron_skin")
-        self.e_ability = stats.get("poison") or stats.get("rally")
+   # Ability definitions
+        keys = list(stats.keys())
+        self.auto_ability = stats.get("slash") or stats.get("slam") or stats.get("frost_bolt") or stats.get("shadow_bolt")
+        self.q_ability = stats.get("dash") or stats.get("iron_skin") or stats.get("blizzard") or stats.get("shadow_step")
+        self.e_ability = stats.get("poison") or stats.get("rally") or stats.get("ice_nova") or stats.get("shadow_clone")
 
         # Auto-attack state
         self.auto_cooldown = 0.0
@@ -461,3 +462,126 @@ class TankWarrior(Hero):
         self.rally_timer = duration
         self.rally_total = duration
         return dict(type="rally", heal=self.e_ability["heal"], duration=duration)
+
+
+class FrostWitch(Hero):
+    @property
+    def effective_q_cd(self):
+        base = self.q_ability["cooldown"]
+        reduce = self.upgrade_data.get("blizzard_cd_reduce", 0)
+        return base * (1 - reduce)
+
+    @property
+    def effective_e_cd(self):
+        base = self.e_ability["cooldown"]
+        return base * (1 - self.upgrade_data.get("ice_nova_cd_reduce", 0))
+
+    @property
+    def effective_frost_bolt_range(self):
+        base = self.auto_ability.get("range", 200)
+        mult = 1.0 + self.upgrade_data.get("frost_range", 0)
+        return base * mult
+
+    def _create_auto_attack(self, target):
+        dx = target.cx - self.cx
+        dy = target.cy - self.cy
+        dist = math.hypot(dx, dy) or 1
+        is_crit = random.random() < self.effective_crit_chance
+        is_slow = random.random() < 0.5
+        base_proj = dict(
+            type="frost_bolt",
+            x=self.cx - 2,
+            y=self.cy - 2,
+            vx=(dx / dist) * self.auto_ability["proj_speed"],
+            vy=(dy / dist) * self.auto_ability["proj_speed"],
+            dmg=self.effective_dmg,
+            size=self.auto_ability["proj_size"],
+            color=C.C_GOLD if is_crit else self.auto_ability["color"],
+            poison=False,
+            slow=is_slow,
+            slow_stacks=1 + self.upgrade_data.get("frost_slow_stacks", 0),
+            crit=is_crit,
+        )
+        return [base_proj]
+
+    def _create_q_effect(self):
+        duration = self.q_ability["duration"] + self.upgrade_data.get("blizzard_duration", 0)
+        radius = self.q_ability.get("radius", 120)
+        self.blizzard_timer = duration
+        self.blizzard_radius = radius
+        self.blizzard_total = duration
+        return dict(type="blizzard", duration=duration, radius=radius)
+
+    def _create_e_effect(self):
+        range_val = self.e_ability.get("range", 100)
+        dmg = self.effective_dmg
+        is_crit = random.random() < self.effective_crit_chance
+        if is_crit:
+            dmg *= 2
+        return dict(
+            type="ice_nova",
+            cx=self.cx,
+            cy=self.cy,
+            hit_radius=range_val,
+            visual_radius=range_val,
+            dmg=dmg,
+            color=C.C_GOLD if is_crit else self.e_ability["color"],
+            crit=is_crit,
+            chain=self.upgrade_data.get("chain_freeze", 0) > 0,
+        )
+
+
+class ShadowAssassin(Hero):
+    @property
+    def effective_q_cd(self):
+        base = self.q_ability["cooldown"]
+        reduce = self.upgrade_data.get("shadow_step_cd_reduce", 0)
+        return base * (1 - reduce)
+
+    @property
+    def effective_e_cd(self):
+        base = self.e_ability["cooldown"]
+        return base * (1 - self.upgrade_data.get("shadow_clone_cd_reduce", 0))
+
+    @property
+    def effective_shadow_bolt_homing(self):
+        return self.auto_ability["proj_speed"] * (1 + self.upgrade_data.get("shadow_homing", 0))
+
+    def _create_auto_attack(self, target):
+        is_crit = random.random() < self.effective_crit_chance
+        return dict(
+            type="shadow_bolt",
+            x=self.cx - 2,
+            y=self.cy - 2,
+            target=target,
+            homing_speed=self.effective_shadow_bolt_homing,
+            dmg=self.effective_dmg,
+            size=self.auto_ability["proj_size"],
+            color=C.C_GOLD if is_crit else self.auto_ability["color"],
+            poison=False,
+            crit=is_crit,
+        )
+
+    def _create_q_effect(self):
+        range_val = self.q_ability.get("range", 180)
+        dmg = self.effective_dmg * (1 + self.upgrade_data.get("shadow_step_dmg", 0))
+        is_crit = random.random() < self.effective_crit_chance
+        if is_crit:
+            dmg *= 2
+        return dict(
+            type="shadow_step",
+            target_range=range_val,
+            dmg=dmg,
+            color=C.C_GOLD if is_crit else self.q_ability["color"],
+            crit=is_crit,
+        )
+
+    def _create_e_effect(self):
+        duration = self.e_ability["duration"] + self.upgrade_data.get("shadow_clone_duration", 0)
+        clones = self.upgrade_data.get("shadow_clones", 0) + 1
+        return dict(
+            type="shadow_clone",
+            duration=duration,
+            clone_count=clones,
+            clone_dmg_ratio=self.e_ability.get("clone_dmg", 0.7),
+        )
