@@ -151,20 +151,15 @@ class Hero(Entity):
 
     def apply_upgrade(self, upgrade_def, stats=None):
         upgrade_def["apply"](self, stats)
-        if upgrade_def["name"] == "Vitality":
+        hp_bonus = upgrade_def["name"] in ("Vitality", "Goliath", "Fortress")
+        if hp_bonus:
             old_max = self.max_hp
-            self.max_hp += 10
+            bonus = 10 if upgrade_def["name"] == "Vitality" else 25 if upgrade_def["name"] == "Goliath" else 50
+            self.max_hp += bonus
             if stats:
-                stats.max_hp += 10
+                stats.max_hp += bonus
                 if stats.hp == old_max:
-                    stats.hp += 10
-        elif upgrade_def["name"] == "Goliath":
-            old_max = self.max_hp
-            self.max_hp += 25
-            if stats:
-                stats.max_hp += 25
-                if stats.hp == old_max:
-                    stats.hp += 25
+                    stats.hp += bonus
 
     @property
     def effective_speed(self):
@@ -187,6 +182,38 @@ class Hero(Entity):
     def effective_magnet_range(self):
         mult = 1.0 + self.upgrade_data.get("magnet_range", 0)
         return C.MAGNET_RANGE * mult
+
+    @property
+    def effective_slam_radius(self):
+        base = self.auto_ability.get("range", 100)
+        mult = 1.0 + self.upgrade_data.get("slam_radius", 0)
+        return base * mult
+
+    @property
+    def effective_slam_cooldown(self):
+        base = self.auto_ability.get("cooldown", 1.5)
+        reduce = self.upgrade_data.get("slam_cooldown_reduce", 0)
+        return base * (1.0 - reduce)
+
+    @property
+    def effective_dash_cooldown(self):
+        base = self.q_ability.get("cooldown", 5.0)
+        reduce = self.upgrade_data.get("dash_cd_reduce", 0)
+        return max(1.0, base - reduce)
+
+    @property
+    def effective_poison_dmg(self):
+        base = self.e_ability.get("dmg", 2)
+        bonus = self.upgrade_data.get("poison_dmg", 0)
+        return base + bonus
+
+    @property
+    def effective_q_cd(self):
+        return self.q_ability["cooldown"]
+
+    @property
+    def effective_e_cd(self):
+        return self.e_ability["cooldown"]
 
     def render(self, surface, camera):
         sx, sy = camera.world_to_screen(self.x, self.y)
@@ -215,6 +242,14 @@ class Hero(Entity):
 
 
 class SpeedRogue(Hero):
+    @property
+    def effective_q_cd(self):
+        return self.effective_dash_cooldown
+
+    @property
+    def effective_e_cd(self):
+        return self.e_ability["cooldown"]
+
     def _create_auto_attack(self, target):
         dx = target.cx - self.cx
         dy = target.cy - self.cy
@@ -259,10 +294,13 @@ class SpeedRogue(Hero):
         self._dash_vx = (dx / length) * speed
         self._dash_vy = (dy / length) * speed
         self.invincible = self.q_ability["duration"]
+        self.q_cooldown = self.effective_dash_cooldown
         return dict(type="dash", hero=self)
 
     def _create_e_effect(self):
-        self.poison_stacks = self.e_ability["hits"]
+        base_hits = self.e_ability["hits"]
+        bonus_stacks = self.upgrade_data.get("poison_stacks", 0)
+        self.poison_stacks = base_hits + bonus_stacks
         return dict(type="poison", stacks=self.poison_stacks)
 
     def apply_poison_hit(self):
@@ -271,12 +309,23 @@ class SpeedRogue(Hero):
 
 
 class TankWarrior(Hero):
+    @property
+    def effective_atk_speed(self):
+        return self.effective_slam_cooldown
+
+    @property
+    def effective_q_cd(self):
+        base = self.q_ability["cooldown"]
+        bonus = self.upgrade_data.get("iron_skin_duration", 0)
+        return base  # Iron Resolve doesn't change the cooldown, only duration
+
+    @property
+    def effective_e_cd(self):
+        return self.e_ability["cooldown"]
+
     def _create_auto_attack(self, target):
-        dx = target.cx - self.cx
-        dy = target.cy - self.cy
-        dist = math.hypot(dx, dy) or 1
-        slam_range = self.auto_ability["range"]
-        slam = dict(
+        slam_range = self.effective_slam_radius
+        return dict(
             type="slam_aoe",
             cx=self.cx,
             cy=self.cy,
@@ -285,18 +334,6 @@ class TankWarrior(Hero):
             dmg=self.effective_dmg,
             color=self.auto_ability["color"],
         )
-        if "shield_bounce" not in self.unlocked_weapons:
-            return slam
-        return [slam, dict(
-            type="bounce_proj",
-            x=self.cx - 2, y=self.cy - 2,
-            vx=(dx / dist) * self.auto_ability["proj_speed"],
-            vy=(dy / dist) * self.auto_ability["proj_speed"],
-            dmg=int(self.effective_dmg * 0.6),
-            bounces=3,
-            size=10,
-            color=C.C_CYAN,
-        )]
 
     def _create_q_effect(self):
         duration = self.q_ability["duration"] + self.upgrade_data.get("iron_skin_duration", 0)

@@ -167,7 +167,7 @@ class GameWindow(Window):
                             play_sfx("hit")
                             if hasattr(p, "poison") and p.poison:
                                 self.hero.apply_poison_hit()
-                                extra = self.hero.e_ability["dmg"]
+                                extra = self.hero.effective_poison_dmg
                                 e.take_damage(extra)
                                 self.effects.append(DamageNumber(e.cx - 8, e.cy - 10, extra))
                             if not e.alive:
@@ -313,9 +313,9 @@ class GameWindow(Window):
 
     def _draw_ability_icons(self):
         abilities = [
-            ("ATK", self.hero.auto_cooldown, self.hero.auto_ability["cooldown"], C.C_CYAN),
-            ("Q", self.hero.q_cooldown, self.hero.q_ability["cooldown"], C.C_GOLD),
-            ("E", self.hero.e_cooldown, self.hero.e_ability["cooldown"], C.C_GREEN),
+            ("ATK", self.hero.auto_cooldown, self.hero.effective_atk_speed, C.C_CYAN),
+            ("Q", self.hero.q_cooldown, self.hero.effective_q_cd, C.C_GOLD),
+            ("E", self.hero.e_cooldown, self.hero.effective_e_cd, C.C_GREEN),
         ]
         for i, (label, cd, max_cd, color) in enumerate(abilities):
             x = C.ab_icon_x(i)
