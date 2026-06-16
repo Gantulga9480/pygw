@@ -124,7 +124,7 @@ class Hero(Entity):
 
     def _find_nearest_enemy(self, enemies):
         best = None
-        best_dist = self.auto_ability["range"] ** 2
+        best_dist = self.effective_range ** 2
         for e in enemies:
             d = (self.cx - e.cx) ** 2 + (self.cy - e.cy) ** 2
             if d < best_dist:
@@ -206,6 +206,12 @@ class Hero(Entity):
         base = self.e_ability.get("dmg", 2)
         bonus = self.upgrade_data.get("poison_dmg", 0)
         return base + bonus
+
+    @property
+    def effective_range(self):
+        base = self.auto_ability.get("range", 100)
+        mult = 1.0 + self.upgrade_data.get("attack_range", 0)
+        return base * mult
 
     @property
     def effective_q_cd(self):
