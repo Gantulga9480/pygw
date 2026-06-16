@@ -110,6 +110,14 @@ class GameWindow(Window):
                         self.hero.invincible = 0.2
                         self.hero.x = max(0, self.hero.x)
                         self.hero.y = max(0, self.hero.y)
+                        # Apply burst damage
+                        step_dmg = qfx.get("dmg", 30)
+                        target.take_damage(step_dmg)
+                        self.effects.append(DamageNumber(target.cx, target.cy, step_dmg))
+                        if qfx.get("crit"):
+                            self.effects.append(DamageNumber(target.cx, target.cy - 6, "!", color=C.C_GOLD))
+                        if not target.alive:
+                            self._on_enemy_kill(target)
                         self.particles.extend(spawn_death_particles(
                             self.hero.cx, self.hero.cy, C.C_PURPLE, 8))
                         play_sfx("dodge")
@@ -121,8 +129,14 @@ class GameWindow(Window):
                 elif efx["type"] == "rally":
                     play_sfx("heal")
                 elif efx["type"] == "ice_nova":
+                    self._apply_aoe(efx)
+                    # Slow enemies in range
+                    nova_radius = efx.get("hit_radius", 100)
+                    for e in self.enemies:
+                        if e.alive and math.hypot(e.cx - self.hero.cx, e.cy - self.hero.cy) < nova_radius:
+                            e.apply_slow(2.0, 0.6)
                     self.projectiles.append(create_projectile(efx))
-                    play_sfx("attack")
+                    play_sfx("slam")
                 elif efx["type"] == "shadow_clone":
                     for i in range(efx["clone_count"]):
                         clone_x = self.hero.x + (i - (efx["clone_count"] - 1) / 2) * 40
@@ -476,16 +490,42 @@ class GameWindow(Window):
         play_sfx("select")
 
     def _get_available_upgrades(self):
-        hero_key = self.hero.__class__.__name__.lower().replace("rogue", "rogue").replace("warrior", "warrior")
-        hero_short = "rogue" if "rogue" in hero_key else "warrior"
+        cls_name = self.hero.__class__.__name__.lower()
+        if "rogue" in cls_name:
+            hero_short = "rogue"
+        elif "warrior" in cls_name:
+            hero_short = "warrior"
+        elif "witch" in cls_name:
+            hero_short = "witch"
+        elif "assassin" in cls_name:
+            hero_short = "assassin"
+        else:
+            hero_short = "rogue"
+
+        # Passive stat keys: if > 0, hero already has that passive
+        passive_keys = {
+            "crit_chance": "crit", "lifesteal": "lifesteal", "evasion": "evasion",
+            "thorns": "thorns", "siphon_dmg": "siphon", "frenzy_per_kill": "frenzy",
+            "armor": "armor", "replenish": "replenish", "second_wind": "second_wind",
+            "executioner_mult": "executioner",
+        }
+
         available = []
         for u in C.UPGRADES:
             if self.stats.level < u.get("min_level", 1):
                 continue
             if "hero_filter" in u and not u["hero_filter"](hero_short):
                 continue
-            for _ in range(u["weight"]):
-                available.append(u)
+            # Exclude already-owned passives (status upgrades can reappear)
+            if "passive" in u:
+                for stat_key, passive_id in passive_keys.items():
+                    if passive_id == u["passive"] and self.hero.upgrade_data.get(stat_key, 0) > 0:
+                        break
+                else:
+                    available.append(u)
+            else:
+                for _ in range(u["weight"]):
+                    available.append(u)
         return available
 
     def _draw_upgrade_overlay(self):
