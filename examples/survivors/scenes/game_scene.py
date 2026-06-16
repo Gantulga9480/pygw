@@ -152,9 +152,10 @@ class GameWindow(Window):
                         if e.hp > 0 and e.max_hp > 0:
                             if e.hp / e.max_hp <= self.hero.effective_executioner_threshold:
                                 dmg = int(dmg * self.hero.effective_executioner_mult)
-                        # Siphon bonus damage
-                        if self.hero.effective_siphon_dmg > 0:
-                            dmg += int(dmg * self.hero.effective_siphon_dmg)
+    # Siphon bonus damage
+                        siphon_dmg = max(1, int(dmg * self.hero.effective_siphon_dmg)) if self.hero.effective_siphon_dmg > 0 else 0
+                        if siphon_dmg > 0:
+                            dmg += siphon_dmg
                         e.take_damage(dmg)
                         if is_crit:
                             self.effects.append(DamageNumber(e.cx, e.cy - 6, f"{dmg}!"))
@@ -174,7 +175,15 @@ class GameWindow(Window):
                             extra = self.hero.effective_poison_dmg
                             e.take_damage(extra)
                             self.effects.append(DamageNumber(e.cx - 8, e.cy - 10, extra))
-                        self.hero.apply_lifesteal(dmg)
+                        # Passive: Lifesteal + Siphon heal
+                        if self.hero.effective_lifesteal > 0:
+                            heal = self.hero.apply_lifesteal(dmg)
+                            if heal > 0:
+                                self.effects.append(DamageNumber(e.cx, e.cy + 10, f"+{heal}", color=C.C_GREEN))
+  if self.hero.effective_siphon_heal > 0:
+                            siphon_heal = int(self.hero.effective_siphon_heal)
+                            self.hero.hp_current = min(self.hero.max_hp, self.hero.hp_current + siphon_heal)
+                            self.effects.append(DamageNumber(e.cx + 10, e.cy + 10, f"+{siphon_heal}", color=C.C_GREEN))
                         if not e.alive:
                             self._on_enemy_kill(e)
                         break
@@ -187,9 +196,12 @@ class GameWindow(Window):
                     self.effects.append(DamageNumber(self.hero.cx, self.hero.cy - 20, "DODGE"))
                     e.attack_cooldown = e.attack_interval
                     continue
-                dmg = self.stats.take_damage(e.dmg)
+    dmg = self.stats.take_damage(e.dmg, armor=self.hero.effective_armor)
                 self.hero.hit()
                 self.effects.append(DamageNumber(self.hero.cx, self.hero.cy - 20, dmg))
+                # Armor visual feedback
+                if self.hero.effective_armor > 0:
+                    self.effects.append(DamageNumber(self.hero.cx, self.hero.cy - 10, f"-{self.hero.effective_armor}", color=C.C_GRAY))
                 # Thorns reflection
                 thorns = self.hero.get_thorns()
                 if thorns > 0:
@@ -235,6 +247,9 @@ class GameWindow(Window):
     def _on_enemy_kill(self, e):
         self.stats.kills += 1
         self.hero.register_kill()
+        # Frenzy visual
+        if self.hero.effective_frenzy_bonus > 0:
+            self.effects.append(DamageNumber(e.cx, e.cy - 12, f"FRENZY +{self.hero._frenzy_stacks}", color=C.C_ORANGE))
         if self.hero.effective_second_wind > 0:
             self.hero.apply_second_wind()
         if self.hero.effective_replenish > 0:
@@ -242,6 +257,7 @@ class GameWindow(Window):
             self.hero.auto_cooldown *= (1 - factor)
             self.hero.q_cooldown *= (1 - factor)
             self.hero.e_cooldown *= (1 - factor)
+            self.effects.append(DamageNumber(e.cx, e.cy - 22, f"CD -{int(factor * 100)}%", color=C.C_PURPLE))
         self.particles.extend(spawn_death_particles(e.cx, e.cy, e.color))
         self.gems.append(XPGem(e.cx, e.cy))
         play_sfx("enemy_death")
@@ -259,8 +275,8 @@ class GameWindow(Window):
                 if e.hp > 0 and e.max_hp > 0:
                     if e.hp / e.max_hp <= self.hero.effective_executioner_threshold:
                         dmg = int(dmg * self.hero.effective_executioner_mult)
-                if self.hero.effective_siphon_dmg > 0:
-                    dmg += int(dmg * self.hero.effective_siphon_dmg)
+  if self.hero.effective_siphon_dmg > 0:
+                    dmg += max(1, int(dmg * self.hero.effective_siphon_dmg))
                 e.take_damage(dmg)
                 self.hero.apply_lifesteal(dmg)
                 self.particles.extend(spawn_hit_sparks(e.cx, e.cy))

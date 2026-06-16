@@ -33,11 +33,13 @@ class PlayerStats:
     def hp_fraction(self):
         return self.hp / self.max_hp
 
-    def take_damage(self, dmg):
+    def take_damage(self, dmg, armor=0):
         reduction = 0.0
         if "iron_skin" in self.active_effects and self.active_effects["iron_skin"] > 0:
             reduction = 0.5
         actual = int(dmg * (1.0 - reduction))
+        if armor > 0:
+            actual = max(1, actual - armor)
         self.hp = max(0, self.hp - actual)
         return actual
 

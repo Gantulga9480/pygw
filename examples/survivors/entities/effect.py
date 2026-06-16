@@ -6,13 +6,14 @@ from survivors import config as C
 
 
 class DamageNumber:
-    def __init__(self, x, y, dmg, critical=False):
+    def __init__(self, x, y, dmg, critical=False, color=None):
         self.x = x
         self.y = y
         self.dmg = dmg
         self.life = C.DAMAGE_NUMBER_LIFETIME
         self.max_life = C.DAMAGE_NUMBER_LIFETIME
         self.critical = critical
+        self.custom_color = color
 
     def update(self, dt):
         self.life -= dt
@@ -24,13 +25,12 @@ class DamageNumber:
 
     def render(self, surface, camera, font):
         sx, sy = camera.world_to_screen(self.x, self.y)
-        if isinstance(self.dmg, str):
-            color = C.C_GOLD
-            s = font.render(self.dmg, True, color)
-        elif self.critical:
-            s = font.render(f"![{self.dmg}]", True, C.C_RED)
+        if self.custom_color:
+            s = font.render(str(self.dmg), True, self.custom_color)
+        elif isinstance(self.dmg, str):
+            s = font.render(self.dmg, True, C.C_GOLD)
         else:
-            s = font.render(str(self.dmg), True, C.C_YELLOW if self.critical else C.C_WHITE)
+            s = font.render(str(self.dmg), True, C.C_GOLD if self.critical else C.C_WHITE)
         surface.blit(s, (sx - s.get_width() // 2, sy - s.get_height()))
 
 

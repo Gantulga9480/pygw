@@ -277,12 +277,24 @@ class Hero(Entity):
     def take_damage(self, dmg):
         if self.invincible > 0:
             return 0
+        original_dmg = dmg
         if self.iron_skin_timer > 0:
             dmg = int(dmg * 0.5)
         if self.effective_armor > 0:
             dmg = max(1, dmg - self.effective_armor)
         self.max_hp_current = getattr(self, "max_hp_current", self.max_hp)
         return dmg
+
+    def get_armor_blocked(self, dmg):
+        if self.invincible > 0:
+            return 0
+        blocked = 0
+        if self.iron_skin_timer > 0:
+            blocked += dmg - int(dmg * 0.5)
+        after_iron = dmg - blocked
+        if self.effective_armor > 0:
+            blocked += after_iron - max(1, after_iron - self.effective_armor)
+        return blocked
 
     def check_evasion(self):
         return random.random() < self.effective_evasion
