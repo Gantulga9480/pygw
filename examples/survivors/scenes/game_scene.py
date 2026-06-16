@@ -139,50 +139,64 @@ class GameWindow(Window):
                     self.projectiles.append(create_projectile(p))
                     play_sfx("attack")
 
-        # Collision: projectile vs enemy
+         # Collision: projectile vs enemy
         for p in self.projectiles:
             if not isinstance(p, pg.sprite.Sprite) and hasattr(p, "dmg"):
                 for e in self.enemies:
                     if p.aabb_overlap(e):
+                        dmg = p.dmg
+                        is_crit = getattr(p, "crit", False)
+                        if is_crit:
+                            dmg *= 2
+                        # Executioner
+                        if e.hp > 0 and e.max_hp > 0:
+                            if e.hp / e.max_hp <= self.hero.effective_executioner_threshold:
+                                dmg = int(dmg * self.hero.effective_executioner_mult)
+                        # Siphon bonus damage
+                        if self.hero.effective_siphon_dmg > 0:
+                            dmg += int(dmg * self.hero.effective_siphon_dmg)
+                        e.take_damage(dmg)
+                        if is_crit:
+                            self.effects.append(DamageNumber(e.cx, e.cy - 6, f"{dmg}!"))
+                        else:
+                            self.effects.append(DamageNumber(e.cx, e.cy, dmg))
+                        self.particles.extend(spawn_hit_sparks(e.cx, e.cy))
+                        play_sfx("hit")
                         if hasattr(p, "bounces") and p.bounces > 0:
-                            e.take_damage(p.dmg)
                             p.dmg = int(p.dmg * 0.7)
                             p.bounces -= 1
-                            self.effects.append(DamageNumber(e.cx, e.cy, p.dmg))
-                            self.particles.extend(spawn_hit_sparks(e.cx, e.cy))
-                            play_sfx("hit")
-                            if not e.alive:
-                                self.stats.kills += 1
-                                self.particles.extend(spawn_death_particles(e.cx, e.cy, e.color))
-                                self.gems.append(XPGem(e.cx, e.cy))
-                                play_sfx("enemy_death")
                             if p.bounces <= 0:
                                 p.kill()
-                            break
                         else:
-                            e.take_damage(p.dmg)
                             p.kill()
-                            self.particles.extend(spawn_hit_sparks(e.cx, e.cy))
-                            self.effects.append(DamageNumber(e.cx, e.cy, p.dmg))
-                            play_sfx("hit")
-                            if hasattr(p, "poison") and p.poison:
-                                self.hero.apply_poison_hit()
-                                extra = self.hero.effective_poison_dmg
-                                e.take_damage(extra)
-                                self.effects.append(DamageNumber(e.cx - 8, e.cy - 10, extra))
-                            if not e.alive:
-                                self.stats.kills += 1
-                                self.particles.extend(spawn_death_particles(e.cx, e.cy, e.color))
-                                self.gems.append(XPGem(e.cx, e.cy))
-                                play_sfx("enemy_death")
-                            break
+                        if hasattr(p, "poison") and p.poison:
+                            self.hero.apply_poison_hit()
+                            extra = self.hero.effective_poison_dmg
+                            e.take_damage(extra)
+                            self.effects.append(DamageNumber(e.cx - 8, e.cy - 10, extra))
+                        self.hero.apply_lifesteal(dmg)
+                        if not e.alive:
+                            self._on_enemy_kill(e)
+                        break
 
         # Collision: enemy vs hero
         for e in self.enemies:
             if e.aabb_overlap(self.hero) and e.attack_cooldown <= 0:
+                # Evasion check
+                if self.hero.check_evasion():
+                    self.effects.append(DamageNumber(self.hero.cx, self.hero.cy - 20, "DODGE"))
+                    e.attack_cooldown = e.attack_interval
+                    continue
                 dmg = self.stats.take_damage(e.dmg)
                 self.hero.hit()
                 self.effects.append(DamageNumber(self.hero.cx, self.hero.cy - 20, dmg))
+                # Thorns reflection
+                thorns = self.hero.get_thorns()
+                if thorns > 0:
+                    e.take_damage(thorns)
+                    self.effects.append(DamageNumber(e.cx, e.cy, f"THN {thorns}"))
+                    if not e.alive:
+                        self._on_enemy_kill(e)
                 e.attack_cooldown = e.attack_interval
                 if self.stats.hp <= 0:
                     self.on_game_over()
@@ -218,21 +232,45 @@ class GameWindow(Window):
         self.effects = [fx for fx in self.effects if fx.alive]
         self.particles = [p for p in self.particles if p.alive]
 
+    def _on_enemy_kill(self, e):
+        self.stats.kills += 1
+        self.hero.register_kill()
+        if self.hero.effective_second_wind > 0:
+            self.hero.apply_second_wind()
+        if self.hero.effective_replenish > 0:
+            factor = self.hero.effective_replenish
+            self.hero.auto_cooldown *= (1 - factor)
+            self.hero.q_cooldown *= (1 - factor)
+            self.hero.e_cooldown *= (1 - factor)
+        self.particles.extend(spawn_death_particles(e.cx, e.cy, e.color))
+        self.gems.append(XPGem(e.cx, e.cy))
+        play_sfx("enemy_death")
+
     def _apply_aoe(self, aoe):
         hit_radius = aoe.get("hit_radius", aoe.get("radius"))
         hit_any = False
         for e in self.enemies:
             dist = math.hypot(e.cx - aoe["cx"], e.cy - aoe["cy"])
             if dist < hit_radius:
-                e.take_damage(aoe["dmg"])
+                dmg = aoe["dmg"]
+                is_crit = aoe.get("crit", False)
+                if is_crit:
+                    dmg *= 2
+                if e.hp > 0 and e.max_hp > 0:
+                    if e.hp / e.max_hp <= self.hero.effective_executioner_threshold:
+                        dmg = int(dmg * self.hero.effective_executioner_mult)
+                if self.hero.effective_siphon_dmg > 0:
+                    dmg += int(dmg * self.hero.effective_siphon_dmg)
+                e.take_damage(dmg)
+                self.hero.apply_lifesteal(dmg)
                 self.particles.extend(spawn_hit_sparks(e.cx, e.cy))
-                self.effects.append(DamageNumber(e.cx, e.cy, aoe["dmg"]))
+                if is_crit:
+                    self.effects.append(DamageNumber(e.cx, e.cy - 6, f"{dmg}!"))
+                else:
+                    self.effects.append(DamageNumber(e.cx, e.cy, dmg))
                 hit_any = True
                 if not e.alive:
-                    self.stats.kills += 1
-                    self.particles.extend(spawn_death_particles(e.cx, e.cy, e.color))
-                    self.gems.append(XPGem(e.cx, e.cy))
-                    play_sfx("enemy_death")
+                    self._on_enemy_kill(e)
         if hit_any:
             play_sfx("hit")
 

@@ -1,5 +1,6 @@
 """Hero base class — movement, auto-attack, abilities."""
 import math
+import random
 import pygame as pg
 from pygw import core
 from survivors.entities.base import Entity
@@ -39,6 +40,10 @@ class Hero(Entity):
         self.iron_skin_timer = 0.0
         self.rally_timer = 0.0
         self.rally_total = 0.0
+
+        # Passive system
+        self._frenzy_stacks = 0
+        self._last_enemy_hp = {}
 
     def update(self, dt, input_mgr, camera):
         super().update(dt)
@@ -175,7 +180,7 @@ class Hero(Entity):
     @property
     def effective_atk_speed(self):
         base = self.auto_ability.get("cooldown", 1.0)
-        mult = 1.0 + self.upgrade_data.get("attack_speed", 0)
+        mult = 1.0 + self.upgrade_data.get("attack_speed", 0) + self.effective_frenzy_bonus
         return base / mult if mult > 0 else base
 
     @property
@@ -221,6 +226,92 @@ class Hero(Entity):
     def effective_e_cd(self):
         return self.e_ability["cooldown"]
 
+    @property
+    def effective_crit_chance(self):
+        return self.upgrade_data.get("crit_chance", 0)
+
+    @property
+    def effective_lifesteal(self):
+        return self.upgrade_data.get("lifesteal", 0)
+
+    @property
+    def effective_thorns(self):
+        return self.upgrade_data.get("thorns", 0)
+
+    @property
+    def effective_evasion(self):
+        return self.upgrade_data.get("evasion", 0)
+
+    @property
+    def effective_siphon_dmg(self):
+        return self.upgrade_data.get("siphon_dmg", 0)
+
+    @property
+    def effective_siphon_heal(self):
+        return self.upgrade_data.get("siphon_heal", 0)
+
+    @property
+    def effective_armor(self):
+        return self.upgrade_data.get("armor", 0)
+
+    @property
+    def effective_replenish(self):
+        return self.upgrade_data.get("replenish", 0)
+
+    @property
+    def effective_second_wind(self):
+        return self.upgrade_data.get("second_wind", 0)
+
+    @property
+    def effective_executioner_mult(self):
+        return self.upgrade_data.get("executioner_mult", 1.0)
+
+    @property
+    def effective_executioner_threshold(self):
+        return self.upgrade_data.get("executioner_threshold", 0)
+
+    @property
+    def effective_frenzy_bonus(self):
+        return self._frenzy_stacks * self.upgrade_data.get("frenzy_per_kill", 0)
+
+    def take_damage(self, dmg):
+        if self.invincible > 0:
+            return 0
+        if self.iron_skin_timer > 0:
+            dmg = int(dmg * 0.5)
+        if self.effective_armor > 0:
+            dmg = max(1, dmg - self.effective_armor)
+        self.max_hp_current = getattr(self, "max_hp_current", self.max_hp)
+        return dmg
+
+    def check_evasion(self):
+        return random.random() < self.effective_evasion
+
+    def register_kill(self):
+        self._frenzy_stacks += 1
+
+    def get_thorns(self):
+        return self.effective_thorns
+
+    def apply_lifesteal(self, dmg):
+        if self.effective_lifesteal > 0:
+            heal = int(self.effective_lifesteal)
+            self.hp_current = min(self.max_hp, self.hp_current + heal)
+            return heal
+        return 0
+
+    def apply_siphon(self, dmg):
+        if self.effective_siphon_dmg > 0:
+            bonus = int(dmg * self.effective_siphon_dmg)
+            if bonus > 0:
+                self.hp_current = min(self.max_hp, self.hp_current + bonus)
+        return int(dmg * self.effective_siphon_dmg) if self.effective_siphon_dmg > 0 else 0
+
+    def apply_second_wind(self):
+        if self.effective_second_wind > 0:
+            heal = int(self.effective_second_wind)
+            self.hp_current = min(self.max_hp, self.hp_current + heal)
+
     def render(self, surface, camera):
         sx, sy = camera.world_to_screen(self.x, self.y)
         # Draw hero body
@@ -260,14 +351,16 @@ class SpeedRogue(Hero):
         dx = target.cx - self.cx
         dy = target.cy - self.cy
         dist = math.hypot(dx, dy) or 1
+        is_crit = random.random() < self.effective_crit_chance
         base_proj = dict(
             type="slash_proj",
             x=self.cx - 2,
             y=self.cy - 2,
             dmg=self.effective_dmg,
             size=self.auto_ability["proj_size"],
-            color=self.auto_ability["color"],
+            color=C.C_GOLD if is_crit else self.auto_ability["color"],
             poison=self.poison_stacks > 0,
+            crit=is_crit,
         )
         if "throwing_knives" in self.unlocked_weapons:
             knives = []
@@ -317,7 +410,10 @@ class SpeedRogue(Hero):
 class TankWarrior(Hero):
     @property
     def effective_atk_speed(self):
-        return self.effective_slam_cooldown
+        base = self.auto_ability.get("cooldown", 1.5)
+        reduce = self.upgrade_data.get("slam_cooldown_reduce", 0)
+        speed_mult = 1.0 + self.upgrade_data.get("attack_speed", 0) + self.effective_frenzy_bonus
+        return base * (1.0 - reduce) / speed_mult if speed_mult > 0 else base * (1.0 - reduce)
 
     @property
     def effective_q_cd(self):
@@ -331,6 +427,7 @@ class TankWarrior(Hero):
 
     def _create_auto_attack(self, target):
         slam_range = self.effective_slam_radius
+        is_crit = random.random() < self.effective_crit_chance
         return dict(
             type="slam_aoe",
             cx=self.cx,
@@ -338,7 +435,8 @@ class TankWarrior(Hero):
             hit_radius=slam_range,
             visual_radius=slam_range,
             dmg=self.effective_dmg,
-            color=self.auto_ability["color"],
+            color=C.C_GOLD if is_crit else self.auto_ability["color"],
+            crit=is_crit,
         )
 
     def _create_q_effect(self):
